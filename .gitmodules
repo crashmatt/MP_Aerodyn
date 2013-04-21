@@ -1,0 +1,6 @@
+[submodule "Tools/MAVLink/MAVProxy"]
+	path = Tools/MAVLink/MAVProxy
+	url = https://github.com/crashmatt/MAVProxy
+[submodule "Tools/MAVLink/mavlink"]
+	path = Tools/MAVLink/mavlink
+	url = https://github.com/crashmatt/mavlink
