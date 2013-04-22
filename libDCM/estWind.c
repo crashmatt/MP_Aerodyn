@@ -114,9 +114,14 @@ void estimateWind( void )
 		estimatedWind[1] = estimatedWind[1] +
 						  ( ( groundVelocitySum[1] - longaccum._.W1 - estimatedWind[1] ) >> 4 ) ;
 
-  		longaccum.WW = ( __builtin_mulus( estimatedAirspeed , fuselageDirectionSum[2] ) ) << 2 ;
-		estimatedWind[2] = estimatedWind[2] +
-        ( ( groundVelocitySum[2] - longaccum._.W1 - estimatedWind[2] ) >> 4 ) ;
+		// Only do z axis windspeed estimation if pitch is reasonaly level
+		// 3500 is approx +-12deg
+		if((rmat[7] < 3500) & (rmat[7] > -3500))
+		{ 
+	  		longaccum.WW = ( __builtin_mulus( estimatedAirspeed , fuselageDirectionSum[2] ) ) << 2 ;
+			estimatedWind[2] = estimatedWind[2] +
+	        ( ( groundVelocitySum[2] - longaccum._.W1 - estimatedWind[2] ) >> 4 ) ;
+		}
 
 		for ( index = 0 ; index < 3 ; index++ )
 		{
