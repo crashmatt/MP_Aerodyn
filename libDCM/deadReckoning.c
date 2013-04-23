@@ -144,7 +144,7 @@ void dead_reckon(void)
 	air_speed_y = IMUvelocityy._.W1 - estimatedWind[1] ;
 	air_speed_z = IMUvelocityz._.W1 - estimatedWind[2] ;
 
-#if ( HILSIM == 1 )
+#if (( HILSIM == 1 ) && (USE_AIRSPEED_SENSOR == 1))
 	air_speed_3DIMU = as_sim.BB ; // use Xplane as a pitot
 #else
 	air_speed_3DIMU = 
