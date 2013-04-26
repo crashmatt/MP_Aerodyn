@@ -142,6 +142,9 @@
 // the magnetometerOptions.h file, including declination and magnetometer type.
 #define MAG_YAW_DRIFT 						0
 
+// If using an airspeed sensor such as a pitot tube, enable with this option
+#define USE_AIRSPEED_SENSOR					0
+
 // Racing Mode
 // Setting RACING_MODE to 1 will keep the plane at a set throttle value while in waypoint mode.
 // RACING_MODE_WP_THROTTLE is the throttle value to use, and should be set between 0.0 and 1.0.

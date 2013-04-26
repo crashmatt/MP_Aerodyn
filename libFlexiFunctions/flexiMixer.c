@@ -50,6 +50,10 @@ void preMix( void )
 	flexiFunction_registers[get_input_register_index_from_directory(VIRTUAL_INPUT_CON_FLAP)] 		= out_cntrls[IN_CNTRL_FLAP];
 //
 	flexiFunction_registers[get_input_register_index_from_directory(VIRTUAL_INPUT_APCON_WAGGLE)]	= ap_cntrls[AP_CNTRL_WAGGLE];
+	if(	mode_autopilot_enabled() )
+		flexiFunction_registers[get_input_register_index_from_directory(VIRTUAL_INPUT_AP_ACTIVE)]		= RMAX;
+	else
+		flexiFunction_registers[get_input_register_index_from_directory(VIRTUAL_INPUT_AP_ACTIVE)]		= 0;
 }
 
 
