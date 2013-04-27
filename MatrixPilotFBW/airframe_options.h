@@ -27,34 +27,34 @@
 /** AIRCRAFT GEOMETERY INPUTS HERE **/
 
 // Aircraft mass in kg
-#define AFRM_AIRCRAFT_MASS	6.5
+#define AFRM_AIRCRAFT_MASS	2.1
 
 // Wing area in square meters
-#define AFRM_WING_AREA		1.05
+#define AFRM_WING_AREA		0.5
 
 // The ratio of wing area that is effective for generating lift
 #define AFRM_EFFECTIVE_AREA_RATIO 0.9
 
 // Mean aerodynamic wing chord
-#define AFRM_MAC				0.22
+#define AFRM_MAC				0.169
 
 // Centre of gravity measured at wing root from leading edge
-#define AFRM_COFGX			0.092
+//#define AFRM_COFGX			0.092
 
 // Centre of gravity - Not used yet
-#define AFRM_COFGY			0
+//#define AFRM_COFGY			0
 
 // Distance between the aerodynamic centres of wing and tail
-#define AFRM_TAIL_MOMENT		1.20
+#define AFRM_TAIL_MOMENT		0.7
 
 // Tail area in square meters
-#define AFRM_TAIL_AREA		0.08
+#define AFRM_TAIL_AREA		0.0612
 
 // Wing pitch relative to fuselage
 #define AFRM_NEUTRAL_PITCH		2.5
 
 // Distance between the aerodynamic centres of wing and fin
-#define AFRM_FIN_MOMENT		1.20
+#define AFRM_FIN_MOMENT		0.7
 
 // Tail area in square meters
 #define AFRM_FIN_AREA		0.08
@@ -84,10 +84,10 @@
 
 // Maximum climb rate in m/s at maximum throttle
 // Assumes linear relationship with throttle setting.
-#define MAX_THROTTLE_CLIMB_RATE	10.0
+#define MAX_THROTTLE_CLIMB_RATE	5.0
 
 // Max G including standard gravity.
-#define MAX_G_POSITIVE			5.0
+#define MAX_G_POSITIVE			4.0
 #define MAX_G_NEGATIVE			-2.0
 
 #endif

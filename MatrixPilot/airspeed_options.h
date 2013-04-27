@@ -24,10 +24,10 @@
 
 // Airspeeds in m/s
 #define MINIMUM_GROUNDSPEED 		3.0
-#define MINIMUM_AIRSPEED			10.0
-#define MAXIMUM_AIRSPEED			30.0
-#define CRUISE_AIRSPEED				14.0	// Gliding airspeed when aircraft is level
-#define RTL_AIRSPEED				16.0	// return to launch airspeed
+#define MINIMUM_AIRSPEED			8.0
+#define MAXIMUM_AIRSPEED			25.0
+#define CRUISE_AIRSPEED				10.0	// Gliding airspeed when aircraft is level
+#define RTL_AIRSPEED				14.0	// return to launch airspeed
 
 // Cruise airspeed may be below minimum airspeed for high drag aircraft.
 
