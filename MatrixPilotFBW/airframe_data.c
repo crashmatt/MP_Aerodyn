@@ -26,9 +26,9 @@
 
 const aero_condition_point camber_aero_data[] = 
 	{
-	{-RMAX,	{1000, 2000, 1200, 0}},
-	{0,		{1200, 3000, 1500, 0}},
-	{RMAX,	{1500, 5000, 2500, 0}},
+	{-RMAX,	{800, 2000, 1000, 0}},
+	{0,		{1000, 2500, 1100, 0}},
+	{RMAX,	{1500, 3000, 2000, 0}},
 	};
 
 const int16_t camber_aero_datapoints = (sizeof(camber_aero_data) / sizeof(aero_condition_point));
