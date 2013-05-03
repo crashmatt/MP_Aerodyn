@@ -640,9 +640,9 @@
 // See the MatrixPilot wiki for more info on using HILSIM.
 // HILSIM_BAUD is the serial speed for communications with the X-Plane plugin.  Default is
 // now 38400.  Make sure the X-Plane plugin's Setup file has its speed set to match.
-#define HILSIM 								1
+#define HILSIM 								0
 #define HILSIM_BAUD							57600
-#define HILSIM_FAST_STANDBY					1	// dont wait so int32_t at startup
+#define HILSIM_FAST_STANDBY					0	// dont wait so int32_t at startup
 
 ////////////////////////////////////////////////////////////////////////////////
 // Software In the Loop Simulation
