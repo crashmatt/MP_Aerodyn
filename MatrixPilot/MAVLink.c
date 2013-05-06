@@ -1932,21 +1932,21 @@ void mavlink_output_40hz( void )
 							}       
 				
 #if (MAG_YAW_DRIFT == 1)
-//				    	mavlink_msg_serial_udb_extra_f2_a_send(MAVLINK_COMM_0, tow.WW, ((udb_flags._.radio_on << 2) + (dcm_flags._.nav_capable << 1) + flags._.GPS_steering),
-//				    	lat_gps.WW , long_gps.WW , alt_sl_gps.WW, waypointIndex,
-//				        rmat[0] , rmat[1] , rmat[2] , rmat[3] , rmat[4] , rmat[5] , rmat[6] , rmat[7] , rmat[8] ,
-//				    	( uint16_t ) cog_gps.BB, sog_gps.BB, (uint16_t) udb_cpu_load(), voltage_milis.BB, 
-//				    	air_speed_3DIMU, estimatedWind[0], estimatedWind[1], estimatedWind[2],
-//				        magFieldEarth[0],magFieldEarth[1],magFieldEarth[2],
-//				        svs, hdop) ;
+				    	mavlink_msg_serial_udb_extra_f2_a_send(MAVLINK_COMM_0, tow.WW, ((udb_flags._.radio_on << 2) + (dcm_flags._.nav_capable << 1) + flags._.GPS_steering),
+				    	lat_gps.WW , long_gps.WW , alt_sl_gps.WW, waypointIndex,
+				        rmat[0] , rmat[1] , rmat[2] , rmat[3] , rmat[4] , rmat[5] , rmat[6] , rmat[7] , rmat[8] ,
+				    	( uint16_t ) cog_gps.BB, sog_gps.BB, (uint16_t) udb_cpu_load(), voltage_milis.BB, 
+				    	air_speed_3DIMU, estimatedWind[0], estimatedWind[1], estimatedWind[2],
+				        magFieldEarth[0],magFieldEarth[1],magFieldEarth[2],
+				        svs, hdop) ;
 #else
-//				        mavlink_msg_serial_udb_extra_f2_a_send(MAVLINK_COMM_0, tow.WW, ((udb_flags._.radio_on << 2) + (dcm_flags._.nav_capable << 1) + flags._.GPS_steering),
-//				    	lat_gps.WW , long_gps.WW , alt_sl_gps.WW, waypointIndex,
-//				        rmat[0] , rmat[1] , rmat[2] , rmat[3] , rmat[4] , rmat[5] , rmat[6] , rmat[7] , rmat[8] ,
-//				    	( uint16_t ) cog_gps.BB, sog_gps.BB, (uint16_t) udb_cpu_load(), voltage_milis.BB, 
-//				    	air_speed_3DIMU, estimatedWind[0], estimatedWind[1], estimatedWind[2],
-//				        0, 0, 0,
-//				        svs, hdop) ;
+				        mavlink_msg_serial_udb_extra_f2_a_send(MAVLINK_COMM_0, tow.WW, ((udb_flags._.radio_on << 2) + (dcm_flags._.nav_capable << 1) + flags._.GPS_steering),
+				    	lat_gps.WW , long_gps.WW , alt_sl_gps.WW, waypointIndex,
+				        rmat[0] , rmat[1] , rmat[2] , rmat[3] , rmat[4] , rmat[5] , rmat[6] , rmat[7] , rmat[8] ,
+				    	( uint16_t ) cog_gps.BB, sog_gps.BB, (uint16_t) udb_cpu_load(), voltage_milis.BB, 
+				    	air_speed_3DIMU, estimatedWind[0], estimatedWind[1], estimatedWind[2],
+				        0, 0, 0,
+				        svs, hdop) ;
 #endif	
 				
 				        // Save  pwIn and PwOut buffers for sending next time around in f2_b format message
