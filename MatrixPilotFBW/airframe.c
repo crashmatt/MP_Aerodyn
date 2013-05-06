@@ -66,8 +66,8 @@
 // the indexes and gains describing the working polar in terms of stored polars
 // index is for the lower value corner of the square to interpolate
 // Gain is the ratio to interpolate between two reference polars
-int16_t afrm_aspd_index  = 0;
-int16_t afrm_flap_index = 0;
+uint16_t afrm_aspd_index  = 0;
+uint16_t afrm_flap_index = 0;
 _Q16 afrm_flap_interp_gain = 0;
 _Q16 afrm_aspd_interp_gain = 0;
 
@@ -113,41 +113,34 @@ void airframeStateUpdate( void )
 // Camber input is RMAX scaled control value which is turned into flap angle
 void afrm_find_working_polar(int16_t airspeed, fractional camber)
 {
-	int16_t index;
-	int16_t aspd_index  = 0;
-	int16_t flap_index = 0;
+	uint16_t index;
+	uint16_t aspd_index  = 0;
+	uint16_t flap_index = 0;
 	_Q16 flap_interp_gain = 65536;
 	_Q16 aspd_interp_gain = 65536;
 
 	_Q16 flap_angle = afrm_calc_flap_angle(camber);
 
-	index =  AFRM_ASPD_POINTS;
-	while(index >= 0)
-	{
-		if(airspeed < afrm_polar_aspd_settings[index])
-			aspd_index = index - 1;
-		index --;
-	}
-
-	index = AFRM_FLAP_POINTS;
-	while(index >= 0)
-	{
-		if(flap_angle < afrm_polar_flap_settings[index])
-			flap_index = index - 1;
-		index --;
-	}
-
-	if(flap_index == -1)
+	if(flap_angle <= afrm_polar_flap_settings[0])
 	{
 		flap_index = 0;
 		flap_interp_gain = 0;
 	}
-	else if(flap_index == AFRM_FLAP_POINTS)
-	{
+	else if(flap_angle >= afrm_polar_flap_settings[AFRM_FLAP_POINTS-1] )
+	{		
+		flap_index = AFRM_FLAP_POINTS-1;
 		flap_interp_gain = 0;
 	}
 	else
 	{
+		index = 1;
+		while(index < AFRM_FLAP_POINTS)
+		{
+			if(flap_angle > afrm_polar_flap_settings[index])
+				flap_index = index - 1;
+			index ++;
+		}
+
 		flap_interp_gain = successive_interpolation_Q16(flap_angle,
 			afrm_polar_flap_settings[flap_index],
 			afrm_polar_flap_settings[flap_index + 1],
@@ -156,17 +149,26 @@ void afrm_find_working_polar(int16_t airspeed, fractional camber)
 	}
 
 
-	if(aspd_index == -1)
+	if(airspeed <= afrm_polar_aspd_settings[0])
 	{
 		aspd_index = 0;
 		aspd_interp_gain = 0;
 	}
-	else if(aspd_index == AFRM_ASPD_POINTS)
+	else if(airspeed >= afrm_polar_aspd_settings[AFRM_ASPD_POINTS-1] )
 	{
+		aspd_index = AFRM_ASPD_POINTS-1;
 		aspd_interp_gain = 0;
 	}
 	else
 	{
+		index =  1;
+		while(index < AFRM_ASPD_POINTS)
+		{
+			if(airspeed > afrm_polar_aspd_settings[index])
+				aspd_index = index - 1;
+			index ++;
+		}
+
 		aspd_interp_gain = successive_interpolation_Q16(airspeed,
 			afrm_polar_aspd_settings[aspd_index],
 			afrm_polar_aspd_settings[aspd_index + 1],
