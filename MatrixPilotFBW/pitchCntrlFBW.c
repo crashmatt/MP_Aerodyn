@@ -146,10 +146,14 @@ void normalPitchCntrl(void)
 	const minifloat gyro_radians_scale = ftomf(SCALEGYRO / 5632.0);
 
 	int16_t aspd_3DIMU_filtered = get_filtered_airspeed();
+	int16_t aspd_3DIMU_limited  = afrm_get_limited_aspd(aspd_3DIMU_filtered);
 
 	minifloat aspmf_filtered = ltomf(aspd_3DIMU_filtered);
 	tempmf = ftomf(0.01);
 	aspmf_filtered = mf_mult(aspmf_filtered, tempmf);
+
+	minifloat aspmf_limited = ltomf(aspd_3DIMU_limited);
+	aspmf_limited = mf_mult(aspmf_limited, tempmf);
 
 // Do basic lift/acceleration feedforward calculation
 
@@ -194,7 +198,7 @@ void normalPitchCntrl(void)
 	rate_error = mf_mult(rate_error, Q16tomf(rate_error_load_gain) );
 
 // Turn rate error into a delta in load by multiplying by airspeed in m/s
-	tempmf = mf_mult(aspmf_filtered, rate_error);
+	tempmf = mf_mult(aspmf_limited, rate_error);
 
 // Adjust required load with the rate error feedback
 	load = mf_add(load, tempmf);
@@ -210,8 +214,8 @@ void normalPitchCntrl(void)
 
 		// Calculate the required angle of attack
 		// TODO - TARGET OR ACTAL AIRSPEED???
-		wing_Cl = afrm_get_required_Cl_mf( aspd_3DIMU_filtered , load);
-		wing_aoa = afrm_get_required_alpha_mf(aspd_3DIMU_filtered, wing_Cl);
+		wing_Cl = afrm_get_required_Cl_mf( aspd_3DIMU_limited , load);
+		wing_aoa = afrm_get_required_alpha_mf(aspd_3DIMU_limited, wing_Cl);
 
 		minifloat Clmf_tail = afrm_get_tail_required_Cl_mf(wing_aoa);
 
@@ -219,10 +223,10 @@ void normalPitchCntrl(void)
 
 		// calculate required tail angle as wing pitch - wing aoa - tail aoa
 		tail_angle = mf_sub( ftomf(AFRM_NEUTRAL_PITCH) , wing_aoa);
-		tail_angle = mf_add( tail_angle , tail_aoa );
-		tail_angle = mf_add( tail_angle, Q16tomf(aoa_offset_correction) );
+//		tail_angle = mf_sub( tail_angle , tail_aoa );		TODO - put this back
+//		tail_angle = mf_add( tail_angle, Q16tomf(aoa_offset_correction) );
 
-		minifloat tail_load = afrm_calc_tail_load(aspd_3DIMU_filtered, Clmf_tail);
+		minifloat tail_load = afrm_calc_tail_load(aspd_3DIMU_limited, Clmf_tail);
 		total_load = mf_add(load, tail_load);
 
 		posAccum._.W0 = lookup_elevator_control( tail_angle );
@@ -316,8 +320,11 @@ minifloat calc_pitch_error(void)
 		}
 	}
 
-	if(desiredY > RMAX) desiredY = RMAX;
-	if(desiredY < -RMAX) desiredY = RMAX;
+	if(desiredY > RMAX) 
+		desiredY = RMAX;
+
+	if(desiredY < -RMAX) 
+		desiredY = -RMAX;
 
 	// Convert ratio to radians
 	Q16temp = ((_Q16) desiredY) << 2;
