@@ -134,6 +134,8 @@ extern const int16_t aileron_angle_points;
 extern const control_surface_angle flap_angles[];
 extern const int16_t flap_angle_points;
 
+// Get the limited airspeed used for calculations
+int16_t afrm_get_limited_aspd(int16_t airspeed);
 
 /*************************************************************/
 // AIRFRAME FUNCTIONS

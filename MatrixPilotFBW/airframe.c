@@ -106,6 +106,15 @@ void airframeStateUpdate( void )
 }
 
 
+int16_t afrm_get_limited_aspd(int16_t airspeed)
+{
+	if(airspeed > (AFRM_ASPD_FADEOUT_MAXIMUM * 100.0) )
+		return (AFRM_ASPD_FADEOUT_MAXIMUM * 100.0);
+	else if(airspeed < (AFRM_ASPD_FADEOUT_MINIMUM * 100.0) )
+		return (AFRM_ASPD_FADEOUT_MINIMUM * 100.0);
+
+	return airspeed;
+}
 
 // Find the closest polars to the operating conditions and
 // calculate the interpolation weightings for them
@@ -133,11 +142,11 @@ void afrm_find_working_polar(int16_t airspeed, fractional camber)
 	}
 	else
 	{
-		index = 1;
+		index = 0;
 		while(index < AFRM_FLAP_POINTS)
 		{
 			if(flap_angle > afrm_polar_flap_settings[index])
-				flap_index = index - 1;
+				flap_index = index;
 			index ++;
 		}
 
@@ -161,11 +170,11 @@ void afrm_find_working_polar(int16_t airspeed, fractional camber)
 	}
 	else
 	{
-		index =  1;
+		index =  0;
 		while(index < AFRM_ASPD_POINTS)
 		{
 			if(airspeed > afrm_polar_aspd_settings[index])
-				aspd_index = index - 1;
+				aspd_index = index;
 			index ++;
 		}
 
@@ -269,7 +278,7 @@ void afrm_get_polar_op_point(op_point* popp, minifloat Clmf, uint16_t aspd_index
 	if(ppoint2 == NULL)
 	{
 		index = ppolar->maxCl_index;
-		while(index > 0)		// No need to check zero index.  Done above.
+		while(index > 2)		// No need to check zero index.  Done above. 
 		{
 			if(Cl < ppolar->ppoints[index].Cl) 
 				pnt_index = index;
