@@ -28,7 +28,7 @@
 //	The parser uses a state machine implemented via a pointer to a function.
 //	Binary values received from the GPS are directed to program variables via a table
 //	of pointers to the variable locations.
-//	Unions of structures are used to be able to access the variables as int32_t, ints, or bytes.
+//	Unions of structures are used to be able to access the variables as long, ints, or bytes.
 
 
 union intbb payloadlength ;
@@ -484,7 +484,7 @@ void msg_B3 ( uint8_t gpschar )
 
 	else if ( dcm_flags._.nmea_passthrough && gpschar == '$' && udb_gps_check_rate(19200) )
 	{
-		nmea_passthru_countdown = 128; // this limits the number of characters we will passthrough. (Most lines are 60-80 chars int32_t.)
+		nmea_passthru_countdown = 128; // this limits the number of characters we will passthrough. (Most lines are 60-80 chars long.)
 		msg_parse = &nmea_passthru;
 		nmea_passthru ( gpschar );
 	}

@@ -21,17 +21,28 @@
 
 #include "libDCM_internal.h"
 
+
+// seconds
 #define DR_PERIOD (int16_t)((40/GPS_RATE)+4 )
 
 #define DR_TIMESTEP 0.025
 #define MAX16 (4.0*RMAX)
+
+// seconds
 #define DR_TAU 2.5
 
+// seconds * (cm/sec^2 / count) ??? is G always represented as cm/sec^2 ?
+// GRAVITYM is 980 cm/sec^2, GRAVITY is 2000 counts
+// dx/dt^2 * ACCEL2DELTAV = cm/sec
 #define ACCEL2DELTAV ((DR_TIMESTEP*GRAVITYM*MAX16)/GRAVITY)
+
+// seconds; the .01 must convert from cm/sec^2 to m/sec^2
+// cm/sec * VELOCITY2LOCATION = meters
 #define VELOCITY2LOCATION (DR_TIMESTEP*.01*MAX16*16.0)
 //	The factor of 16 is so that the gain is more precise.
 //	There is a subsequent right shift by 4 to cancel the multiply by 16.
 
+// 1/seconds^2
 #define DR_FILTER_GAIN (int16_t) (DR_TIMESTEP*MAX16/DR_TAU)
 #define ONE_OVER_TAU (uint16_t) (MAX16/DR_TAU)
 
@@ -53,7 +64,6 @@ union longww IMUintegralAccelerationy = { 0 } ;
 union longww IMUintegralAccelerationz = { 0 } ;
 
 uint16_t air_speed_3DIMU = 0 ;
-uint16_t ground_speed_3DIMU = 0 ;
 int16_t total_energy = 0 ;
 
 //	GPSlocation - IMUlocation
@@ -151,14 +161,18 @@ void dead_reckon(void)
 					vector3_mag ( 	air_speed_x , air_speed_y , air_speed_z ) ;
 #endif
 
-	ground_speed_3DIMU = 
-					vector3_mag ( 	IMUvelocityx._.W1 , IMUvelocityy._.W1 , IMUvelocityz._.W1 ) ;
-
 	union longww accum ;
 	union longww energy ;
 
-	accum.WW = __builtin_mulsu ( air_speed_3DIMU , 37877 ) ;
+	accum.WW = __builtin_mulsu ( air_speed_x , 37877 ) ;
 	energy.WW = __builtin_mulss ( accum._.W1 , accum._.W1 ) ;
+
+	accum.WW = __builtin_mulsu ( air_speed_y , 37877 ) ;
+	energy.WW += __builtin_mulss ( accum._.W1 , accum._.W1 ) ;
+
+	accum.WW = __builtin_mulsu ( air_speed_z , 37877 ) ;
+	energy.WW += __builtin_mulss ( accum._.W1 , accum._.W1 ) ;
+
 	energy.WW += IMUlocationz.WW ;
 	total_energy = energy._.W1 ;
 	
