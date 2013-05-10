@@ -76,7 +76,7 @@ void rollCntrl(void)
 	if ( mode_autopilot_enabled() )
 	{
 		// Get the change in aoa required from each wing to acheive the roll rate.
-		minifloat aoa_delta = afrm_get_roll_rate_required_aoa_delta(air_speed_3DIMU, roll_rate_control);
+		minifloat aoa_delta = afrm_get_roll_rate_required_aoa_delta(afrm_get_limited_aspd(air_speed_3DIMU), roll_rate_control);
 
 		// Get the aileron deflection required for the change in aoa
 		minifloat ail_deflection = afrm_get_aileron_deflection(aoa_delta);
