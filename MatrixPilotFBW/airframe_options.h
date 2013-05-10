@@ -83,7 +83,10 @@
 #define AFRM_TAIL_CL_MAX_ALPHA  10.0
 
 // maximum airspeed for control fadeout.
-#define AFRM_ASPD_FADEOUT_LIMIT	30.0
+#define AFRM_ASPD_FADEOUT_MAXIMUM 30.0
+#define AFRM_ASPD_FADEOUT_MINIMUM 7.0
+
+#define AFRM_ASPD_FADEOUT_LIMIT AFRM_ASPD_FADEOUT_MAXIMUM
 
 // Maximum climb rate in m/s at maximum throttle
 // Assumes linear relationship with throttle setting.
