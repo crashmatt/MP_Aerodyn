@@ -67,6 +67,11 @@ void airspeedCntrl(void)
 	if (udb_flags._.radio_on == 0)
 		desiredSpeed = RTL_AIRSPEED * 10.0;
 
+	uint16_t ground_speed_3DIMU = 
+		vector3_mag ( 	IMUvelocityx._.W1 ,
+						IMUvelocityy._.W1 ,
+						IMUvelocityz._.W1   ) ;
+
 	target_airspeed = calc_target_airspeed(desiredSpeed, air_speed_3DIMU, ground_speed_3DIMU);
 
 	airspeedError 	= calc_airspeed_error();
