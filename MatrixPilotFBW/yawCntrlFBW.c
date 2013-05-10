@@ -42,7 +42,7 @@ int16_t yawkprud = YAWKP_RUDDER*RMAX ;
 
 // Q16 gains in int32_t type for telemetry
 int32_t yaw_rate_gain 	= (AFRM_Q16_SCALE*0.2);		// Gain from yaw rate error to fin load
-int32_t yaw_damping 	= (AFRM_Q16_SCALE* 30.0);
+int32_t yaw_damping 	= (AFRM_Q16_SCALE* AFRM_DEFAULT_YAW_FEEDFORWARD );
 int32_t yaw_ff_correction_rate 	= (AFRM_Q16_SCALE* 5.0);
 
 // Feedforward gain from demand yaw rate to fin load
@@ -130,7 +130,7 @@ void normalYawCntrl(void)
 		yaw_moment = mf_add(yaw_moment, yaw_feedforward);
 	
 		// Find the lift coefficient for the rudder
-		ClRudd = afrm_get_rudd_required_Cl(air_speed_3DIMU , yaw_moment);
+		ClRudd = afrm_get_rudd_required_Cl(afrm_get_limited_aspd(air_speed_3DIMU) , yaw_moment);
 	
 		yaw_ffgain_Q16 = mftoQ16(yaw_feedforward_gain);
 

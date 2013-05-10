@@ -96,5 +96,8 @@
 #define MAX_G_POSITIVE			5.0
 #define MAX_G_NEGATIVE			-2.0
 
+// Feedforward gain from yaw rate to rudder control
+#define AFRM_DEFAULT_YAW_FEEDFORWARD 50.0
+
 #endif
 
