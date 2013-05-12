@@ -79,9 +79,9 @@ const int16_t aileron_angle_points = (sizeof(aileron_angles) / sizeof(control_su
 // Decribes flap angles
 const control_surface_angle flap_angles[] =
 	{
-		{-RMAX	, AFRM_Q16_SCALE * 5.0 },
-		{0 	, AFRM_Q16_SCALE * 0 },
-		{RMAX/2	, AFRM_Q16_SCALE * 5.0 },
+		{-RMAX	, AFRM_Q16_SCALE * -3.0 },
+		{0 		, AFRM_Q16_SCALE * 0 },
+		{RMAX*0.7	, AFRM_Q16_SCALE * 5.0 },
 		{RMAX	, AFRM_Q16_SCALE * 15.0 }
 	};
 
