@@ -223,8 +223,8 @@ void normalPitchCntrl(void)
 
 		// calculate required tail angle as wing pitch - wing aoa - tail aoa
 		tail_angle = mf_sub( ftomf(AFRM_NEUTRAL_PITCH) , wing_aoa);
-//		tail_angle = mf_sub( tail_angle , tail_aoa );		TODO - put this back
-//		tail_angle = mf_add( tail_angle, Q16tomf(aoa_offset_correction) );
+//		tail_angle = mf_sub( tail_angle , tail_aoa );
+		tail_angle = mf_add( tail_angle, Q16tomf(aoa_offset_correction) );
 
 		minifloat tail_load = afrm_calc_tail_load(aspd_3DIMU_limited, Clmf_tail);
 		total_load = mf_add(load, tail_load);
@@ -246,38 +246,6 @@ void normalPitchCntrl(void)
 
 void hoverPitchCntrl(void)
 {
-//	union longww pitchAccum ;
-//	
-//	if ( flags._.pitch_feedback )
-//	{
-//		pitchAccum.WW = ( __builtin_mulss( -rmat[7] , omegagyro[0] )
-//						- __builtin_mulss( rmat[6] , omegagyro[1] )) << 1 ;
-//		pitchrate = pitchAccum._.W1 ;
-//		
-//		int16_t elevInput = ( udb_flags._.radio_on == 1 ) ? REVERSE_IF_NEEDED(ELEVATOR_CHANNEL_REVERSED, udb_pwIn[ELEVATOR_INPUT_CHANNEL] - udb_pwTrim[ELEVATOR_INPUT_CHANNEL]) : 0 ;
-//		int16_t manualPitchOffset = elevInput * (int16_t)(RMAX/600);
-//		
-//		int32_t pitchToWP ;
-//		
-//		if ( flags._.GPS_steering )
-//		{
-//			pitchToWP = (tofinish_line > HOVER_NAV_MAX_PITCH_RADIUS) ? HOVERPTOWP : (HOVERPTOWP / HOVER_NAV_MAX_PITCH_RADIUS * tofinish_line) ;
-//		}
-//		else
-//		{
-//			pitchToWP = 0 ;
-//		}
-//		
-//		pitchAccum.WW = __builtin_mulss( rmat[8] + HOVERPOFFSET - pitchToWP + manualPitchOffset , hoverpitchgain )
-//					  + __builtin_mulss( hoverpitchkd , pitchrate ) ;
-//	}
-//	else
-//	{
-//		pitchAccum.WW = 0 ;
-//	}
-//	
-//	pitch_control = (int32_t)pitchAccum._.W1 ;
-	
 	return ;
 }
 
