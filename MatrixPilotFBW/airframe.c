@@ -102,7 +102,7 @@ void interpolate_op_point(_Q16 ratio, op_point* result, const op_point* popp1, c
 // Update the status of the airframe including wing polars and aoa estimates
 void airframeStateUpdate( void )
 {
-	afrm_find_working_polar( get_filtered_airspeed(), out_cntrls[IN_CNTRL_CAMBER] );
+	afrm_find_working_polar( get_filtered_airspeed(), -out_cntrls[IN_CNTRL_CAMBER] );
 }
 
 
@@ -143,7 +143,7 @@ void afrm_find_working_polar(int16_t airspeed, fractional camber)
 	else
 	{
 		index = 0;
-		while(index < AFRM_FLAP_POINTS)
+		while(index < AFRM_FLAP_POINTS - 1)
 		{
 			if(flap_angle > afrm_polar_flap_settings[index])
 				flap_index = index;
@@ -171,7 +171,7 @@ void afrm_find_working_polar(int16_t airspeed, fractional camber)
 	else
 	{
 		index =  0;
-		while(index < AFRM_ASPD_POINTS)
+		while(index < AFRM_ASPD_POINTS - 1)
 		{
 			if(airspeed > afrm_polar_aspd_settings[index])
 				aspd_index = index;
@@ -183,7 +183,7 @@ void afrm_find_working_polar(int16_t airspeed, fractional camber)
 			afrm_polar_aspd_settings[aspd_index + 1],
 			0,
 			65536);
-	}
+	}	
 
 	afrm_aspd_index = aspd_index;
 	afrm_flap_index = flap_index;
