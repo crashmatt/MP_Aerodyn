@@ -33,7 +33,7 @@
 // Standard roll rate for comparison during navigation calculation
 #define NAV_ROLL_RATE_STANDARD		25.0
 
-#define NAV_ASPD_STANDARD			12.0
+#define NAV_ASPD_STANDARD			13.0
 
 // Fiddle factor gain for navigation error to roll position
 #define AUTO_NAV_ROLL_GAIN			0.45
