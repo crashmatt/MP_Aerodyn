@@ -80,6 +80,14 @@ class HUD(object):
         self.track = 325
         self.tas = 131              # true airspeed
         self.ias = 121              # indicated airspeed
+        
+        self.flap = 0
+        self.brake = 0
+        self.flap_pcnt = 0
+        self_brake_pcnt = 0
+        
+        self.hdop = 99
+        self.satellites = 0
         self.aspd_rate = 1
         self.groundspeed = 300
         self.windspeed = 15
@@ -227,6 +235,30 @@ class HUD(object):
                                                  text="{:02.1f}", dataobj=self,  attr="av_fps", digits=4, phase=0,
                                                   x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
 
+        #hdop
+        x,y = self.grid.get_grid_pixel(-19, -6)
+        self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+                                                 text="{:02d}", dataobj=self,  attr="hdop", digits=2, phase=0,
+                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+
+        #satellites
+        x,y = self.grid.get_grid_pixel(-19, -5)
+        self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+                                                 text="{:02d}", dataobj=self,  attr="satellites", digits=2, phase=0,
+                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+
+        #flap
+        x,y = self.grid.get_grid_pixel(-19, -4)
+        self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+                                                 text="{:+02d}", dataobj=self,  attr="flap_pcnt", digits=3, phase=0,
+                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+
+        #brake
+        x,y = self.grid.get_grid_pixel(-19, -3)
+        self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+                                                 text="{:+02d}", dataobj=self,  attr="brake_pcnt", digits=3, phase=0,
+                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+
         #Vertical speed
         x,y = self.grid.get_grid_pixel(13, 3)
         self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
@@ -286,6 +318,20 @@ class HUD(object):
         x,y = self.grid.get_grid_pixel(-14, 5)
         self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
                                               text="tas", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
+
+        #FPS label
+        x,y = self.grid.get_grid_pixel(-14, 6)
+        self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
+                                              text="fps", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
+
+        #HDOP label
+        x,y = self.grid.get_grid_pixel(-15, -6)
+        self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
+                                              text="hdop", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
+        #satellites label
+        x,y = self.grid.get_grid_pixel(-16, -5)
+        self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
+                                              text="sat", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
 
         #groundspeed label
         x,y = self.grid.get_grid_pixel(-14, 4)
@@ -416,7 +462,10 @@ class HUD(object):
                     self.DISPLAY.destroy()
                     quit()
                     break
-            #If lsave process then check for quit flag being set
+                elif k==112:    #p for print
+                    pi3d.screenshot("hud_screenshot.jpg")
+                    
+            #If slave process then check for quit flag being set
             else:
                 if self.quit:
                     self.dataLayer.delete_buffers()
@@ -444,7 +493,12 @@ class HUD(object):
 #            print("queue does not exist")
 
         self.home_dist_scale()
+        self.channel_scale()
         
+    def channel_scale(self):
+        self.flap_pcnt = int((100 / 500) * (self.flap - 1510))
+        self.brake_pcnt = int((100 / 500) * (self.brake - 1510))
+
     
     def home_dist_scale(self):
         """ Scale from home distance in meters to other scales depending on range"""
