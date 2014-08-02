@@ -224,7 +224,7 @@ class HUD(object):
         #fps
         x,y = self.grid.get_grid_pixel(-19, 6)
         self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:02.1f}", dataobj=self,  attr="fps", digits=4, phase=0,
+                                                 text="{:02.1f}", dataobj=self,  attr="av_fps", digits=4, phase=0,
                                                   x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
 
         #Vertical speed
