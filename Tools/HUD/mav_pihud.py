@@ -125,7 +125,7 @@ def master_callback(m, master):
     if mtype in [ 'HEARTBEAT', 'GPS_RAW_INT', 'GPS_RAW', 'GLOBAL_POSITION_INT', 'SYS_STATUS' ]:
         if master.linkerror:
             master.linkerror = False
-            say("link %u OK" % (master.linknum+1))
+#            say("link %u OK" % (master.linknum+1))
         mpstate.status.last_message = time.time()
         master.last_message = mpstate.status.last_message
 
@@ -204,8 +204,8 @@ def master_callback(m, master):
     elif mtype == "NAV_CONTROLLER_OUTPUT" and mpstate.status.flightmode == "AUTO" and mpstate.settings.distreadout:
         rounded_dist = int(m.wp_dist/mpstate.settings.distreadout)*mpstate.settings.distreadout
         if math.fabs(rounded_dist - mpstate.status.last_distance_announce) >= mpstate.settings.distreadout:
-            if rounded_dist != 0:
-                say("%u" % rounded_dist, priority="progress")
+#            if rounded_dist != 0:
+#                say("%u" % rounded_dist, priority="progress")
             mpstate.status.last_distance_announce = rounded_dist
 
 #    elif mtype == "FENCE_STATUS":
@@ -368,11 +368,11 @@ def check_link_status():
     '''check status of master links'''
     tnow = time.time()
     if mpstate.status.last_message != 0 and tnow > mpstate.status.last_message + 5:
-        say("no link")
+#        say("no link")
         mpstate.status.heartbeat_error = True
     for master in mpstate.mav_master:
         if not master.linkerror and tnow > master.last_message + 5:
-            say("link %u down" % (master.linknum+1))
+#            say("link %u down" % (master.linknum+1))
             master.linkerror = True
 
 

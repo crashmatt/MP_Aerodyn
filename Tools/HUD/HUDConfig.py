@@ -3,19 +3,29 @@ Created on 23 Jul 2014
 
 @author: matt
 '''
-import ConfigParser
+
+import json
+
+class layerSetup(object):
+    def __init__(self, name):
+        self.name = name
+        self.update_on_phase = None
+        self.update_timestep = 0
+        self.update_at_start = False
+        self.force_redraw = False
 
 class HUDConfig(object):
     '''
     classdocs
     '''
 
-    def __init__(self):
+    def __init__(self, HUD):
         '''
         Constructor
         '''
         self.filename = "HUD.cfg"
-        self.layers = []
+        self.layerConfigs = []
+        self.variables = []
         
     def get_layers(self):
         return self.layers
