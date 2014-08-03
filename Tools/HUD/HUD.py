@@ -87,19 +87,19 @@ class HUD(object):
         self_brake_pcnt = 0
         
         self.hdop = 99
-        self.satellites = 0
+        self.satellites = 99
         self.aspd_rate = 1
-        self.groundspeed = 300
+        self.groundspeed = 999
         self.windspeed = 15
         self.heading = 221
         self.home = 120
-        self.home_dist = 50
+        self.home_dist = 999
         self.home_dist_scaled = 0
         self.home_dist_units = "m"
-        self.vertical_speed = -3.12
-        self.asl = 1024             #altitude above sea level
-        self.agl = 880              #altitude above ground level
-        self.ahl = 880              #altitude above home level
+        self.vertical_speed = 0.1
+        self.asl = 9999             #altitude above sea level
+        self.agl = 999              #altitude above ground level
+        self.ahl = 999              #altitude above home level
         self.slip = 0               #slip in degrees
         self.mode = "FBW"
         

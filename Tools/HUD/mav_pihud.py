@@ -75,7 +75,16 @@ class MPStatus(object):
         self.last_heartbeat = 0
         self.last_message = 0
         self.heartbeat_error = False
+        
+        self.have_gps_lock = False
+        self.lost_gps_lock = False
+        self.last_gps_lock = 0
 
+        # Flag to sample home point
+        self.home_set = False
+        self.sample_home_time = 0
+        self.home_lat = 0
+        self.home_lon = 0
 
 def cmd_link(args):
     for master in mpstate.mav_master:
@@ -160,6 +169,16 @@ def master_callback(m, master):
 #            mpstate.rl.set_prompt(mpstate.status.flightmode + "> ")
 
     elif msgtype == "VFR_HUD":
+        have_gps_fix = False
+        if 'GPS_RAW' in mpstate.status.msgs and mpstate.status.msgs['GPS_RAW'].fix_type == 2:
+            have_gps_fix = True
+        if 'GPS_RAW_INT' in mpstate.status.msgs and mpstate.status.msgs['GPS_RAW_INT'].fix_type == 3:
+            have_gps_fix = True
+        if have_gps_fix and not mpstate.status.have_gps_lock:
+            if getattr(mpstate.status, "home_set", False) is False:
+                mpstate.status.sample_home_time = time.time() + 10    
+            mpstate.status.have_gps_lock = True
+        
         set_hud_variable("heading", msg.heading)        
         set_hud_variable("groundspeed", msg.groundspeed)
         set_hud_variable("tas", msg.airspeed)
@@ -168,8 +187,18 @@ def master_callback(m, master):
 #    elif mtype == "GPS_RAW":
 #            if m.fix_type != 2 and not mpstate.status.lost_gps_lock and (time.time() - mpstate.status.last_gps_lock) > 3:
 
-#    elif mtype == "GPS_RAW_INT":
-#            if m.fix_type != 3 and not mpstate.status.lost_gps_lock and (time.time() - mpstate.status.last_gps_lock) > 3:
+    elif mtype == "GPS_RAW_INT":
+        set_hud_variable("hdop", msg.eph)
+        set_hud_variable("satellites", msg.satellites_visible)
+
+        if mpstate.status.have_gps_lock:
+            if m.fix_type != 3 and not mpstate.status.lost_gps_lock and (time.time() - mpstate.status.last_gps_lock) > 3:
+                mpstate.status.lost_gps_lock = True
+            if m.fix_type == 3 and mpstate.status.lost_gps_lock:
+                mpstate.status.lost_gps_lock = False
+            if m.fix_type == 3:
+                mpstate.status.last_gps_lock = time.time()
+
 
     elif mtype == "NAV_CONTROLLER_OUTPUT" and mpstate.status.flightmode == "AUTO" and mpstate.settings.distreadout:
         rounded_dist = int(m.wp_dist/mpstate.settings.distreadout)*mpstate.settings.distreadout
@@ -186,6 +215,31 @@ def master_callback(m, master):
         vz = float(vz) * -0.06  #vz from mm/s to meters/min
         set_hud_variable("vertical_speed", vz)
         
+        if mpstate.status.sample_home_time != 0:
+            if mpstate.status.last_heartbeat > mpstate.status.sample_home_time:
+                mpstate.status.sample_home_time = 0
+                mpstate.status.home_lat = msg.lat
+                mpstate.status.home_lon = msg.lon
+                mpstate.status.home_set = True
+                
+        if (mpstate.status.home_lat != 0) and (mpstate.status.home_lon != 0):
+#            lat1 = mpstate.status.home_lat
+#            lat2 = msg.lat
+#            lon1 = mpstate.status.home_lon
+#            lon2 = msg.lon           
+            lat1 = math.radians(mpstate.status.home_lat)*1.0e-7
+            lat2 = math.radians(msg.lat)*1.0e-7
+            lon1 = math.radians(mpstate.status.home_lon)*1.0e-7
+            lon2 = math.radians(msg.lon)*1.0e-7
+
+            dLat = lat2 - lat1
+            dLon = lon2 - lon1
+            a = math.sin(0.5*dLat)**2 + math.sin(0.5*dLon)**2 * math.cos(lat1) * math.cos(lat2)
+            c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0-a))
+            distance = 6371 * 1000 * c
+        
+            set_hud_variable("home_dist", distance)
+        
         #convert groundspeed to km/hr
 #        groundspeed = math.sqrt((msg.vx*msg.vx) + (msg.vy*msg.vy) + (msg.vz*msg.vz)) * 0.0036
 #        mpstate.hud_manager.set_variable("groundspeed", groundspeed)       
@@ -195,9 +249,6 @@ def master_callback(m, master):
         set_hud_variable("roll", math.degrees(msg.roll))
         set_hud_variable("pitch", math.degrees(msg.pitch))
 
-    elif msgtype == "GPS_RAW_INT":
-        set_hud_variable("hdop", msg.eph)
-        set_hud_variable("satellites", msg.satellites_visible)
 
     elif msgtype == "RAW_IMU":
         if(msg.zacc*msg.zacc > 100):
@@ -211,6 +262,12 @@ def master_callback(m, master):
         brake = msg.chan5_raw
         set_hud_variable("flap", flap)
         set_hud_variable("brake", brake)
+
+    # keep the last message of each type around
+    mpstate.status.msgs[m.get_type()] = m
+    if not m.get_type() in mpstate.status.msg_count:
+        mpstate.status.msg_count[m.get_type()] = 0
+    mpstate.status.msg_count[m.get_type()] += 1
 
 
 
