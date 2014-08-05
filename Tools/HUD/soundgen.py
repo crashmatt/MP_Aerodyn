@@ -63,12 +63,12 @@ class soundgen(object):
     def callback(self, in_data, frame_count, time_info, status):
         print("in_data[0], in_data_len, frame count, status", in_data[0], len(in_data), frame_count, status)
         try:
-            chunk = self.chunks.get_nowait()
+            self.outchunk = self.chunks.get_nowait()
             self.chunks.task_done()
-            return (chunk, pyaudio.paContinue)
+            return (self.outchunk, pyaudio.paContinue)
         except:
             print("no chunks available")
-            return ( in_data, pyaudio.paContinue)
+            return ( self.outchunk, pyaudio.paContinue)
 
 
     def gen_sound(self):
