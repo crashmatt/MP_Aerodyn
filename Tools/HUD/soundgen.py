@@ -9,6 +9,7 @@ from math import *
 import time
 import Queue
 import sys
+import threading
 
 CHUNK = 1024
 TABLE_LENGTH = 1024
@@ -19,7 +20,6 @@ print ("system platform = " + sys.platform)
 if sys.platform == 'darwin':
     CHANNELS = 1
 
-p = pyaudio.PyAudio()
 
 
 def sine(frequency, time, rate):
@@ -37,8 +37,10 @@ def cb(in_data, frame_count, time_info, status):
         if flags & pyaudio.paOutputOverflow: print("Output Overflow")
         if flags & pyaudio.paOutputUnderflow: print("Output Underflow")
         if flags & pyaudio.paPrimingOutput: print("Priming Output")
-    return myvario.callback(in_data, frame_count, time_info, status)
-
+    if(my_sgen != None):
+        return my_sgen.callback(in_data, frame_count, time_info, status)
+    else:
+        return (None, pyaudio.paComplete)
 class soundgen(object):
     '''
     classdocs
@@ -65,10 +67,27 @@ class soundgen(object):
         
         self.quietchunk = (self.gen_buffer.astype(numpy.float32).tostring())
         
-    def open(self):
+        self.stop_flag = threading.Event()
+        
+        self.sgen_thread = threading.Thread(target=self.sgen_app)
+        self.sgen_thread.daemon = True
+        self.sgen_thread.start()
+    
+    
+    def sgen_app(self):
+        self.open_stream()
+        self.run()
+        self.close_stream()
+        
+    def app_running(self):
+        return self.sgen_thread.isAlive()
+        
+    def open_stream(self):
         self.stream = p.open(format=pyaudio.paFloat32,
                                   channels=CHANNELS, rate=RATE, output=True, stream_callback=cb) #self.callback
         
+    def stop(self):
+        self.stop_flag.set()        
             
     def callback(self, in_data, frame_count, time_info, status):
 #        print("in_data[0], in_data_len, frame count, status", in_data[0], len(in_data), frame_count, status)
@@ -112,10 +131,12 @@ class soundgen(object):
                 self.gen_sound()
                 self.frequency += 1
             else:
-#                if(self.stream.is_active() == False):
-#                    self.stream.start_stream()
+                if(self.stream.is_active() == False):
+                    self.stream.start_stream()
                 time.sleep(0.01)
     
+                
+        print("ended soundgen run")
 #            if(self.first_chunk == True):
 #                self.first_chunk = False
                
@@ -125,13 +146,22 @@ class soundgen(object):
         
         #self.stream.write(self.buffer.astype(numpy.float32).tostring()
         
-    def close(self):
+    def close_stream(self):
         self.stream.stop_stream()
+        while(self.stream.is_active()):
+            time.sleep(0.1)
         self.stream.close()
-       
+        print("closed soundgen stream")
+#        self.sgen_thread.join()
         
-myvario = soundgen()
-myvario.open()
-myvario.run()
-myvario.close()
-p.terminate()
+if __name__ == '__main__':
+    
+    p = pyaudio.PyAudio()
+    my_sgen = soundgen()
+    #raw_input("Press key to exit...")
+    #myvario.stop()
+    while(my_sgen.app_running()):
+        time.sleep(0.5)
+    p.terminate()
+    
+    print("finished soundgen main")
