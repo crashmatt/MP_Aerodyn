@@ -15,6 +15,7 @@ CHUNK = 1024
 TABLE_LENGTH = 1024
 RATE = 11025
 CHANNELS = 2
+SAMPLE_TIME = ( 1 / float(RATE) )
 
 print ("system platform = " + sys.platform)
 if sys.platform == 'darwin':
@@ -46,24 +47,29 @@ class soundgen(object):
     classdocs
     '''
 
-    def __init__(self):
+    def __init__(self, pyaudio_inst=None):
         '''
         Constructor
         '''
         self.wave = sine(1.0, 1.0, RATE)
         self.phase = 0.0
-        self.frequency = 300.0
+        self.frequency = 200.0
         
-        self.attack = 0.01
+        self.attack = 0.001
         self.decay = 0.05
-        self.hold = 0.05
-        self.rate = 4
+        self.hold = 0.01
+        self.period = 0.125
+        
+        self.pulse_time = 0
+        self.pulse_amplitude = 0
         
         self.gen_buffer = numpy.zeros(CHUNK * CHANNELS, numpy.float32)
         self.chunks = Queue.Queue(3)
-        self.amplitude = 0.25
+        self.amplitude = 0.5
 
         self.stream = None
+        
+        self.p = pyaudio_inst
         
         self.quietchunk = (self.gen_buffer.astype(numpy.float32).tostring())
         
@@ -75,22 +81,25 @@ class soundgen(object):
     
     
     def sgen_app(self):
+        self.p = pyaudio.PyAudio()
         self.open_stream()
         self.run()
         self.close_stream()
-        
+        self.p.terminate()
+       
     def app_running(self):
         return self.sgen_thread.isAlive()
         
     def open_stream(self):
         print("sgen opening stream")
-        self.stream = p.open(format=pyaudio.paFloat32,
+        self.stream = self.p.open(format=pyaudio.paFloat32,
                                   channels=CHANNELS, rate=RATE, output=True, stream_callback=cb) #self.callback
         
     def stop(self):
         self.stop_flag.set()
         print("soundgen stop request set")  
-            
+
+
     def callback(self, in_data, frame_count, time_info, status):
 #        print("in_data[0], in_data_len, frame count, status", in_data[0], len(in_data), frame_count, status)
         try:
@@ -102,17 +111,49 @@ class soundgen(object):
             return ( self.quietchunk, pyaudio.paContinue)
 
 
+# pulsestates A=attack, H=hold, D=decay, E=end
+
     def gen_sound(self):
         phase_delta = self.frequency * (float(TABLE_LENGTH) / float(RATE) )
+        
+        #rates per frame step
+        attack_rate = 1 / (float(RATE) * self.attack)
+        decay_rate = 1 / (float(RATE) * self.decay)
+                    
         for i in xrange(0, CHUNK-1):
+            if(self.pulse_time < SAMPLE_TIME):
+                self.pulse_state = "A"
+                
+            if(self.pulse_state == "A"):
+                self.pulse_amplitude += attack_rate
+                if(self.pulse_amplitude > 1.0):
+                    self.pulse_amplitude = 1.0
+                    self.pulse_state = 'H'
+            
+            if(self.pulse_state == 'H'):
+                if(self.pulse_time > (self.attack + self.hold)):
+                    self.pulse_state = 'D'
+                      
+            if(self.pulse_state == "D"):
+                self.pulse_amplitude -= decay_rate
+                if(self.pulse_amplitude < 0.0):
+                    self.pulse_amplitude = 0.0
+                    self.pulse_state = 'E'
+            
+            self.pulse_time += SAMPLE_TIME
+            if(self.pulse_time > self.period):
+                self.pulse_time -= self.period
+                self.pulse_state = "A"
+
             self.phase += phase_delta
             if(self.phase >= TABLE_LENGTH):
                 self.phase -= TABLE_LENGTH
+            value = self.wave[int(self.phase)] * self.amplitude * self.pulse_amplitude
             if(CHANNELS == 2):
-                self.gen_buffer[i*2] = self.wave[int(self.phase)] * self.amplitude
-                self.gen_buffer[(i*2)+1] = self.wave[int(self.phase)] * self.amplitude
+                self.gen_buffer[i*2] = value
+                self.gen_buffer[(i*2)+1] = value
             else:
-                self.gen_buffer[i] = self.wave[int(self.phase)] * self.amplitude
+                self.gen_buffer[i] = value
             time.sleep(0)   #yield to callback that needs to run quickly
 
         
@@ -152,12 +193,10 @@ class soundgen(object):
         
 if __name__ == '__main__':
     
-    p = pyaudio.PyAudio()
     my_sgen = soundgen()
     raw_input("Press Return to exit...")
     my_sgen.stop()
     while(my_sgen.app_running()):
         time.sleep(0.5)
-    p.terminate()
     
     print("finished soundgen main")
