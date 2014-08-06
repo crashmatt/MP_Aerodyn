@@ -14,7 +14,7 @@ import threading
 CHUNK = 1024
 TABLE_LENGTH = 1024
 RATE = 11025
-CHANNELS = 2
+CHANNELS = 1
 SAMPLE_TIME = ( 1 / float(RATE) )
 
 CHUNK_TIME = (float(CHUNK) / float(RATE))
