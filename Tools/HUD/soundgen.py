@@ -17,6 +17,8 @@ RATE = 11025
 CHANNELS = 2
 SAMPLE_TIME = ( 1 / float(RATE) )
 
+CHUNK_TIME = (float(CHUNK) / float(RATE))
+
 print ("system platform = " + sys.platform)
 if sys.platform == 'darwin':
     CHANNELS = 1
@@ -122,6 +124,8 @@ class soundgen(object):
         #rates per frame step
         attack_rate = 1 / (float(RATE) * self.attack)
         decay_rate = 1 / (float(RATE) * self.decay)
+        
+        timeout_step = 0
                     
         for i in xrange(0, CHUNK-1):
             if(self.pulse_time < SAMPLE_TIME):
@@ -157,15 +161,14 @@ class soundgen(object):
                 self.gen_buffer[(i*2)+1] = value
             else:
                 self.gen_buffer[i] = value
-            time.sleep(0)   #yield to callback that needs to run quickly
-
-        
-        chunk = (self.gen_buffer.astype(numpy.float32).tostring())
-        try:
-            self.outchunk = chunk
-            self.chunks.put_nowait(chunk)
-        except:
-            if(self.debug == True): print("not enough space in chunk queue")
+                
+            timeout_step += 1
+            if(timeout_step > 10):
+                timeout_step = 0
+                time.sleep(0)   #yield to callback that needs to run quickly
+ 
+        return (self.gen_buffer.astype(numpy.float32).tostring())
+            
             
     def run(self):
         if(self.stream == None): 
@@ -173,13 +176,13 @@ class soundgen(object):
             return
                 
         while not self.stop_flag.is_set():
-            if(not self.chunks.full()):
-                self.gen_sound()
-                self.frequency += 1
-            else:
-#                if(self.stream.is_active() == False):
-#                    self.stream.start_stream()
-                time.sleep(0.01)
+            try:
+                chunk = self.gen_sound()
+                self.chunks.put(chunk, True, CHUNK_TIME*2)
+            except:
+                if(self.debug == True): print("chunk queue write timeout")
+
+            self.frequency += 1
                     
         print("ended soundgen run")
     
