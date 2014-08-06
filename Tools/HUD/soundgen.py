@@ -52,23 +52,33 @@ class soundgen(object):
         self.phase = 0.0
         self.frequency = 300.0
         
+        self.attack = 0.01
+        self.decay = 0.05
+        self.hold = 0.05
+        self.rate = 4
+        
         self.gen_buffer = numpy.zeros(CHUNK * CHANNELS, numpy.float32)
         self.chunks = Queue.Queue(3)
-        self.first_chunk = True
         self.amplitude = 0.25
+
+        self.stream = None
         
+        self.quietchunk = (self.gen_buffer.astype(numpy.float32).tostring())
+        
+    def open(self):
         self.stream = p.open(format=pyaudio.paFloat32,
-                                  channels=CHANNELS, rate=RATE, output=True, input=True, stream_callback=cb) #self.callback
+                                  channels=CHANNELS, rate=RATE, output=True, stream_callback=cb) #self.callback
+        
             
     def callback(self, in_data, frame_count, time_info, status):
-        print("in_data[0], in_data_len, frame count, status", in_data[0], len(in_data), frame_count, status)
+#        print("in_data[0], in_data_len, frame count, status", in_data[0], len(in_data), frame_count, status)
         try:
             self.outchunk = self.chunks.get_nowait()
             self.chunks.task_done()
             return (self.outchunk, pyaudio.paContinue)
         except:
-            print("no chunks available")
-            return ( self.outchunk, pyaudio.paContinue)
+            print("no chunks available, playing quiet chunk")
+            return ( self.quietchunk, pyaudio.paContinue)
 
 
     def gen_sound(self):
@@ -77,18 +87,24 @@ class soundgen(object):
             self.phase += phase_delta
             if(self.phase >= TABLE_LENGTH):
                 self.phase -= TABLE_LENGTH
-            self.gen_buffer[i*2] = self.wave[int(self.phase)] * self.amplitude
-            self.gen_buffer[(i*2)+1] = self.wave[int(self.phase)] * self.amplitude
+            if(CHANNELS == 2):
+                self.gen_buffer[i*2] = self.wave[int(self.phase)] * self.amplitude
+                self.gen_buffer[(i*2)+1] = self.wave[int(self.phase)] * self.amplitude
+            else:
+                self.gen_buffer[i] = self.wave[int(self.phase)] * self.amplitude
             time.sleep(0)   #yield to callback that needs to run quickly
 
         
         chunk = (self.gen_buffer.astype(numpy.float32).tostring())
         try:
+            self.outchunk = chunk
             self.chunks.put_nowait(chunk)
         except:
             print("not enough space in chunk queue")
             
     def run(self):
+        if(self.stream == None): return
+        
         endtime = time.time() + 10
         
         while time.time() < endtime:
@@ -96,12 +112,12 @@ class soundgen(object):
                 self.gen_sound()
                 self.frequency += 1
             else:
+#                if(self.stream.is_active() == False):
+#                    self.stream.start_stream()
                 time.sleep(0.01)
     
 #            if(self.first_chunk == True):
 #                self.first_chunk = False
-            if(self.stream.is_active() == False):
-                self.stream.start_stream()
                
 #        self.stream.stop_stream()
 #        self.stream.close()
@@ -115,6 +131,7 @@ class soundgen(object):
        
         
 myvario = soundgen()
+myvario.open()
 myvario.run()
 myvario.close()
 p.terminate()
