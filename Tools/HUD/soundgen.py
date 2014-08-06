@@ -47,10 +47,12 @@ class soundgen(object):
     classdocs
     '''
 
-    def __init__(self, pyaudio_inst=None):
+    def __init__(self, pyaudio_inst=None, debug=False):
         '''
         Constructor
         '''
+        self.debug = debug
+        
         self.wave = sine(1.0, 1.0, RATE)
         self.phase = 0.0
         self.frequency = 200.0
@@ -91,23 +93,24 @@ class soundgen(object):
         return self.sgen_thread.isAlive()
         
     def open_stream(self):
-        print("sgen opening stream")
+        if(self.debug == True): print("sgen opening stream")
         self.stream = self.p.open(format=pyaudio.paFloat32,
                                   channels=CHANNELS, rate=RATE, output=True, stream_callback=cb) #self.callback
         
     def stop(self):
         self.stop_flag.set()
-        print("soundgen stop request set")  
+        if(self.debug == True): print("soundgen stop request set")  
 
 
     def callback(self, in_data, frame_count, time_info, status):
 #        print("in_data[0], in_data_len, frame count, status", in_data[0], len(in_data), frame_count, status)
+        if(self.debug == True): print("pyaudio callback")
         try:
             self.outchunk = self.chunks.get_nowait()
             self.chunks.task_done()
             return (self.outchunk, pyaudio.paContinue)
         except:
-            print("no chunks available, playing quiet chunk")
+            if(self.debug == True): print("no chunks available, playing quiet chunk")
             return ( self.quietchunk, pyaudio.paContinue)
 
 
@@ -162,11 +165,11 @@ class soundgen(object):
             self.outchunk = chunk
             self.chunks.put_nowait(chunk)
         except:
-            print("not enough space in chunk queue")
+            if(self.debug == True): print("not enough space in chunk queue")
             
     def run(self):
         if(self.stream == None): 
-            print("stream not found at start of run, returning")
+            if(self.debug == True): print("stream not found at start of run, returning")
             return
                 
         while not self.stop_flag.is_set():
@@ -174,26 +177,26 @@ class soundgen(object):
                 self.gen_sound()
                 self.frequency += 1
             else:
-                if(self.stream.is_active() == False):
-                    self.stream.start_stream()
+#                if(self.stream.is_active() == False):
+#                    self.stream.start_stream()
                 time.sleep(0.01)
                     
         print("ended soundgen run")
     
         
     def close_stream(self):
-        print("sgen closing stream")
+        if(self.debug == True): print("sgen closing stream")
         if(self.stream != None):
             self.stream.stop_stream()
             while(self.stream.is_active()):
                 time.sleep(0.1)
             self.stream.close()
-            print("closed soundgen stream")
+            if(self.debug == True): print("closed soundgen stream")
     #        self.sgen_thread.join()
         
 if __name__ == '__main__':
     
-    my_sgen = soundgen()
+    my_sgen = soundgen(debug=True)
     raw_input("Press Return to exit...")
     my_sgen.stop()
     while(my_sgen.app_running()):
