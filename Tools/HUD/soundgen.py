@@ -90,6 +90,7 @@ class soundgen(object):
         self.run()
         self.close_stream()
         self.p.terminate()
+        if(self.debug == True): print("sgen app finished")        
        
     def app_running(self):
         return self.sgen_thread.isAlive()
@@ -200,7 +201,8 @@ class soundgen(object):
 if __name__ == '__main__':
     
     my_sgen = soundgen(debug=True)
-    raw_input("Press Return to exit...")
+    #raw_input("Press Return to exit...")
+    time.sleep(30)
     my_sgen.stop()
     while(my_sgen.app_running()):
         time.sleep(0.5)
