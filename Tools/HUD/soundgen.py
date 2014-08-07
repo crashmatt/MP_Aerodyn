@@ -90,7 +90,9 @@ class soundgen(object):
         self.run()
         self.close_stream()
         self.p.terminate()
-        if(self.debug == True): print("sgen app finished")        
+        if(self.debug == True): 
+            print("sgen app finished")       
+
        
     def app_running(self):
         return self.sgen_thread.isAlive()
@@ -119,39 +121,43 @@ class soundgen(object):
 
 # pulsestates A=attack, H=hold, D=decay, E=end
 
-    def gen_sound(self):
+    def gen_sound(self):    
         phase_delta = self.frequency * (float(TABLE_LENGTH) / float(RATE) )
-        
-        #rates per frame step
-        attack_rate = 1 / (float(RATE) * self.attack)
-        decay_rate = 1 / (float(RATE) * self.decay)
-        
+    
+        self.pulse_amplitude = 1.0
+    
+        #=======================================================================
+        # #rates per frame step
+        # attack_rate = 1 / (float(RATE) * self.attack)
+        # decay_rate = 1 / (float(RATE) * self.decay)
+        # 
         timeout_step = 0
-                    
+        #             
         for i in xrange(0, CHUNK-1):
-            if(self.pulse_time < SAMPLE_TIME):
-                self.pulse_state = "A"
-                
-            if(self.pulse_state == "A"):
-                self.pulse_amplitude += attack_rate
-                if(self.pulse_amplitude > 1.0):
-                    self.pulse_amplitude = 1.0
-                    self.pulse_state = 'H'
-            
-            if(self.pulse_state == 'H'):
-                if(self.pulse_time > (self.attack + self.hold)):
-                    self.pulse_state = 'D'
-                      
-            if(self.pulse_state == "D"):
-                self.pulse_amplitude -= decay_rate
-                if(self.pulse_amplitude < 0.0):
-                    self.pulse_amplitude = 0.0
-                    self.pulse_state = 'E'
-            
-            self.pulse_time += SAMPLE_TIME
-            if(self.pulse_time > self.period):
-                self.pulse_time -= self.period
-                self.pulse_state = "A"
+        #     if(self.pulse_time < SAMPLE_TIME):
+        #         self.pulse_state = "A"
+        #         
+        #     if(self.pulse_state == "A"):seconds
+        #         self.pulse_amplitude += attack_rate
+        #         if(self.pulse_amplitude > 1.0):
+        #             self.pulse_amplitude = 1.0
+        #             self.pulse_state = 'H'
+        #     
+        #     if(self.pulse_state == 'H'):
+        #         if(self.pulse_time > (self.attack + self.hold)):
+        #             self.pulse_state = 'D'
+        #               
+        #     if(self.pulse_state == "D"):
+        #         self.pulse_amplitude -= decay_rate
+        #         if(self.pulse_amplitude < 0.0):
+        #             self.pulse_amplitude = 0.0
+        #             self.pulse_state = 'E'
+        #     
+        #     self.pulse_time += SAMPLE_TIME
+        #     if(self.pulse_time > self.period):
+        #         self.pulse_time -= self.period
+        #         self.pulse_state = "A"
+        #=======================================================================
 
             self.phase += phase_delta
             if(self.phase >= TABLE_LENGTH):
@@ -177,11 +183,14 @@ class soundgen(object):
             return
                 
         while not self.stop_flag.is_set():
-            try:
-                chunk = self.gen_sound()
-                self.chunks.put(chunk, True, CHUNK_TIME*2)
-            except:
-                if(self.debug == True): print("chunk queue write timeout")
+            if not self.chunks.full():
+                chunk = self.gen_sound()                
+                try:
+                    self.chunks.put_nowait(chunk)
+                except:
+                    if(self.debug == True): print("chunk queue full")
+            else:
+                time.sleep(0.01)
 
             self.frequency += 1
                     
@@ -201,8 +210,8 @@ class soundgen(object):
 if __name__ == '__main__':
     
     my_sgen = soundgen(debug=True)
-    #raw_input("Press Return to exit...")
-    time.sleep(30)
+    raw_input("Press Return to exit...")
+    #time.sleep(30)
     my_sgen.stop()
     while(my_sgen.app_running()):
         time.sleep(0.5)
