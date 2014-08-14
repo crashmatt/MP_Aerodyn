@@ -121,7 +121,7 @@ class soundgen(object):
 
 # pulsestates A=attack, H=hold, D=decay, E=end
 
-    def gen_sound(self):    
+    def gen_sound(self): 
         phase_delta = self.frequency * (float(TABLE_LENGTH) / float(RATE) )
     
         self.pulse_amplitude = 1.0
