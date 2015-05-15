@@ -31,7 +31,53 @@ from multiprocessing import Queue
 
 standalone = False
 
+class LowPassFilter(object):
+    def __init__(self, const=0.5, value = 0.0):
+        self.const = const
+        self.output = value
+        self.last_filter_time = 0
+        
+    def run_filter(self, input, timestamp=0):
+        if timestamp == 0:
+            time_now = time.time()
+        else:
+            time_now = timestamp
+        delta_time = time_now - self.last_filter_time
+        const = self.const * delta_time
+        if const > 1.0:
+            const = 1.0;
+        self.output = (const * input) + ((1-const) * self.output)
+        self.last_filter_time = time_now
+        return self.output
+    
+    def get_output(self):
+        return self.output;
+    
 
+class Filter(object):
+    def __init__(self, damping=0.5, rate_gain=1.0, rate_damp=0.6):
+        self.damping = damping;
+        self.rate_gain = rate_gain;
+        
+        self.rate_filter = LowPassFilter(const=rate_damp)
+        self.output_filter = LowPassFilter(const=damping)
+        self.input_value = 0;
+                
+        self.system_timestamp = 0
+        self.measurement_timestamp = 0
+        
+    def observation(self, value, rate, measurement_timestamp, system_timestamp):
+        self.input_value = value
+        self.rate_filter.run_filter(rate, measurement_timestamp)
+        self.system_timestamp = system_timestamp
+        self.system_timestamp = system_timestamp
+                
+    def estimate(self, deltatime=0):
+        if(deltatime == 0):
+            deltatime = time.time() - self.system_timestamp
+            estimate = self.input_value + (deltatime * self.rate_filter.get_output() * self.rate_gain)
+        return self.output_filter.run_filter(estimate)
+    
 
 class HUD(object):
     def __init__(self, simulate=False, master=True, update_queue=None):
@@ -64,7 +110,7 @@ class HUD(object):
         self.fps = 20
         self.simulate = simulate
         self.master = master
-        
+                
         #Queue of attribute updates each of which is tuple (attrib, object)
         self.update_queue = update_queue
 
@@ -75,13 +121,16 @@ class HUD(object):
     def init_vars(self):
         self.pitch = 0
         self.roll = 0
-        self.pitch_rate = 2
-        self.roll_rate = 1
-        self.heading_rate = 15
-        self.track_rate = 1
-        self.track = 325
-        self.tas = 131              # true airspeed
-        self.ias = 121              # indicated airspeed
+        self.pitch_rate = 0
+        self.roll_rate = 0
+        self.heading_rate = 0
+        self.track_rate = 0
+        self.track = 0
+        self.tas = 0              # true airspeed
+        self.ias = 0              # indicated airspeed
+        
+        self.attitude_timestamp = 0
+        self.system_timestamp = time.time()
         
         self.flap = 0
         self.brake = 0
@@ -105,6 +154,9 @@ class HUD(object):
         self.slip = 0               #slip in degrees
         self.mode = "FBW"
         
+        self.pitch_filter = Filter(damping=0.75, rate_gain = 0.5)
+        self.roll_filter = Filter(damping=0.75, rate_gain = 0.0)
+
         
 #        self.climb_rate = 2.24
 
@@ -386,8 +438,13 @@ class HUD(object):
         self.slow_frame_count = 0
 
     def run_hud(self):
+
         """ run the HUD main loop """
         while self.DISPLAY.loop_running():
+            self.update()
+            
+            self.run_filters()
+
             self.dynamic_items.gen_items(self.hud_update_frame)
 
             if(self.hud_update_frame == 2):
@@ -426,7 +483,7 @@ class HUD(object):
 # try glScissor for limiting extent of ladder drawing
 
             self.background.draw()
-            self.ladder.draw_ladder(self.roll, self.pitch, 0)
+            self.ladder.draw_ladder(self.roll_filter.estimate(), self.pitch_filter.estimate(), 0)
 
             self.dataLayer.draw_layer()
             self.statusLayer.draw_layer()
@@ -472,9 +529,10 @@ class HUD(object):
                     self.staticLayer.delete_buffers()
                     self.statusLayer.delete_buffers()
                     self.DISPLAY.destroy()
-
-            self.update()
             
+    def run_filters(self):
+        self.pitch_filter.observation(self.pitch, self.pitch_rate,self.attitude_timestamp* 0.001, self.system_timestamp)
+        self.roll_filter.observation(self.roll, self.roll_rate,self.attitude_timestamp* 0.001, self.system_timestamp)
 
     def update(self):
         """" Per cycle update of all values"""

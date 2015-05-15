@@ -76,6 +76,11 @@ class MPStatus(object):
         self.last_message = 0
         self.heartbeat_error = False
         
+        # For working out rates when the telemetry doesn't have the data
+        self.last_roll = 0
+        self.last_pitch = 0
+        self.last_attitude_timestamp = 0
+        
         self.have_gps_lock = False
         self.lost_gps_lock = False
         self.last_gps_lock = 0
@@ -251,7 +256,26 @@ def master_callback(m, master):
     elif msgtype == "ATTITUDE":
         set_hud_variable("roll", math.degrees(msg.roll))
         set_hud_variable("pitch", math.degrees(msg.pitch))
-
+        
+        if( getattr(mpstate.status, "last_attitude_timestamp", -1.0) != -1.0):                
+            if(msg.time_boot_ms != mpstate.status.last_attitude_timestamp):
+                delta_time = msg.time_boot_ms - mpstate.status.last_attitude_timestamp
+                delta_pitch = msg.pitch - mpstate.status.last_pitch
+                delta_roll = msg.roll - mpstate.status.last_roll
+                
+                #Convert from ms to seconds
+                pitchrate = delta_pitch * 1000 / delta_time
+                rollrate = delta_roll * 1000 / delta_time
+                       
+                set_hud_variable("pitch_rate", math.degrees(pitchrate))
+                set_hud_variable("roll_rate", math.degrees(rollrate))
+                set_hud_variable("attitude_timestamp", msg.time_boot_ms)
+                set_hud_variable("system_timestamp", time.time())
+        
+                mpstate.status.last_roll = msg.roll
+                mpstate.status.last_pitch = msg.pitch
+                
+        mpstate.status.last_attitude_timestamp = msg.time_boot_ms
 
     elif msgtype == "RAW_IMU":
         if(msg.zacc*msg.zacc > 100):
@@ -352,16 +376,19 @@ def process_master(m):
 #                print msgtype
                 
                 
-            elif msgtype == "VFR_HUD":
-                set_hud_variable("heading", msg.heading)
-                
-                set_hud_variable("groundspeed", msg.groundspeed)
-                set_hud_variable("tas", msg.airspeed)
-        
-            elif msgtype == "ATTITUDE":
-                set_hud_variable("roll", math.degrees(msg.roll))
-                set_hud_variable("pitch", math.degrees(msg.pitch))
-        
+        #=======================================================================
+        #     if msgtype == "VFR_HUD":
+        #         set_hud_variable("heading", msg.heading)
+        #         
+        #         set_hud_variable("groundspeed", msg.groundspeed)
+        #         set_hud_variable("tas", msg.airspeed)
+        # 
+        #     elif msgtype == "ATTITUDE":
+        #         set_hud_variable("roll", math.degrees(msg.roll))
+        #         set_hud_variable("pitch", math.degrees(msg.pitch))
+        #         set_hud_variable("attitude_timestamp", time.time())
+        #=======================================================================
+
 
 
 def check_link_status():
@@ -395,21 +422,6 @@ def main_loop():
                 
         time.sleep(0.01)
 
-
-
-
-
-#------------------------------------------------------------- def input_loop():
-    #------------------------------------------------- '''wait for user input'''
-    #--------------------------------------------------------------- while True:
-        #------------------------------------ while mpstate.rl.line is not None:
-            #-------------------------------------------------- time.sleep(0.01)
-        #------------------------------------------------------------------ try:
-            #------------------------------- line = raw_input(mpstate.rl.prompt)
-        #------------------------------------------------------ except EOFError:
-            #---------------------------------------- mpstate.status.exit = True
-            #------------------------------------------------------- sys.exit(1)
-        #------------------------------------------------ mpstate.rl.line = line
 
 
 
