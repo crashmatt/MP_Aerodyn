@@ -7,6 +7,8 @@ import math, random, time, string
 #import demo
 import pi3d
 
+from pi3d.constants import *
+
 from HUDladder import HUDladder
 from LayerItems import LayerText
 from LayerItems import LayerVarText
@@ -25,6 +27,14 @@ from Box2d import Box2d
 import HUDConfig as HUDConfig
 import os
 from multiprocessing import Queue
+
+import platform
+PLATFORM = platform.system()
+
+#if platform.system() != PLATFORM_PI:
+#  from pyxlib.x import *
+#  from pyxlib import xlib
+# print("Loading xlib")
 
 #import pdb        pdb.set_trace()
 #import pydevd
@@ -137,20 +147,20 @@ class HUD(object):
         self.flap_pcnt = 0
         self_brake_pcnt = 0
         
-        self.hdop = 99
-        self.satellites = 99
+        self.hdop = 0
+        self.satellites = 0
         self.aspd_rate = 1
-        self.groundspeed = 999
-        self.windspeed = 15
-        self.heading = 221
-        self.home = 120
-        self.home_dist = 999
+        self.groundspeed = 0
+        self.windspeed = 0
+        self.heading = 0
+        self.home = 0
+        self.home_dist = 0
         self.home_dist_scaled = 0
         self.home_dist_units = "m"
-        self.vertical_speed = 0.1
-        self.asl = 9999             #altitude above sea level
-        self.agl = 999              #altitude above ground level
-        self.ahl = 999              #altitude above home level
+        self.vertical_speed = 0
+        self.asl = 0    	         #altitude above sea level
+        self.agl = 0     	         #altitude above ground level
+        self.ahl = 0      	        #altitude above home level
         self.slip = 0               #slip in degrees
         self.mode = "FBW"
         
@@ -158,7 +168,7 @@ class HUD(object):
         self.roll_filter = Filter(damping=0.75, rate_gain = 0.0)
 
         
-#        self.climb_rate = 2.24
+#        self.climb_rate = 0
 
 #    def post_variable(self, varname, value):
 #        if(hasattr(self, varname)):
@@ -168,7 +178,13 @@ class HUD(object):
         """ Initialise the HUD graphics """
 
 # Setup display and initialise pi3d
-        self.DISPLAY = pi3d.Display.create(x=20, y=0, w=700, h=580, frames_per_second=self.fps)
+#        if (platform.system() == PLATFORM_PI):
+#        	self.DISPLAY = pi3d.Display.create(x=20, y=0, w=700, h=580, frames_per_second=self.fps)
+#        else: 
+#        	self.DISPLAY = pi3d.Display.create(x=0, y=0, w=640, h=480, frames_per_second=self.fps)
+		       
+        self.DISPLAY = pi3d.Display.create(x=0, y=0, w=640, h=480, frames_per_second=self.fps)
+
         self.DISPLAY.set_background(0.0, 0.0, 0.0, 0)      # r,g,b,alpha
         
         self.background_colour=(0,0,0,255)
@@ -213,7 +229,7 @@ class HUD(object):
 
         x,y = self.grid.get_grid_pixel(14, 0)
         self.VSI = LinearIndicator(self.text_camera, self.flatsh, self.matsh, self, "vertical_speed", 
-                                   indmax=200, indmin=-200, x=x, y=y, z=3, width=18, length=180, 
+                                   indmax=100, indmin=-100, x=x, y=y, z=3, width=18, length=180, 
                                    orientation="V", line_colour=(255,255,255,255), fill_colour=(0,0,0,0.5), 
                                    line_thickness = 1, needle_img=needle_path)
 
