@@ -25,6 +25,7 @@ from Indicator import DirectionIndicator
 from Box2d import Box2d
 
 import HUDConfig as HUDConfig
+
 import os
 from multiprocessing import Queue
 
@@ -68,12 +69,12 @@ class LowPassFilter(object):
     
 
 class Filter(object):
-    def __init__(self, damping=0.5, rate_gain=1.0, rate_damp=0.6, rate_decay=0.5, max_deltatime=1.0):
+    def __init__(self, out_const=0.5, rate_gain=1.0, rate_const=0.6, rate_decay=0.5, max_deltatime=1.0):
         self.damping = damping;
         self.rate_gain = rate_gain;
         
-        self.rate_filter = LowPassFilter(const=rate_damp)
-        self.output_filter = LowPassFilter(const=damping)
+        self.rate_filter = LowPassFilter(const=rate_const)
+        self.output_filter = LowPassFilter(const=out_const)
         self.input_value = 0;
                 
         self.system_timestamp = 0
@@ -98,8 +99,8 @@ class Filter(object):
     
 
 class AngleFilter(Filter):
-    def __init__(self, damping=0.5, rate_gain=1.0, rate_damp=0.6, rate_decay=0.5, degrees=True):
-        Filter.__init__(self, damping, rate_gain, rate_damp, rate_decay)
+    def __init__(self, out_const=0.5, rate_gain=1.0, rate_const=0.6, rate_decay=0.5, degrees=True):
+        Filter.__init__(self, out_const, rate_gain, rate_const, rate_decay)
         self.degrees = degrees
         
         if(degrees == False):
@@ -213,8 +214,8 @@ class HUD(object):
         self.slip = 0               #slip in degrees
         self.mode = "FBW"
         
-        self.pitch_filter = AngleFilter(damping=0.75, rate_gain = 0.5)
-        self.roll_filter = AngleFilter(damping=0.75, rate_gain = 0.0)
+        self.pitch_filter = AngleFilter(rate_const=5, rate_gain = 0.5)
+        self.roll_filter = AngleFilter(rate_const=5, rate_gain = 0.0)
 
         
 #        self.climb_rate = 0
@@ -227,13 +228,13 @@ class HUD(object):
         """ Initialise the HUD graphics """
 
 # Setup display and initialise pi3d
-#        if (platform.system() == PLATFORM_PI):
+#       if (platform.system() == PLATFORM_PI):
 #        	self.DISPLAY = pi3d.Display.create(x=20, y=0, w=700, h=580, frames_per_second=self.fps)
 #        else: 
-#        	self.DISPLAY = pi3d.Display.create(x=0, y=0, w=640, h=480, frames_per_second=self.fps)
+#          	self.DISPLAY = pi3d.Display.create(x=0, y=0, w=640, h=480, frames_per_second=self.fps)
+   
+        self.DISPLAY = pi3d.Display.create(x=20, y=0, w=700, h=580, frames_per_second=self.fps)
 		       
-        self.DISPLAY = pi3d.Display.create(x=0, y=0, w=640, h=480, frames_per_second=self.fps)
-
         self.DISPLAY.set_background(0.0, 0.0, 0.0, 0)      # r,g,b,alpha
         
         self.background_colour=(0,0,0,255)
