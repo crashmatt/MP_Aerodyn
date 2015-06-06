@@ -69,12 +69,11 @@ class LowPassFilter(object):
     
 
 class Filter(object):
-    def __init__(self, out_const=0.5, rate_gain=1.0, rate_const=0.6, rate_decay=0.5, max_deltatime=1.0):
-        self.damping = damping;
+    def __init__(self, filter_const=0.5, rate_gain=1.0, rate_const=0.6, rate_decay=0.5, max_deltatime=1.0):
         self.rate_gain = rate_gain;
         
         self.rate_filter = LowPassFilter(const=rate_const)
-        self.output_filter = LowPassFilter(const=out_const)
+        self.output_filter = LowPassFilter(const=filter_const)
         self.input_value = 0;
                 
         self.system_timestamp = 0
