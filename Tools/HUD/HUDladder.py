@@ -39,10 +39,10 @@ class HUDladder(object):
         self.track = 0
         
         self.degstep = 10
-        self.screenstep = 0.4           # ratio of screen height
-        self.bar_thickness = 1          # pixels
-        self.zero_bar_thickness = 2     # pixels
-        self.bar_width = 0.2            # ratio of screen width
+        self.screenstep = 0.3           # ratio of screen height
+ #       self.bar_thickness = 3          # pixels
+ #       self.zero_bar_thickness = 3     # pixels
+#        self.bar_width = 0.25            # ratio of screen width
         self.bar_gap = 0.05             # ratio of screen width
         self.font_scale = 0.08          # relative to original font size
         self.font_bar_gap = 0.07        # ratio of screen width
@@ -166,24 +166,24 @@ class HUDladderBar(object):
     
     def get_bar_width(self):
         if(self.degree == 0):
-            return 0.3
+            return 0.45
         else:
-            return 0.275
+            return 0.35
     
     def get_bar_thickness(self):
         if(self.degree == 0):
-            return 4
+            return 6
         else:
-            return 3
+            return 4
         
     def get_bar_gap(self):
         return 0.06
     
     def get_font_size(self):
         if(self.degree == 0):
-            return 0.15
+            return 0.2
         else:
-            return 0.125
+            return 0.175
     
     def get_font_bar_gap(self):
         return 0.03
