@@ -287,7 +287,7 @@ def master_callback(m, master):
     elif msgtype == "RC_CHANNELS_RAW":
         flap = msg.chan4_raw
         brake = msg.chan5_raw
-        set_hud_variable("flap", flap)
+        set_hud_variable("flap", flap) 
         set_hud_variable("brake", brake)
 
     # keep the last message of each type around
@@ -320,74 +320,6 @@ def process_master(m):
         for msg in msgs:
             if getattr(m, '_timestamp', None) is None:
                 m.post_message(msg)
-
-#===============================================================================
-#             
-#             msgtype = msg.get_type()
-# 
-# 
-#             if msgtype == "HEARTBEAT":              
-#                 
-#                 set_hud_variable("mode", m.)
-#                     
-#             elif msgtype == "GLOBAL_POSITION_INT":
-#                 vz = msg.vz   # vertical velocity in cm/s
-#                 vz = float(vz) * -0.06  #vz from mm/s to meters/min
-#                 set_hud_variable("vertical_speed", vz)
-#         
-#                 #convert groundspeed to km/hr
-#         #        groundspeed = math.sqrt((msg.vx*msg.vx) + (msg.vy*msg.vy) + (msg.vz*msg.vz)) * 0.0036
-#         #        mpstate.hud_manager.set_variable("groundspeed", groundspeed)
-#                 
-#                 set_hud_variable("agl", float(msg.relative_alt)*0.001)
-#                 
-#                 
-#             elif msgtype == "VFR_HUD":
-#                 set_hud_variable("heading", msg.heading)
-#                 
-#                 set_hud_variable("groundspeed", msg.groundspeed)
-#                 set_hud_variable("tas", msg.airspeed)
-#         
-#             elif msgtype == "ATTITUDE":
-#                 set_hud_variable("roll", math.degrees(msg.roll))
-#                 set_hud_variable("pitch", math.degrees(msg.pitch))
-#         
-#             elif msgtype == "GPS_RAW_INT":
-#                 set_hud_variable("hdop", msg.eph)
-#                 set_hud_variable("satellites", msg.satellites_visible)
-#                 
-#             elif msgtype == "RAW_IMU":
-#                 if(msg.zacc*msg.zacc > 100):
-#                     slip = (180 / math.pi) * float(msg.yacc) / float(msg.zacc)
-#                 else:
-#                     slip = 0
-#                 set_hud_variable("slip", slip)
-#                 
-#             elif msgtype == "RC_CHANNELS_RAW":
-#                 flap = msg.chan4_raw
-#                 brake = msg.chan5_raw
-#                 set_hud_variable("flap", flap)
-#                 set_hud_variable("brake", brake)
-#===============================================================================
-                
-#            elif msgtype == "GLOBAL_POSITION_INT":
-#                msg.
-#            else:
-#                print msgtype
-                
-                
-        #=======================================================================
-        #     if msgtype == "VFR_HUD":
-        #         set_hud_variable("heading", msg.heading)
-        #         
-        #         set_hud_variable("groundspeed", msg.groundspeed)
-        #         set_hud_variable("tas", msg.airspeed)
-        # 
-        #     elif msgtype == "ATTITUDE":
-        #         set_hud_variable("roll", math.degrees(msg.roll))
-        #         set_hud_variable("pitch", math.degrees(msg.pitch))
-        #         set_hud_variable("attitude_timestamp", time.time())
-        #=======================================================================
 
 
 
