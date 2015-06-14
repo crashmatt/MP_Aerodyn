@@ -6,6 +6,7 @@ Created on 18 Jul 2014
 import pi3d
 import array
 import numeric
+from gettattra import *
 
 class LayerItems(object):
     def __init__(self):
@@ -98,7 +99,7 @@ class LayerVarText(LayerText):
         
     def gen_item(self):
         if(self.attr != None) and (self.dataobj != None):
-            value = getattr(self.dataobj, self.attr, None)
+            value = getattra(self.dataobj, self.attr, None)
         else:
             value = None
         
@@ -135,7 +136,7 @@ class LayerStringList(LayerVarText):
 
     def gen_item(self):
         if(self.attr != None) and (self.dataobj != None):
-            value = getattr(self.dataobj, self.attr, None)
+            value = getattra(self.dataobj, self.attr, None)
         else:
             value = None
         

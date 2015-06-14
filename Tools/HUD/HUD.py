@@ -29,6 +29,8 @@ import HUDConfig as HUDConfig
 import os
 from multiprocessing import Queue
 
+import fnmatch
+
 import platform
 PLATFORM = platform.system()
 
@@ -42,7 +44,8 @@ PLATFORM = platform.system()
 
 standalone = False
 
-servo_centre_raw = 1510
+MAX_INPUT_COMMANDS = 8
+SERVO_CENTER_RAW = 1510
 
 class LowPassFilter(object):
     def __init__(self, const=0.5, value = 0.0):
@@ -193,10 +196,8 @@ class HUD(object):
         self.attitude_timestamp = 0
         self.system_timestamp = time.time()
         
-        self.flap = servo_centre_raw
-        self.brake = servo_centre_raw
-        self.flap_pcnt = 0
-        self_brake_pcnt = 0
+        self.input_command_raw = [0] * (MAX_INPUT_COMMANDS+1)
+        self.input_command_pct = [0] * (MAX_INPUT_COMMANDS+1)
         
         self.hdop = 0
         self.satellites = 0
@@ -204,7 +205,8 @@ class HUD(object):
         self.groundspeed = 0
         self.windspeed = 0
         self.heading = 0
-        self.home = 0
+        self.home_heading = 0
+        self.home_direction = 0
         self.home_dist = 0
         self.home_dist_scaled = 0
         self.home_dist_units = "m"
@@ -213,7 +215,10 @@ class HUD(object):
         self.agl = 0     	         #altitude above ground level
         self.ahl = 0      	        #altitude above home level
         self.slip = 0               #slip in degrees
-        self.mode = "FBW"
+        self.mode = "NO LINK"
+        self.warning = "NO LINK"
+        self.brakes_active = False
+        
         
         self.pitch_filter = AngleFilter(rate_const=5, rate_gain = 0.5)
         self.roll_filter = AngleFilter(rate_const=5, rate_gain = 0.0)
@@ -271,6 +276,8 @@ class HUD(object):
         self.hudFont = pi3d.Font(font_path, self.hud_colour)   #usr/share/fonts/truetype/freefont/
         self.ladderFont = self.hudFont
         self.textFont = self.hudFont
+        
+        self.warningFont = pi3d.Font(font_path, (255,0,0,255))
 
         print("end creating fonts")
         
@@ -400,7 +407,7 @@ class HUD(object):
         #flap
         x,y = self.grid.get_grid_pixel(-19, -4)
         self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:+02d}", dataobj=self,  attr="flap_pcnt", digits=3, phase=0,
+                                                 text="{:+02d}", dataobj=self,  attr="input_command_pct[6]", digits=3, phase=0,
                                                   x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
 
         #Flap label
@@ -412,7 +419,7 @@ class HUD(object):
         #brake
         x,y = self.grid.get_grid_pixel(-19, -3)
         self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:+02d}", dataobj=self,  attr="brake_pcnt", digits=3, phase=0,
+                                                 text="{:+02d}", dataobj=self,  attr="input_command_pct[7]", digits=3, phase=0,
                                                   x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
 
         #Brake label
@@ -458,7 +465,7 @@ class HUD(object):
         
         #Home pointer
         x,y = self.grid.get_grid_pixel(-7, 5)
-        self.dynamic_items.add_item( DirectionIndicator(text_camera, self.flatsh, self.matsh, dataobj=self, attr="home", 
+        self.dynamic_items.add_item( DirectionIndicator(text_camera, self.flatsh, self.matsh, dataobj=self, attr="home_direction", 
                                                         x=x, y=y, z=3, pointer_img=pointer_path, phase=2) )
         # Home distance number
         x,y = self.grid.get_grid_pixel(-6, 5)
@@ -486,13 +493,21 @@ class HUD(object):
                 
         #Mode status using list of text strings
         x,y = self.grid.get_grid_pixel(0, 6)
-        text_strings = ["MANUAL", "AUTO", "FBW", "STABILIZE", "RTL"]
+        text_strings = ["MANUAL", "AUTO", "FBW", "STABILIZE", "RTL", "UNKNOWN", "NO LINK"]
 #        string=self.text, camera=self.camera, font=self.font, is_3d=False, x=self.x, y=self.y, z=self.z, size=self.size, justify='C'       
         strList = LayerStringList(hudFont, text_strings=text_strings, text_format="Mode: {:s}", alpha=self.text_alpha,
                                   camera=text_camera, dataobj=self, attr="mode", shader=flatsh,
                                   x=x, y=y, z=1, size=self.font_size, justify='C')
         self.status_items.add_item(strList)
         
+        x,y = self.grid.get_grid_pixel(14, 6)
+        text_strings = ["BRAKES", "NO LINK", "HEARTBEAT"]
+#        string=self.text, camera=self.camera, font=self.font, is_3d=False, x=self.x, y=self.y, z=self.z, size=self.size, justify='C'       
+        strList = LayerStringList(self.warningFont, text_strings=text_strings, text_format="{:s}", alpha=self.text_alpha,
+                                  camera=text_camera, dataobj=self, attr="warning", shader=flatsh,
+                                  x=x, y=y, z=1, size=self.font_size, justify='C')
+        self.status_items.add_item(strList)
+
 
         print("finished creating layers")
 
@@ -621,8 +636,18 @@ class HUD(object):
         if(self.update_queue is not None):
             while (self.update_queue.empty() == False):
                 var_update = self.update_queue.get_nowait()
-                if hasattr(self, var_update[0]):
-                    setattr(self, var_update[0], var_update[1])
+                if('[' in var_update[0]):
+                    update_parts = var_update[0].split('[')
+                    if(len(update_parts) == 2):
+                        if hasattr(self, update_parts[0]):
+                            thearray = getattr(self, update_parts[0])
+                            index = int(update_parts[1].replace("]", ""))
+                            thearray[index] = var_update[1]
+#                            setattr(self, "input_command_raw"[:index], var_update[1])
+                            
+                else:
+                    if hasattr(self, var_update[0]):
+                        setattr(self, var_update[0], var_update[1])
 #                self.update_queue.task_done()
         else:
             pass
@@ -630,11 +655,29 @@ class HUD(object):
 
         self.home_dist_scale()
         self.channel_scale()
+        self.calc_home_direction()
+        self.brake_condition()
+        self.status_condition()
+        
+    def status_condition(self):
+        if(self.brakes_active == True):
+            self.warning = "BRAKES"
+        
+    def brake_condition(self):
+        if(self.input_command_pct[7] > 5):
+            self.brakes_active = True
+        else:
+            self.brakes_active = False
+        
+        
+    def calc_home_direction(self):
+        self.home_direction = self.home_heading - self.heading
+        if(self.home_direction > (2*math.pi)):
+            self.home_direction = self.home_direction - (2*math.pi)
         
     def channel_scale(self):
-        self.flap_pcnt = int((100 / 500) * (self.flap - servo_centre_raw))
-        self.brake_pcnt = int((100 / 500) * (self.brake - servo_centre_raw))
-
+        for channel in range(0,MAX_INPUT_COMMANDS):
+            self.input_command_pct[channel] = int((100 / 500) * (self.input_command_raw[channel] - SERVO_CENTER_RAW))
     
     def home_dist_scale(self):
         """ Scale from home distance in meters to other scales depending on range"""

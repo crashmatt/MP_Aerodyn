@@ -225,20 +225,21 @@ def master_callback(m, master):
         
         if mpstate.status.sample_home_time != 0:
             if mpstate.status.last_heartbeat > mpstate.status.sample_home_time:
-                mpstate.status.sample_home_time = 0
-                mpstate.status.home_lat = msg.lat
-                mpstate.status.home_lon = msg.lon
-                mpstate.status.home_set = True
+                if (msg.lat != 0) and (msg.lon != 0):
+                    mpstate.status.sample_home_time = 0
+                    mpstate.status.home_lat = msg.lat
+                    mpstate.status.home_lon = msg.lon
+                    mpstate.status.home_set = True
                 
         if (mpstate.status.home_lat != 0) and (mpstate.status.home_lon != 0):
 #            lat1 = mpstate.status.home_lat
 #            lat2 = msg.lat
 #            lon1 = mpstate.status.home_lon
 #            lon2 = msg.lon           
-            lat1 = math.radians(mpstate.status.home_lat)*1.0e-7
-            lat2 = math.radians(msg.lat)*1.0e-7
-            lon1 = math.radians(mpstate.status.home_lon)*1.0e-7
-            lon2 = math.radians(msg.lon)*1.0e-7
+            lat2 = math.radians(mpstate.status.home_lat)*1.0e-7
+            lat1 = math.radians(msg.lat)*1.0e-7
+            lon2 = math.radians(mpstate.status.home_lon)*1.0e-7
+            lon1 = math.radians(msg.lon)*1.0e-7
 
             dLat = lat2 - lat1
             dLon = lon2 - lon1
@@ -247,6 +248,12 @@ def master_callback(m, master):
             distance = 6371 * 1000 * c
         
             set_hud_variable("home_dist", distance)
+            
+            if(distance > 1.0):
+                home_heading = math.atan2(math.cos(lat1)*math.sin(lat2)-math.sin(lat1)*math.cos(lat2)*math.cos(lon2-lon1), math.sin(lon2-lon1)*math.cos(lat2)) 
+            else:
+                home_heading = 0;
+            set_hud_variable("home_heading", math.degrees(math.pi-home_heading))
         
         #convert groundspeed to km/hr
 #        groundspeed = math.sqrt((msg.vx*msg.vx) + (msg.vy*msg.vy) + (msg.vz*msg.vz)) * 0.0036
@@ -285,10 +292,19 @@ def master_callback(m, master):
         set_hud_variable("slip", slip)
          
     elif msgtype == "RC_CHANNELS_RAW":
-        flap = msg.chan4_raw
-        brake = msg.chan5_raw
-        set_hud_variable("flap", flap) 
-        set_hud_variable("brake", brake)
+        set_hud_variable("input_command_raw[1]", msg.chan1_raw) 
+        set_hud_variable("input_command_raw[2]", msg.chan2_raw) 
+        set_hud_variable("input_command_raw[3]", msg.chan3_raw) 
+        set_hud_variable("input_command_raw[4]", msg.chan4_raw) 
+        set_hud_variable("input_command_raw[5]", msg.chan5_raw) 
+        set_hud_variable("input_command_raw[6]", msg.chan6_raw) 
+        set_hud_variable("input_command_raw[7]", msg.chan7_raw) 
+        set_hud_variable("input_command_raw[8]", msg.chan8_raw)
+#        flap = msg.chan4_raw
+#        brake = msg.chan5_raw
+#        set_hud_variable("flap", flap) 
+#        set_hud_variable("brake", brake)
+        
 
     # keep the last message of each type around
     mpstate.status.msgs[m.get_type()] = m

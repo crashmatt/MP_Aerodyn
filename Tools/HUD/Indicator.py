@@ -6,6 +6,7 @@ Created on 27 Jul 2014
 
 from Box2d import Box2d
 import pi3d
+from gettattra import *
 from LayerItems import LayerItem
 
 class Indicator(LayerItem):
@@ -28,7 +29,7 @@ class Indicator(LayerItem):
         self.indmin = indmin
         self.z = z
         
-        self.value = getattr(self.dataobj, self.attr, None)
+        self.value = getattra(self.dataobj, self.attr, None)
         self.bezel=None
                 
     def draw_bezel(self):
@@ -97,7 +98,7 @@ class LinearIndicator(Indicator):
 
         
     def gen_item(self):
-        self.value = getattr(self.dataobj, self.attr, None)
+        self.value = getattra(self.dataobj, self.attr, None)
         indrange = float(self.indmax - self.indmin)
         deltapos = (( float(self.value - self.indmin) / indrange) * self.length) - (self.length * 0.5)
 
@@ -133,7 +134,7 @@ class DirectionIndicator(Indicator):
                                        x=self.x, y=self.y, z=0.5, name="pointer")
         
     def gen_item(self):
-        self.value = getattr(self.dataobj, self.attr, None)
+        self.value = getattra(self.dataobj, self.attr, None)
         indrange = float(self.indmax - self.indmin)
         
         #limit travel to meter endpoints
