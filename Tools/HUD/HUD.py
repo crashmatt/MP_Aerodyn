@@ -103,8 +103,8 @@ class Filter(object):
     
 
 class AngleFilter(Filter):
-    def __init__(self, out_const=0.5, rate_gain=1.0, rate_const=0.6, rate_decay=0.5, degrees=True):
-        Filter.__init__(self, out_const, rate_gain, rate_const, rate_decay)
+    def __init__(self, filter_const=0.5, rate_gain=1.0, rate_const=0.6, rate_decay=0.5, degrees=True):
+        Filter.__init__(self, filter_const, rate_gain, rate_const, rate_decay)
         self.degrees = degrees
         
         if(degrees == False):
@@ -220,8 +220,8 @@ class HUD(object):
         self.brakes_active = False
         
         
-        self.pitch_filter = AngleFilter(rate_const=5, rate_gain = 0.5)
-        self.roll_filter = AngleFilter(rate_const=5, rate_gain = 0.0)
+        self.pitch_filter = AngleFilter(filter_const=5, rate_const=5, rate_gain = 0.5)
+        self.roll_filter = AngleFilter(filter_const=5, rate_const=5, rate_gain = 0.0)
 
         
 #        self.climb_rate = 0
