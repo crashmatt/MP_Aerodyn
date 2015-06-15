@@ -217,6 +217,7 @@ class HUD(object):
         self.slip = 0               #slip in degrees
         self.mode = "NO LINK"
         self.warning = "NO LINK"
+        self.no_link = True
         self.brakes_active = False
         
         
@@ -660,8 +661,12 @@ class HUD(object):
         self.status_condition()
         
     def status_condition(self):
-        if(self.brakes_active == True):
+        if(self.no_link):
+            self.warning = "NO LINK"
+        elif(self.brakes_active == True):
             self.warning = "BRAKES"
+        else:
+            self.warning = ""
         
     def brake_condition(self):
         if(self.input_command_pct[7] > 5):

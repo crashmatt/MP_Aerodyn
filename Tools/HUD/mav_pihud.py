@@ -91,17 +91,6 @@ class MPStatus(object):
         self.home_lat = 0
         self.home_lon = 0
 
-def cmd_link(args):
-    for master in mpstate.mav_master:
-        linkdelay = (mpstate.status.highest_msec - master.highest_msec)*1.0e-3
-        if master.linkerror:
-            print("link %u down" % (master.linknum+1))
-        else:
-            print("link %u OK (%u packets, %.2fs delay, %u lost, %.1f%% loss)" % (master.linknum+1,
-                                                                                  mpstate.status.counters['MasterIn'][master.linknum],
-                                                                                  linkdelay,
-                                                                                  master.mav_loss,
-                                                                                  master.packet_loss()))
 
 def process_stdin(line):
     '''handle commands from user'''
@@ -119,18 +108,14 @@ def master_callback(m, master):
         master.post_message(m)
     mpstate.status.counters['MasterIn'][master.linknum] += 1
 
-#    if getattr(m, 'time_boot_ms', None) is not None:
-        # update link_delayed attribute
-#        handle_msec_timestamp(m, master)
-
     mtype = m.get_type()
     msgtype = mtype
     msg = m
   
     if mtype in [ 'HEARTBEAT', 'GPS_RAW_INT', 'GPS_RAW', 'GLOBAL_POSITION_INT', 'SYS_STATUS' ]:
-        if master.linkerror:
-            master.linkerror = False
-#            say("link %u OK" % (master.linknum+1))
+        master.linkerror = False
+        set_hud_variable("no_link", False)
+
         mpstate.status.last_message = time.time()
         master.last_message = mpstate.status.last_message
 
@@ -147,25 +132,13 @@ def master_callback(m, master):
             mpstate.status.target_system = m.get_srcSystem()
             mpstate.status.target_component = m.get_srcComponent()
 
-        if mpstate.status.heartbeat_error:
-            mpstate.status.heartbeat_error = False
-        if master.linkerror:
-            master.linkerror = False
+        mpstate.status.heartbeat_error = False
 
         mpstate.status.last_heartbeat = time.time()
         master.last_heartbeat = mpstate.status.last_heartbeat
 
         set_hud_variable("mode", master.flightmode)
         
-#        armed = mpstate.master().motors_armed()
-#        if armed != mpstate.status.armed:
-#            mpstate.status.armed = armed
-        
-#    elif mtype == 'STATUSTEXT':
-#        if m.text != mpstate.status.last_apm_msg or time.time() > mpstate.status.last_apm_msg_time+2:
-#            mpstate.console.writeln("APM: %s" % m.text, bg='red')
-#            mpstate.status.last_apm_msg = m.text
-#            mpstate.status.last_apm_msg_time = time.time()
 
 
     elif mtype == "SYS_STATUS":
@@ -300,10 +273,6 @@ def master_callback(m, master):
         set_hud_variable("input_command_raw[6]", msg.chan6_raw) 
         set_hud_variable("input_command_raw[7]", msg.chan7_raw) 
         set_hud_variable("input_command_raw[8]", msg.chan8_raw)
-#        flap = msg.chan4_raw
-#        brake = msg.chan5_raw
-#        set_hud_variable("flap", flap) 
-#        set_hud_variable("brake", brake)
         
 
     # keep the last message of each type around
@@ -343,12 +312,14 @@ def check_link_status():
     '''check status of master links'''
     tnow = time.time()
     if mpstate.status.last_message != 0 and tnow > mpstate.status.last_message + 5:
-#        say("no link")
         mpstate.status.heartbeat_error = True
-    for master in mpstate.mav_master:
-        if not master.linkerror and tnow > master.last_message + 5:
-#            say("link %u down" % (master.linknum+1))
-            master.linkerror = True
+    
+    master = mpstate.mav_master
+    if tnow > master.last_message + 5:
+        master.linkerror = True
+    if master.linkerror:
+        set_hud_variable("no_link", True)
+    
 
 
 def main_loop():
@@ -370,7 +341,8 @@ def main_loop():
                 
         time.sleep(0.01)
 
-
+        if heartbeat_check_period.trigger():
+            check_link_status()
 
 
 if __name__ == '__main__':
@@ -455,6 +427,8 @@ Auto-detected serial ports are:
 
     mpstate.update_queue = Queue(100)
     mpstate.hud = HUD(master=True, update_queue=mpstate.update_queue)
+    
+    heartbeat_check_period = mavutil.periodic_event(0.33)
 
     # run main loop as a thread
     mpstate.status.thread = threading.Thread(target=main_loop)
