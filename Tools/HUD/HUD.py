@@ -198,6 +198,7 @@ class HUD(object):
         
         self.input_command_raw = [0] * (MAX_INPUT_COMMANDS+1)
         self.input_command_pct = [0] * (MAX_INPUT_COMMANDS+1)
+        self.input_command_inv = [False] * (MAX_INPUT_COMMANDS+1)
         
         self.hdop = 0
         self.satellites = 0
@@ -219,17 +220,12 @@ class HUD(object):
         self.warning = "NO LINK"
         self.no_link = True
         self.brakes_active = False
+        self.flap_pos = ""
         
         
         self.pitch_filter = AngleFilter(filter_const=5, rate_const=5, rate_gain = 0.5)
         self.roll_filter = AngleFilter(filter_const=5, rate_const=5, rate_gain = 0.0)
 
-        
-#        self.climb_rate = 0
-
-#    def post_variable(self, varname, value):
-#        if(hasattr(self, varname)):
-#            self.update_queue.put_nowait((varname, value))
         
     def init_graphics(self):
         """ Initialise the HUD graphics """
@@ -288,14 +284,14 @@ class HUD(object):
 
         x,y = self.grid.get_grid_pixel(14, 0)
         self.VSI = LinearIndicator(self.text_camera, self.flatsh, self.matsh, self, "vertical_speed", 
-                                   indmax=100, indmin=-100, x=x, y=y, z=3, width=18, length=180, 
+                                   indmax=20, indmin=-20, x=x, y=y, z=3, width=18, length=180, 
                                    orientation="V", line_colour=(255,255,255,255), fill_colour=(0,0,0,0.5), 
                                    line_thickness = 1, needle_img=needle_path)
 
         #Add slip indicator.  Scale is in degrees
         x,y = self.grid.get_grid_pixel(0, -6)
         self.slip_indicator = LinearIndicator(self.text_camera, self.flatsh, self.matsh, self, "slip", 
-                                              indmax=5, indmin=-5, x=x, y=y, z=3, width=21, length=250, 
+                                              indmax=50, indmin=-50, x=x, y=y, z=3, width=21, length=250, 
                                               orientation="H", line_colour=(255,255,255,255), fill_colour=(0,0,0,0.75), 
                                               line_thickness = 1, needle_img=needle_path)
         print("end creating indicators")
@@ -410,6 +406,7 @@ class HUD(object):
         self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
                                                  text="{:+02d}", dataobj=self,  attr="input_command_pct[6]", digits=3, phase=0,
                                                   x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+        self.input_command_inv[6] = True
 
         #Flap label
         x,y = self.grid.get_grid_pixel(-15, -4)
@@ -501,8 +498,8 @@ class HUD(object):
                                   x=x, y=y, z=1, size=self.font_size, justify='C')
         self.status_items.add_item(strList)
         
-        x,y = self.grid.get_grid_pixel(14, 6)
-        text_strings = ["BRAKES", "NO LINK", "HEARTBEAT"]
+        x,y = self.grid.get_grid_pixel(13, 6)
+        text_strings = ["BRAKES", "NO LINK", "HEARTBEAT", "FLAP UP", "FLAP DOWN", ""]
 #        string=self.text, camera=self.camera, font=self.font, is_3d=False, x=self.x, y=self.y, z=self.z, size=self.size, justify='C'       
         strList = LayerStringList(self.warningFont, text_strings=text_strings, text_format="{:s}", alpha=self.text_alpha,
                                   camera=text_camera, dataobj=self, attr="warning", shader=flatsh,
@@ -658,6 +655,7 @@ class HUD(object):
         self.channel_scale()
         self.calc_home_direction()
         self.brake_condition()
+        self.flap_condition()
         self.status_condition()
         
     def status_condition(self):
@@ -665,8 +663,19 @@ class HUD(object):
             self.warning = "NO LINK"
         elif(self.brakes_active == True):
             self.warning = "BRAKES"
+        elif(self.flap_pos != ""):
+            self.warning = self.flap_pos
         else:
             self.warning = ""
+            
+    def flap_condition(self):
+        if(self.input_command_pct[6] > 5):
+            self.flap_pos = "FLAP DOWN"
+        elif(self.input_command_pct[6] < -5):            
+            self.flap_pos = "FLAP UP"
+        else:
+            self.flap_pos = ""
+        
         
     def brake_condition(self):
         if(self.input_command_pct[7] > 5):
@@ -683,6 +692,8 @@ class HUD(object):
     def channel_scale(self):
         for channel in range(0,MAX_INPUT_COMMANDS):
             self.input_command_pct[channel] = int((100 / 500) * (self.input_command_raw[channel] - SERVO_CENTER_RAW))
+            if(self.input_command_inv[channel]):
+                self.input_command_pct[channel] = -self.input_command_pct[channel]
     
     def home_dist_scale(self):
         """ Scale from home distance in meters to other scales depending on range"""
