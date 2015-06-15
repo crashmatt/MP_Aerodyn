@@ -204,11 +204,7 @@ def master_callback(m, master):
                     mpstate.status.home_lon = msg.lon
                     mpstate.status.home_set = True
                 
-        if (mpstate.status.home_lat != 0) and (mpstate.status.home_lon != 0):
-#            lat1 = mpstate.status.home_lat
-#            lat2 = msg.lat
-#            lon1 = mpstate.status.home_lon
-#            lon2 = msg.lon           
+        if (mpstate.status.home_lat != 0) and (mpstate.status.home_lon != 0):          
             lat2 = math.radians(mpstate.status.home_lat)*1.0e-7
             lat1 = math.radians(msg.lat)*1.0e-7
             lon2 = math.radians(mpstate.status.home_lon)*1.0e-7
