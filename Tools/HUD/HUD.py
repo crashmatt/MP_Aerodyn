@@ -196,7 +196,7 @@ class HUD(object):
         self.attitude_timestamp = 0
         self.system_timestamp = time.time()
         
-        self.input_command_raw = [0] * (MAX_INPUT_COMMANDS+1)
+        self.input_command_raw = [SERVO_CENTER_RAW] * (MAX_INPUT_COMMANDS+1)
         self.input_command_pct = [0] * (MAX_INPUT_COMMANDS+1)
         self.input_command_inv = [False] * (MAX_INPUT_COMMANDS+1)
         
@@ -216,8 +216,8 @@ class HUD(object):
         self.agl = 0     	         #altitude above ground level
         self.ahl = 0      	        #altitude above home level
         self.slip = 0               #slip in degrees
-        self.mode = "NO LINK"
-        self.warning = "NO LINK"
+        self.mode = "UNKNOWN"
+        self.warning = ""
         self.no_link = True
         self.brakes_active = False
         self.flap_pos = ""
@@ -462,7 +462,7 @@ class HUD(object):
                                                      line_thickness=1, justify='C')) )
         
         #Home pointer
-        x,y = self.grid.get_grid_pixel(-7, 5)
+        x,y = self.grid.get_grid_pixel(-8, 5)
         self.dynamic_items.add_item( DirectionIndicator(text_camera, self.flatsh, self.matsh, dataobj=self, attr="home_direction", 
                                                         x=x, y=y, z=3, pointer_img=pointer_path, phase=2) )
         # Home distance number
@@ -493,7 +493,7 @@ class HUD(object):
         x,y = self.grid.get_grid_pixel(0, 6)
         text_strings = ["MANUAL", "AUTO", "FBW", "STABILIZE", "RTL", "UNKNOWN", "NO LINK"]
 #        string=self.text, camera=self.camera, font=self.font, is_3d=False, x=self.x, y=self.y, z=self.z, size=self.size, justify='C'       
-        strList = LayerStringList(hudFont, text_strings=text_strings, text_format="Mode: {:s}", alpha=self.text_alpha,
+        strList = LayerStringList(hudFont, text_strings=text_strings, text_format="{:s}", alpha=self.text_alpha,
                                   camera=text_camera, dataobj=self, attr="mode", shader=flatsh,
                                   x=x, y=y, z=1, size=self.font_size, justify='C')
         self.status_items.add_item(strList)
@@ -686,8 +686,10 @@ class HUD(object):
         
     def calc_home_direction(self):
         self.home_direction = self.home_heading - self.heading
-        if(self.home_direction > (2*math.pi)):
-            self.home_direction = self.home_direction - (2*math.pi)
+        if(self.home_direction > 360):
+            self.home_direction = self.home_direction - 360
+        elif(self.home_direction < -360):
+            self.home_direction = self.home_direction + 360
         
     def channel_scale(self):
         for channel in range(0,MAX_INPUT_COMMANDS):
