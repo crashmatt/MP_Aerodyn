@@ -204,7 +204,9 @@ class HUD(object):
         self.satellites = 0
         self.aspd_rate = 1
         self.groundspeed = 0
+        self.windspeed_cms = 0
         self.windspeed = 0
+        self.wind_direction = 0
         self.heading = 0
         self.home_heading = 0
         self.home_direction = 0
@@ -261,7 +263,7 @@ class HUD(object):
         #Create layers
         self.dataLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
         self.statusLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
-        self.slowLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
+        self.slowLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.7, flip=True)
         self.staticLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
 
         #Create textures
@@ -322,23 +324,23 @@ class HUD(object):
         
 
         # Altitude above ground
-        x,y = self.grid.get_grid_pixel(10, 4)
+        x,y = self.grid.get_grid_pixel(10, 3)
         self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
                                                  text="{:+04.0f}", dataobj=self,  attr="agl", digits=4, phase=0,
                                                   x=x, y=y, size=self.font_size*1.5, spacing=layer_text_spacing*1.6, justify='R') )
         #AGL text box
-        x,y = self.grid.get_grid_pixel(15, 4)   
+        x,y = self.grid.get_grid_pixel(15, 3)   
         self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh, 
                                                      line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour, 
                                                      w=layer_text_spacing*8*1.2, h=self.text_box_height*1.5, x=x-5, y=y, z=6, line_thickness=1, justify='C')) )
         #AGL label
-        x,y = self.grid.get_grid_pixel(17.5, 4)
+        x,y = self.grid.get_grid_pixel(17.5, 3)
         self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
                                               text="m", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
 
         
         # True airspeed number
-        x,y = self.grid.get_grid_pixel(-18, 4)
+        x,y = self.grid.get_grid_pixel(-18, 3)
         self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
                                                  text="{:03.0f}", dataobj=self,  attr="tas", digits=3, phase=0,
                                                   x=x, y=y, size=self.font_size*1.5, spacing=layer_text_spacing*1.6, justify='R') )
@@ -347,7 +349,7 @@ class HUD(object):
 #        self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
 #                                              text="tas", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
         # True airspeed text box
-        x,y = self.grid.get_grid_pixel(-18, 4)
+        x,y = self.grid.get_grid_pixel(-18, 3)
         self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh, 
                                                      line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour, 
                                                      w=120, h=self.text_box_height*1.5, x=x, y=y, z=6, line_thickness=1, justify='R')) )
@@ -426,12 +428,12 @@ class HUD(object):
                                               text="B", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
 
         #Vertical speed
-        x,y = self.grid.get_grid_pixel(13, -4)
+        x,y = self.grid.get_grid_pixel(13, -3)
         self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
                                                  text="{:+03.0f}", dataobj=self,  attr="vertical_speed", digits=4, phase=0,
                                                   x=x, y=y, size=self.font_size*1.5, spacing=layer_text_spacing*1.6, justify='C') )        
         # Climb rate text box
-        x,y = self.grid.get_grid_pixel(14, -4)
+        x,y = self.grid.get_grid_pixel(14, -3)
         self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh, 
                                                      line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour, 
                                                      w=120, h=self.text_box_height*1.5, x=x, y=y, z=6, line_thickness=1, justify='C')) )
@@ -483,6 +485,26 @@ class HUD(object):
                                                      line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour,
                                                      w=layer_text_spacing*8, h=self.text_box_height, x=x-5, y=y, z=6, 
                                                      line_thickness=1, justify='C')) )
+
+
+        
+        #Wind pointer
+        x,y = self.grid.get_grid_pixel(-12, 4)
+        self.slow_items.add_item( DirectionIndicator(text_camera, self.flatsh, self.matsh, dataobj=self, attr="wind_direction", 
+                                                        x=x, y=y, z=3, pointer_img=pointer_path, phase=2) )
+        # Windspeed number
+        x,y = self.grid.get_grid_pixel(-18, 4)
+        
+        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+                                                 text="{:02.0f}", dataobj=self,  attr="windspeed", digits=2, phase=0,
+                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+        
+        # Windspeed text box
+        x,y = self.grid.get_grid_pixel(-18, 4)
+        self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh,
+                                                     line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour,
+                                                     w=layer_text_spacing*4, h=self.text_box_height, x=x-5, y=y, z=6, 
+                                                     line_thickness=1, justify='R')) )
 
         
         self.static_items.add_item( LayerShape(self.VSI.bezel) )
@@ -656,7 +678,11 @@ class HUD(object):
         self.calc_home_direction()
         self.brake_condition()
         self.flap_condition()
+        self.windspeed_scale()
         self.status_condition()
+        
+    def windspeed_scale(self):
+        self.windspeed = self.windspeed_cms * 0.01
         
     def status_condition(self):
         if(self.no_link):

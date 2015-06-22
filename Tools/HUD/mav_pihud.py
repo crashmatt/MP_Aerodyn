@@ -10,7 +10,7 @@ Cutdown of mavproxy by Andrew Tridgell
 
 '''
 
-import sys, os, struct, math, time, socket
+import sys, os, struct, math, time, socket, cmath
 import fnmatch, errno, threading
 import serial, Queue, select
 
@@ -269,6 +269,13 @@ def master_callback(m, master):
         set_hud_variable("input_command_raw[6]", msg.chan6_raw) 
         set_hud_variable("input_command_raw[7]", msg.chan7_raw) 
         set_hud_variable("input_command_raw[8]", msg.chan8_raw)
+        
+    elif msgtype == "SERIAL_UDB_EXTRA_F2_A":
+        windy = float(msg.sue_estimated_wind_0)
+        windx = float(msg.sue_estimated_wind_1)
+        windspeed = math.sqrt((windx*windx)+(windy*windy))
+        set_hud_variable( "windspeed_cms", windspeed )
+        set_hud_variable( "wind_direction", math.degrees(cmath.phase(complex(windx,windy))) )
         
 
     # keep the last message of each type around
