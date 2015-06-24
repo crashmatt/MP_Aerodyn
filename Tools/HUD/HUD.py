@@ -224,6 +224,7 @@ class HUD(object):
         self.brakes_active = False
         self.flap_pos = ""
         
+        self.link_quality = 0
         
         self.pitch_filter = AngleFilter(filter_const=5, rate_const=5, rate_gain = 0.5)
         self.roll_filter = AngleFilter(filter_const=5, rate_const=5, rate_gain = 0.0)
@@ -381,6 +382,12 @@ class HUD(object):
         self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
                                               text="fps", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
 
+        #link quality
+        x,y = self.grid.get_grid_pixel(-18, -2)
+        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+                                                 text="{:03d}", dataobj=self,  attr="link_quality", digits=3, phase=0,
+                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+
 
         #hdop
         x,y = self.grid.get_grid_pixel(-18, -6)
@@ -489,21 +496,21 @@ class HUD(object):
 
         
         #Wind pointer
-        x,y = self.grid.get_grid_pixel(-12, 4)
+        x,y = self.grid.get_grid_pixel(-12, 4.5)
         self.slow_items.add_item( DirectionIndicator(text_camera, self.flatsh, self.matsh, dataobj=self, attr="wind_direction", 
                                                         x=x, y=y, z=3, pointer_img=pointer_path, phase=2) )
         # Windspeed number
-        x,y = self.grid.get_grid_pixel(-18, 4)
+        x,y = self.grid.get_grid_pixel(-17.5, 4.5)
         
         self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:02.0f}", dataobj=self,  attr="windspeed", digits=2, phase=0,
-                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+                                                 text="{:2.0f}", dataobj=self,  attr="windspeed", digits=2, phase=0,
+                                                  x=x, y=y, size=self.font_size*1.5, spacing=layer_text_spacing*1.5, justify='R') )
         
         # Windspeed text box
-        x,y = self.grid.get_grid_pixel(-18, 4)
+        x,y = self.grid.get_grid_pixel(-17.5, 4.5)
         self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh,
                                                      line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour,
-                                                     w=layer_text_spacing*4, h=self.text_box_height, x=x-5, y=y, z=6, 
+                                                     w=layer_text_spacing*3*1.5, h=self.text_box_height*1.5, x=x-5, y=y, z=6, 
                                                      line_thickness=1, justify='R')) )
 
         
@@ -521,7 +528,7 @@ class HUD(object):
         self.status_items.add_item(strList)
         
         x,y = self.grid.get_grid_pixel(13, 6)
-        text_strings = ["BRAKES", "NO LINK", "HEARTBEAT", "FLAP UP", "FLAP DOWN", ""]
+        text_strings = ["BRAKES", "NO LINK", "HEARTBEAT", "FLAP UP", "FLAP DOWN", "LINK WARN", ""]
 #        string=self.text, camera=self.camera, font=self.font, is_3d=False, x=self.x, y=self.y, z=self.z, size=self.size, justify='C'       
         strList = LayerStringList(self.warningFont, text_strings=text_strings, text_format="{:s}", alpha=self.text_alpha,
                                   camera=text_camera, dataobj=self, attr="warning", shader=flatsh,
@@ -687,6 +694,8 @@ class HUD(object):
     def status_condition(self):
         if(self.no_link):
             self.warning = "NO LINK"
+        if(self.link_quality > 30):
+            self.warning = "LINK WARN"
         elif(self.brakes_active == True):
             self.warning = "BRAKES"
         elif(self.flap_pos != ""):

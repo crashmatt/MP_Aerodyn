@@ -26,18 +26,6 @@ for d in [ 'pymavlink',
         sys.path.insert(0, d)
 
 
-#for d in [ 'pymavlink',
-#           os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'mavlink'),
-#           os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'mavlink', 'pymavlink') ]:
-#    if os.path.exists(d):
-#
-
-#sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'MAVlink', 'mavlink', 'pymavlink'))
-
-#import select
-#from modules.lib import textconsole
-#from modules.lib import mp_settings
-
 import mavlinkv10 as mavlink
 
 class MPState(object):
@@ -51,10 +39,6 @@ class MPState(object):
 
     def master(self):
         '''return the currently chosen mavlink master object'''
-#        if self.settings.link > len(self.mav_master):
-#            self.settings.link = 1
-
-        # try to use one with no link error
         return self.mav_master
 
 
@@ -72,6 +56,7 @@ class MPStatus(object):
 
         self.exit = False
         self.flightmode = 'MAV'
+
         self.last_heartbeat = 0
         self.last_message = 0
         self.heartbeat_error = False
@@ -84,12 +69,18 @@ class MPStatus(object):
         self.have_gps_lock = False
         self.lost_gps_lock = False
         self.last_gps_lock = 0
-
+        
         # Flag to sample home point
         self.home_set = False
         self.sample_home_time = 0
         self.home_lat = 0
         self.home_lon = 0
+        
+        self.packet_count = 0
+        self.lost_packets = 0
+        
+        self.last_packet_count  = 0
+        self.packet_loss_rate   = 0.0
 
 
 def process_stdin(line):
@@ -121,10 +112,22 @@ def master_callback(m, master):
 
     if master.link_delayed:
         # don't process delayed packets that cause double reporting
-        if mtype in [ 'MISSION_CURRENT', 'SYS_STATUS', 'VFR_HUD',
-                      'GPS_RAW_INT', 'SCALED_PRESSURE', 'GLOBAL_POSITION_INT',
-                      'NAV_CONTROLLER_OUTPUT' ]:
+        if mtype in [ 'MISSION_CURRENT', 'SYS_STATUS', 'VFR_HUD', 'RAW_IMU'
+                      'GPS_RAW_INT', 'SCALED_PRESSURE', 'GLOBAL_POSITION_INT', 'RC_CHANNELS_RAW',
+                      'NAV_CONTROLLER_OUTPUT',  'SERIAL_UDB_EXTRA_F2_A', 'SERIAL_UDB_EXTRA_F2_B']:
             return
+        
+    msg_seq = msg.get_seq()
+    #check for repeat message
+    if(msg_seq == mpstate.status.packet_count):
+        return
+    
+    #Add count of missed packets to tracking total
+    next_count = (mpstate.status.packet_count + 1) % 256
+    diff = (msg_seq - next_count) % 256
+    if(msg_seq > next_count):
+        mpstate.status.lost_packets = mpstate.status.lost_packets + diff
+    mpstate.status.packet_count = msg_seq
 
     if mtype == 'HEARTBEAT':
         if (mpstate.status.target_system != m.get_srcSystem() or
@@ -271,11 +274,12 @@ def master_callback(m, master):
         set_hud_variable("input_command_raw[8]", msg.chan8_raw)
         
     elif msgtype == "SERIAL_UDB_EXTRA_F2_A":
-        windy = float(msg.sue_estimated_wind_0)
-        windx = float(msg.sue_estimated_wind_1)
-        windspeed = math.sqrt((windx*windx)+(windy*windy))
+        #x is east-west, y is north-south
+        windew = float(-msg.sue_estimated_wind_0)
+        windns = float(msg.sue_estimated_wind_1)
+        windspeed = math.sqrt((windns*windns)+(windew*windew))
         set_hud_variable( "windspeed_cms", windspeed )
-        set_hud_variable( "wind_direction", math.degrees(cmath.phase(complex(windx,windy))) )
+        set_hud_variable( "wind_direction", math.degrees(cmath.phase(complex(windns,windew))) )
         
 
     # keep the last message of each type around
@@ -322,7 +326,28 @@ def check_link_status():
         master.linkerror = True
     if master.linkerror:
         set_hud_variable("no_link", True)
+        
     
+def calc_packet_loss(master):
+    if(mpstate.status.last_packet_count != 0):
+        delta_count = master.mav_count - mpstate.status.last_packet_count
+        loss = mpstate.status.lost_packets
+        if(loss > delta_count):
+            loss_rate = -1
+        elif(delta_count > 10):
+            loss_rate = (100*loss)/(delta_count+loss)
+        else:
+            loss_rate = -1
+            
+        mpstate.status.lost_packets = 0
+            
+    else:
+        loss_rate = 0
+
+
+    mpstate.status.last_packet_count = master.mav_count
+    mpstate.status.last_packet_loss = master.mav_loss
+    set_hud_variable("link_quality", int(loss_rate))
 
 
 def main_loop():
@@ -346,6 +371,9 @@ def main_loop():
 
         if heartbeat_check_period.trigger():
             check_link_status()
+            
+        if packet_loss_check_period.trigger():
+            calc_packet_loss(master)
 
 
 if __name__ == '__main__':
@@ -432,6 +460,7 @@ Auto-detected serial ports are:
     mpstate.hud = HUD(master=True, update_queue=mpstate.update_queue)
     
     heartbeat_check_period = mavutil.periodic_event(0.33)
+    packet_loss_check_period = mavutil.periodic_event(1.0)
 
     # run main loop as a thread
     mpstate.status.thread = threading.Thread(target=main_loop)
