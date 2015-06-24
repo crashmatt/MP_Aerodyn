@@ -383,29 +383,33 @@ class HUD(object):
                                               text="fps", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
 
         #link quality
-        x,y = self.grid.get_grid_pixel(-18, -2)
+        x,y = self.grid.get_grid_pixel(-19, -2)
         self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:03d}", dataobj=self,  attr="link_quality", digits=3, phase=0,
+                                                 text="{:3d}", dataobj=self,  attr="link_quality", digits=3, phase=0,
                                                   x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
 
+        #Link label
+        x,y = self.grid.get_grid_pixel(-14, -2)
+        self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
+                                              text="%loss", x=x, y=y, size=self.label_size*0.8, alpha=self.label_alpha) )
 
         #hdop
-        x,y = self.grid.get_grid_pixel(-18, -6)
+        x,y = self.grid.get_grid_pixel(-18, -5)
         self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
                                                  text="{:02d}", dataobj=self,  attr="hdop", digits=2, phase=0,
                                                   x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
         #HDOP label
-        x,y = self.grid.get_grid_pixel(-14, -6)
+        x,y = self.grid.get_grid_pixel(-14, -5)
         self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
                                               text="hdop", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
 
         #satellites
-        x,y = self.grid.get_grid_pixel(-18, -5)
+        x,y = self.grid.get_grid_pixel(-18, -6)
         self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
                                                  text="{:02d}", dataobj=self,  attr="satellites", digits=2, phase=0,
                                                   x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
         #satellites label
-        x,y = self.grid.get_grid_pixel(-15, -5)
+        x,y = self.grid.get_grid_pixel(-15, -6)
         self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
                                               text="sat", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
 
