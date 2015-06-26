@@ -226,10 +226,7 @@ def master_callback(m, master):
             else:
                 home_heading = 0;
             set_hud_variable("home_heading", math.degrees(math.pi-home_heading))
-        
-        #convert groundspeed to km/hr
-#        groundspeed = math.sqrt((msg.vx*msg.vx) + (msg.vy*msg.vy) + (msg.vz*msg.vz)) * 0.0036
-#        mpstate.hud_manager.set_variable("groundspeed", groundspeed)       
+             
         set_hud_variable("agl", float(msg.relative_alt)*0.001)
 
     elif msgtype == "ATTITUDE":
