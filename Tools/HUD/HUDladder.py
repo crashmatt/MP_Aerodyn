@@ -40,15 +40,12 @@ class HUDladder(object):
         
         self.degstep = 10
         self.screenstep = 0.3           # ratio of screen height
- #       self.bar_thickness = 3          # pixels
- #       self.zero_bar_thickness = 3     # pixels
-#        self.bar_width = 0.25            # ratio of screen width
         self.bar_gap = 0.05             # ratio of screen width
         self.font_scale = 0.08          # relative to original font size
         self.font_bar_gap = 0.07        # ratio of screen width
         self.alpha = alpha              # 0 to 255?
         self.maxDegrees = 80
-        self.fadingpos_start = 0.3
+        self.fadingpos_start = 0.25
         self.fadingpos_end = 0.4
         
 
