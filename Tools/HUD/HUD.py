@@ -38,14 +38,6 @@ PLATFORM = platform.system()
 from HUDFilters import Filter
 from HUDFilters import AngleFilter
 
-#if platform.system() != PLATFORM_PI:
-#  from pyxlib.x import *
-#  from pyxlib import xlib
-# print("Loading xlib")
-
-#import pdb        pdb.set_trace()
-#import pydevd
-
 standalone = False
 
 MAX_INPUT_COMMANDS = 8
@@ -87,6 +79,8 @@ class HUD(object):
                 
         #Queue of attribute updates each of which is tuple (attrib, object)
         self.update_queue = update_queue
+        
+        self.show_track = False
 
         self.init_vars()
         self.init_graphics()
@@ -214,6 +208,8 @@ class HUD(object):
         self.ladder = HUDladder(font=self.hudFont, camera=self.hud_camera, shader=self.flatsh, alpha=self.pitch_ladder_alpha)
         print("end creating ladder")
 
+        self.track = HUDTrack(camera=self.hud_camera, shader=self.flatsh, alpha=self.pitch_ladder_alpha)
+
         self.background = pi3d.Plane(w=self.DISPLAY.width, h=self.DISPLAY.height, z=self.background_distance,
                                 camera=self.hud_camera, name="background", )
         self.background.set_draw_details(self.matsh, [], 0, 0)
@@ -233,7 +229,9 @@ class HUD(object):
         self.static_items = LayerItems()
         self.status_items = LayerItems()
         
-
+        
+        print("start creating layer items")
+        
         # Altitude above ground
         x,y = self.grid.get_grid_pixel(10, 3)
         self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
@@ -480,7 +478,12 @@ class HUD(object):
             self.run_filters()
 
             self.dynamic_items.gen_items(self.hud_update_frame)
-
+            
+            direction = math.radians(self.home_direction)
+            xpos = int(self.home_dist * math.cos(direction))
+            ypos = int(self.home_dist * math.sin(direction))
+            self.track.add_segment(xpos, ypos, self.hud_colour)
+            
             if(self.hud_update_frame == 2):
                 self.dataLayer.start_layer()               # Draw on the text layer
                 self.dynamic_items.draw_items()
@@ -494,12 +497,15 @@ class HUD(object):
             elif(self.hud_update_frame == 4):
                 self.ladder.gen_ladder()
 
+                self.track.gen_track()
+
                 if self.static_items.gen_items():
                     self.staticLayer.start_layer()
                     self.static_items.draw_items()
                     self.ladder.draw_center()
                     self.ladder.draw_roll_indicator()
                     self.staticLayer.end_layer()
+
 
             if(self.slow_frame_count > 20):
 #                if self.slow_items.gen_items(phase=None):
@@ -516,6 +522,8 @@ class HUD(object):
       
 # try glScissor for limiting extent of ladder drawing
 
+            if self.show_track:
+                self.track.draw_track()
             self.background.draw()
             self.ladder.draw_ladder(self.roll_filter.estimate(), self.pitch_filter.estimate(), 0)
 
