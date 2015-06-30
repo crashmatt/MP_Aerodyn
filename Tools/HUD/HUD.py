@@ -189,14 +189,14 @@ class HUD(object):
         #Explicit working directory path done so that profiling works correctly. Don't know why. It just is.
         needle_path = os.path.abspath(os.path.join(self.working_directory, 'default_needle.img'))
 
-        x,y = self.grid.get_grid_pixel(-14, 0)
+        x,y = self.grid.get_grid_pixel(-16, 0)
         self.VSI = LinearIndicator(self.text_camera, self.flatsh, self.matsh, self, "vertical_speed", 
                                    indmax=20, indmin=-20, x=x, y=y, z=3, width=18, length=180, 
                                    orientation="V", line_colour=(255,255,255,255), fill_colour=(0,0,0,0.5), 
                                    line_thickness = 1, needle_img=needle_path)
 
         #Add slip indicator.  Scale is in degrees
-        x,y = self.grid.get_grid_pixel(0, -6)
+        x,y = self.grid.get_grid_pixel(0, -5)
         self.slip_indicator = LinearIndicator(self.text_camera, self.flatsh, self.matsh, self, "slip", 
                                               indmax=50, indmin=-50, x=x, y=y, z=3, width=21, length=250, 
                                               orientation="H", line_colour=(255,255,255,255), fill_colour=(0,0,0,0.75), 
