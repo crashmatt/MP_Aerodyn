@@ -10,10 +10,13 @@ import math
 import time
 from ScreenGrid import ScreenScale
 from Line2d import Line2d
+import colorsys
 
-rate_colour_map = ( (-20,   (0,0,1.0,1.0)),
-#                    (0,     (0.5,0.5,0.5,1.0)),
-                    (20,    (1.0,0,0,1.0))     )
+rate_colour_map = ( (-40,   (0.0,0.0,1.0)),
+                    (10,     (0.0,1.0,1.0)),
+                    (0,     (0.0,1.0,0.0)),
+                    (10,     (1.0,1.0,0.0)),
+                    (40,    (1.0,0.0,0.0))   )
 
 
 
@@ -35,10 +38,6 @@ class HUDTrack(object):
         self.line_thickness = 3
         
         self.home_colour = (0,0,1.0,0.5)
-
-        #------------------------- self.rate_colours = ( (-20,   (0,0,255,255)),
-                    #------------------------------- (0,     (200,200,200,255)),
-                    #------------------------------ (20,    (255,0,0,255))     )
         
         self.rate_colours = rate_colour_map
                        
@@ -73,6 +72,7 @@ class HUDTrack(object):
         
         self.inits_done = 0
         
+        self.hue = 0.0       
        
     def gen_track(self):
         if self.inits_done == 0:
@@ -80,28 +80,31 @@ class HUDTrack(object):
             self.draw_home()
             self.track._end()
             self.inits_done = 1
+            
+    def interpolate_ratio(self, ratio, y1, y2):
+        delta = y2 - y1
+        return (ratio * delta) + y1
+        
+    def interpolate(self, x, x1, x2, y1, y2):
+        deltax = x2 - x1
+        ratio = (x - x1) / deltax
+        deltay = y2 - y1
+        return (ratio * deltay) + y1
     
     def get_rate_colour(self, rate):
         colour = (1.0, 1.0, 1.0, 1.0)
-        rate_colour_count = len(self.rate_colours)
-        if(rate <= self.rate_colours[0][0]):
-            colour = self.rate_colours[0][1]
-        elif(rate >= rate_colour_count):
-            colour = self.rate_colours[rate_colour_count-1][1]
+
+        if(rate <= -20):
+            colour = (0.0, 0.0, 1.0)
+        elif(rate >= 20):
+            colour = (1.0, 0.0, 0.0)
         else:
-            last_rcolour = self.rate_colours[0]
-            for rcolour in self.rate_colours:
-                if (rcolour[0] >= rate) and (last_rcolour[0] < rate):
-                    delta_rate = rcolour[0] - last_rcolour[0]
-                    delta_red = rcolour[1][0] - last_rcolour[1][0]
-                    delta_grn = rcolour[1][1] - last_rcolour[1][1]
-                    delta_blue = rcolour[1][2] - last_rcolour[1][2]
-                    ratio = (rate - last_rcolour[0]) / delta_rate
-                    red = last_rcolour[1][0] + (delta_red * ratio)
-                    green = last_rcolour[1][1] + (delta_grn * ratio)
-                    blue = last_rcolour[1][2] + (delta_blue * ratio)
-                    colour = (red, green, blue, 1.0)
-                last_rcolour = rcolour          
+            hue = 0.333
+            if rate >= 0:
+                hue = self.interpolate(rate, 0, 20, 0.333, 0.0)
+            else:
+                hue = self.interpolate(rate, 0, -20, 0.666, 0.0)
+            colour = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
         return colour
     
        
