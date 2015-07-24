@@ -72,7 +72,6 @@ class HUDTrack(object):
         
         self.inits_done = 0
         
-        self.hue = 0.0       
        
     def gen_track(self):
         if self.inits_done == 0:

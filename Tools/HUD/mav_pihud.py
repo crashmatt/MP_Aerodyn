@@ -199,33 +199,39 @@ def master_callback(m, master):
         vz = float(vz) * -0.06  #vz from mm/s to meters/min
         set_hud_variable("vertical_speed", vz)
         
+        if mpstate.status.have_gps_lock:
+            set_hud_variable("aircraft_pos", [msg.lon*1.0e-7, msg.lat*1.0e-7] )
+        
         if mpstate.status.sample_home_time != 0:
             if mpstate.status.last_heartbeat > mpstate.status.sample_home_time:
                 if (msg.lat != 0) and (msg.lon != 0):
                     mpstate.status.sample_home_time = 0
                     mpstate.status.home_lat = msg.lat
                     mpstate.status.home_lon = msg.lon
+                    set_hud_variable("home", [0, 0])
                     mpstate.status.home_set = True
                 
         if (mpstate.status.home_lat != 0) and (mpstate.status.home_lon != 0):          
-            lat2 = math.radians(mpstate.status.home_lat)*1.0e-7
-            lat1 = math.radians(msg.lat)*1.0e-7
-            lon2 = math.radians(mpstate.status.home_lon)*1.0e-7
-            lon1 = math.radians(msg.lon)*1.0e-7
-
-            dLat = lat2 - lat1
-            dLon = lon2 - lon1
-            a = math.sin(0.5*dLat)**2 + math.sin(0.5*dLon)**2 * math.cos(lat1) * math.cos(lat2)
-            c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0-a))
-            distance = 6371 * 1000 * c
-        
-            set_hud_variable("home_dist", distance)
+            lat2 = mpstate.status.home_lat*1.0e-7
+            lat1 = msg.lat*1.0e-7
+            lon2 = mpstate.status.home_lon*1.0e-7
+            lon1 = msg.lon*1.0e-7
             
-            if(distance > 1.0):
-                home_heading = math.atan2(math.cos(lat1)*math.sin(lat2)-math.sin(lat1)*math.cos(lat2)*math.cos(lon2-lon1), math.sin(lon2-lon1)*math.cos(lat2)) 
-            else:
-                home_heading = 0;
-            set_hud_variable("home_heading", math.degrees(math.pi-home_heading))
+            home_polar = dist_bearing_from_lon_lat(lon1, lat1, lon2, lat2)
+
+#            dLat = lat2 - lat1
+#            dLon = lon2 - lon1
+#            a = math.sin(0.5*dLat)**2 + math.sin(0.5*dLon)**2 * math.cos(lat1) * math.cos(lat2)
+#            c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0-a))
+#            distance = 6371 * 1000 * c
+        
+            set_hud_variable("home_dist", home_polar[0])
+            
+#            if(distance > 1.0):
+#                home_heading = math.atan2(math.cos(lat1)*math.sin(lat2)-math.sin(lat1)*math.cos(lat2)*math.cos(lon2-lon1), math.sin(lon2-lon1)*math.cos(lat2)) 
+#            else:
+#                home_heading = 0;
+            set_hud_variable("home_heading", home_polar[1])
              
         set_hud_variable("agl", float(msg.relative_alt)*0.001)
 
@@ -285,6 +291,30 @@ def master_callback(m, master):
         mpstate.status.msg_count[m.get_type()] = 0
     mpstate.status.msg_count[m.get_type()] += 1
 
+# return distance in meters and bearing in degrees from two longitude,latitude points
+def dist_bearing_from_lon_lat(lon1, lat1, lon2, lat2):
+    lon1 = math.radians(lon1)
+    lat1 = math.radians(lat1)
+    lon2 = math.radians(lon2)
+    lat2 = math.radians(lat2)
+    dLat = lat2 - lat1
+    dLon = lon2 - lon1
+    
+    coslat1 = math.cos(lat1)
+    coslat2 = math.cos(lat2)
+    
+    a = math.sin(0.5*dLat)**2 + math.sin(0.5*dLon)**2 * coslat1 * coslat2
+    c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0-a))
+    distance = 6371 * 1000 * c
+    
+    # bearing calc from here: http://stackoverflow.com/questions/1971585/mapping-math-and-javascript
+    # added sanity check for short distance
+    if(distance > 1.0):
+        heading = math.atan2(coslat1*math.sin(lat2)-math.sin(lat1)*coslat2*math.cos(dLon), math.sin(dLon)*coslat2) 
+    else:
+        heading = 0;
+
+    return [distance, math.degrees(heading)]
 
 
 def set_hud_variable(var_name, value):

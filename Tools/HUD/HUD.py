@@ -27,6 +27,8 @@ from Box2d import Box2d
 
 import HUDConfig as HUDConfig
 
+from pi3dTiledMap import TiledMap
+
 import os
 from multiprocessing import Queue
 
@@ -82,6 +84,7 @@ class HUD(object):
         self.update_queue = update_queue
         
         self.show_track = False
+        self.show_tiled = False
 
         self.init_vars()
         self.init_graphics()
@@ -112,12 +115,14 @@ class HUD(object):
         self.windspeed_cms = 0
         self.windspeed = 0
         self.wind_direction = 0
+        self.aircraft_pos = [0.0, 0.0]  # aircraft position [lon, lat]
         self.heading = 0
         self.home_heading = 0
         self.home_direction = 0
         self.home_dist = 0
         self.home_dist_scaled = 0
         self.home_dist_units = "m"
+        self.home = [0.0, 0.0]       # home lon, lat
         self.vertical_speed = 0
         self.asl = 0    	         #altitude above sea level
         self.agl = 0     	         #altitude above ground level
@@ -133,7 +138,6 @@ class HUD(object):
         
         self.pitch_filter = AngleFilter(filter_const=5, rate_const=5, rate_gain = 0.5)
         self.roll_filter = AngleFilter(filter_const=5, rate_const=5, rate_gain = 0.0)
-
         
     def init_graphics(self):
         """ Initialise the HUD graphics """
@@ -145,7 +149,7 @@ class HUD(object):
 #          	self.DISPLAY = pi3d.Display.create(x=0, y=0, w=640, h=480, frames_per_second=self.fps)
    
         self.DISPLAY = pi3d.Display.create(x=20, y=0, w=700, h=580, frames_per_second=self.fps)
-		       
+
         self.DISPLAY.set_background(0.0, 0.0, 0.0, 0)      # r,g,b,alpha
         
         self.background_colour=(0,0,0,255)
@@ -210,7 +214,10 @@ class HUD(object):
         self.ladder = HUDladder(font=self.hudFont, camera=self.hud_camera, shader=self.flatsh, alpha=self.pitch_ladder_alpha)
         print("end creating ladder")
 
-        self.track = HUDTrack(camera=self.hud_camera, shader=self.flatsh, alpha=self.pitch_ladder_alpha)
+        if self.show_track:
+            self.track = HUDTrack(camera=self.text_camera, shader=self.flatsh, alpha=self.pitch_ladder_alpha)
+        if self.show_tiled:
+            self.track_map = TiledMap.TiledMap(tileSize=256, w=512, h=512, z=6.0)
 
         self.background = pi3d.Plane(w=self.DISPLAY.width, h=self.DISPLAY.height, z=self.background_distance,
                                 camera=self.hud_camera, name="background", )
@@ -475,10 +482,14 @@ class HUD(object):
  
             self.dynamic_items.gen_items(self.hud_update_frame)
              
-            direction = math.radians(math.pi-self.home_heading)
-            xpos = int(self.home_dist * math.cos(direction))
-            ypos = int(self.home_dist * math.sin(direction))
-            self.track.add_segment(xpos, ypos, self.vertical_speed, self.heading)
+            if self.show_track:
+                direction = math.radians(math.pi-self.home_heading)
+                xpos = int(self.home_dist * math.cos(direction))
+                ypos = int(self.home_dist * math.sin(direction))
+                self.track.add_segment(xpos, ypos, self.vertical_speed, self.heading)
+            
+            if self.show_tiled:
+                self.track_map.update()
              
             if(self.hud_update_frame == 2):
                 self.dataLayer.start_layer()               # Draw on the text layer
@@ -493,7 +504,10 @@ class HUD(object):
             elif(self.hud_update_frame == 4):
                 self.ladder.gen_ladder()
  
-                self.track.gen_track()
+                if self.show_track:
+                    self.track.gen_track()
+                if self.show_tiled:
+                    self.track_map.gen_map()
  
                 if self.static_items.gen_items():
                     self.staticLayer.start_layer()
@@ -518,6 +532,9 @@ class HUD(object):
 
             if self.show_track:
                 self.track.draw_track(alpha=1.0)
+            if self.show_tiled:
+                self.track_map.draw(alpha=1.0)
+                
             self.background.draw()
             self.ladder.draw_ladder(self.roll_filter.estimate(), self.pitch_filter.estimate(), 0)
 
@@ -526,7 +543,6 @@ class HUD(object):
             self.staticLayer.draw_layer()
             self.slowLayer.draw_layer()
 
-            
   
             if time.time() > self.next_time:
                 self.next_time = time.time() + self.spf
@@ -593,11 +609,14 @@ class HUD(object):
                 else:
                     if hasattr(self, var_update[0]):
                         setattr(self, var_update[0], var_update[1])
+                        if var_update[0] == "home":
+                            self.track_map.set_map_origin(var_update[1])
 #                self.update_queue.task_done()
         else:
             pass
 #            print("queue does not exist")
 
+        self.update_maps()
         self.home_dist_scale()
         self.channel_scale()
         self.calc_home_direction()
@@ -605,6 +624,10 @@ class HUD(object):
         self.flap_condition()
         self.windspeed_scale()
         self.status_condition()
+        
+    def update_maps(self):
+        if self.aircraft_pos != [0.0, 0.0]:
+            self.track_map.set_map_focus(self.aircraft_pos)
         
     def windspeed_scale(self):
         self.windspeed = self.windspeed_cms * 0.01
