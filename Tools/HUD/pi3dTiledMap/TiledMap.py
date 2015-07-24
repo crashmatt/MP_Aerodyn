@@ -69,9 +69,10 @@ class TiledMap(object):
         
         self.cam_xoffset = (self.screen_width-tileSize) * 0.5
         self.cam_yoffset = (self.screen_height-tileSize) * 0.5
-        
-        self.map_texture = OffScreenTexture("track",  w=tileSize, h=tileSize)
-        self.sprite = FlipSprite(camera=self.map_camera, w=tileSize, h=tileSize, z=5, flip=True)
+  
+        self.tile = MapTile(map_camera=self.map_camera,  tilePixels=self.tileSize, tile_x=0, tile_y=0)
+  #      self.map_texture = OffScreenTexture("track",  w=tileSize, h=tileSize)
+  #      self.sprite = FlipSprite(camera=self.map_camera, w=tileSize, h=tileSize, z=5, flip=True)
                 
         self.inits_done = 0
         
@@ -94,11 +95,11 @@ class TiledMap(object):
         
     def gen_map(self):
         if self.inits_done == 0:
-            self.map_texture._start(True)
+            self.tile.texture._start(True)
             self.tile_camera.reset(is_3d=False)
             self.tile_camera.position((self.cam_xoffset,self.cam_yoffset,0))            
             self.draw_home()
-            self.map_texture._end()
+            self.tile.texture._end()
             self.inits_done = 1
             
     def update(self):
@@ -123,8 +124,8 @@ class TiledMap(object):
         camera = self.map_camera
         camera.reset()
 #        camera.position((self.xpos, self.ypos, 0))
-        self.sprite.set_alpha(alpha)
-        self.sprite.draw(self.flatsh, [self.map_texture], camera=camera)
+        self.tile.sprite.set_alpha(alpha)
+        self.tile.sprite.draw(self.flatsh, [self.tile.texture], camera=camera)
         return
 #        camera = self.tile_camera
 #        camera.reset(is_3d=False)
