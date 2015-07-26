@@ -72,11 +72,12 @@ class TiledMap(object):
         self.cam_xoffset = (self.screen_width-tileSize) * 0.5
         self.cam_yoffset = (self.screen_height-tileSize) * 0.5
   
-        self.tile = MapTile(map_camera=self.map_camera, map_shader = self.flatsh, tilePixels=self.tileSize, tile_x=0, tile_y=0)
+        self.tile = None
   #      self.map_texture = OffScreenTexture("track",  w=tileSize, h=tileSize)
   #      self.sprite = FlipSprite(camera=self.map_camera, w=tileSize, h=tileSize, z=5, flip=True)
         self.tiles = dict()
-        self.tiles["0,0"] = self.tile
+#        self.tiles["0,0"] =  MapTile(map_camera=self.map_camera, map_shader = self.flatsh, tilePixels=self.tileSize, tile_x=0, tile_y=0)
+#        self.tiles["0,1"] =  MapTile(map_camera=self.map_camera, map_shader = self.flatsh, tilePixels=self.tileSize, tile_x=0, tile_y=1)
                 
         self.inits_done = 0
         
@@ -88,7 +89,7 @@ class TiledMap(object):
         x0, y0 = self.pos_to_map_tile_int(self.map_focus)
         x_span = (tiles_x/2)+1
         y_span = (tiles_y/2)+1
-        return 0,0,0,0
+#        return 0,0,0,0
         return x0-x_span, y0-y_span, x0+x_span,  y0+y_span
     
     def set_map_focus(self, pos):
@@ -102,7 +103,9 @@ class TiledMap(object):
             self.tile_camera.reset(is_3d=False)
             self.tile_camera.position((self.cam_xoffset,self.cam_yoffset,0))
             self.inits_done = 1
-#        elif self.inits_done == 2:
+            return
+        
+        self.update_tiles()
         for tile in self.tiles.itervalues():
             if tile.is_draw_done() and tile.updateCount == 0:
                 tile.texture._start(True)
@@ -110,31 +113,17 @@ class TiledMap(object):
                 tile.texture._end()
                 tile.updateCount = 1
 
-        return
-#        elif self.inits_done == 2:
-#            for tile in self.tiles.itervalues():
-#                tile.texture._start(True)
-#                self.draw_home()
-#                tile.texture._end()
-#            self.inits_done = 3
 
             
-    def update(self):
-#        if self.inits_done == 1:
-#            self.inits_done = 2
-        return
+    def update_tiles(self):
         x0, y0, x1, y1 = self.get_tile_display_range()
         for x in range(x0,x1+1):
             for y in range(y0,y1+1):
-                key = '[%d],[%di]', x ,y
+                key = '{:d},{:d}'.format(x , y)
                 if not self.tiles.has_key(key):
-                    new_tile = MapTile(shader=self.flatsh, map_camera=self.map_camera,  tilePixels=self.tileSize, tile_x=x, tile_y=y)
+                    new_tile = MapTile(map_camera=self.map_camera, map_shader = self.flatsh, tilePixels=self.tileSize, tile_x=x, tile_y=y)
+                    #new_tile = MapTile(shader=self.flatsh, map_camera=self.map_camera,  tilePixels=self.tileSize, tile_x=x, tile_y=y)
                     self.tiles[key] = new_tile
-                    if (x==0) and (y==0):
-                        new_tile.texture._start(False)
-                        self.draw_home()
-                        new_tile.texture._end()
-        self.has_updated = True
                     
 #    def drawMap(self):
     def draw(self, alpha=1):
