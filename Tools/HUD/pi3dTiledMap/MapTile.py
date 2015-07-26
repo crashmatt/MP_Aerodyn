@@ -22,7 +22,8 @@ class MapTile(object):
         from pi3d.Display import Display
                
         self.tilePixels = tilePixels
-        self.drawDone = False
+        self._drawDone = False
+        self.updateCount = 0
         
         self.map_camera = map_camera
         self.map_shader = map_shader
@@ -40,5 +41,8 @@ class MapTile(object):
         
     def draw(self):
         self.sprite.draw(self.map_shader, [self.texture], camera = self.map_camera)
-        self.drawDone = True
+        self._drawDone = True
+        
+    def is_draw_done(self):
+        return self._drawDone
         

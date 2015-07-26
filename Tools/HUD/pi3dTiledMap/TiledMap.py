@@ -102,12 +102,22 @@ class TiledMap(object):
             self.tile_camera.reset(is_3d=False)
             self.tile_camera.position((self.cam_xoffset,self.cam_yoffset,0))
             self.inits_done = 1
-        elif self.inits_done == 2:
-            tile = self.tiles["0,0"]
-            tile.texture._start(True)
-            self.draw_home()
-            tile.texture._end()
-            self.inits_done = 3
+#        elif self.inits_done == 2:
+        for tile in self.tiles.itervalues():
+            if tile.is_draw_done() and tile.updateCount == 0:
+                tile.texture._start(True)
+                self.draw_home()
+                tile.texture._end()
+                tile.updateCount = 1
+
+        return
+#        elif self.inits_done == 2:
+#            for tile in self.tiles.itervalues():
+#                tile.texture._start(True)
+#                self.draw_home()
+#                tile.texture._end()
+#            self.inits_done = 3
+
             
     def update(self):
 #        if self.inits_done == 1:
@@ -135,10 +145,8 @@ class TiledMap(object):
             self.inits_done = 2
             
         if self.inits_done >= 1:
-            tile = self.tiles["0,0"]
-#            tile.sprite.set_alpha(alpha)
-#            tile.sprite.draw(self.flatsh, [tile.texture], camera=camera)
-            tile.draw()
+            for tile in self.tiles.itervalues():
+                tile.draw()
         return
 #        camera = self.tile_camera
 #        camera.reset(is_3d=False)
