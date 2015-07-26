@@ -30,6 +30,8 @@ class TiledMap(object):
         alpha = transparency
         '''        
         from pi3d.Display import Display
+        
+        tileSize = 256
                 
         self.tileSize = tileSize
         self.tileResolution = tileResolution
@@ -70,9 +72,11 @@ class TiledMap(object):
         self.cam_xoffset = (self.screen_width-tileSize) * 0.5
         self.cam_yoffset = (self.screen_height-tileSize) * 0.5
   
-        self.tile = MapTile(map_camera=self.map_camera,  tilePixels=self.tileSize, tile_x=0, tile_y=0)
+        self.tile = MapTile(map_camera=self.map_camera, map_shader = self.flatsh, tilePixels=self.tileSize, tile_x=0, tile_y=0)
   #      self.map_texture = OffScreenTexture("track",  w=tileSize, h=tileSize)
   #      self.sprite = FlipSprite(camera=self.map_camera, w=tileSize, h=tileSize, z=5, flip=True)
+        self.tiles = dict()
+        self.tiles["0,0"] = self.tile
                 
         self.inits_done = 0
         
@@ -95,16 +99,19 @@ class TiledMap(object):
         
     def gen_map(self):
         if self.inits_done == 0:
-            self.tile.texture._start(True)
             self.tile_camera.reset(is_3d=False)
-            self.tile_camera.position((self.cam_xoffset,self.cam_yoffset,0))            
-            self.draw_home()
-            self.tile.texture._end()
+            self.tile_camera.position((self.cam_xoffset,self.cam_yoffset,0))
             self.inits_done = 1
+        elif self.inits_done == 2:
+            tile = self.tiles["0,0"]
+            tile.texture._start(True)
+            self.draw_home()
+            tile.texture._end()
+            self.inits_done = 3
             
     def update(self):
-        if self.inits_done == 1:
-            self.inits_done = 2
+#        if self.inits_done == 1:
+#            self.inits_done = 2
         return
         x0, y0, x1, y1 = self.get_tile_display_range()
         for x in range(x0,x1+1):
@@ -124,8 +131,14 @@ class TiledMap(object):
         camera = self.map_camera
         camera.reset()
 #        camera.position((self.xpos, self.ypos, 0))
-        self.tile.sprite.set_alpha(alpha)
-        self.tile.sprite.draw(self.flatsh, [self.tile.texture], camera=camera)
+        if self.inits_done == 1:
+            self.inits_done = 2
+            
+        if self.inits_done >= 1:
+            tile = self.tiles["0,0"]
+#            tile.sprite.set_alpha(alpha)
+#            tile.sprite.draw(self.flatsh, [tile.texture], camera=camera)
+            tile.draw()
         return
 #        camera = self.tile_camera
 #        camera.reset(is_3d=False)
