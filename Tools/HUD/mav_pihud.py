@@ -208,7 +208,7 @@ def master_callback(m, master):
                     mpstate.status.sample_home_time = 0
                     mpstate.status.home_lat = msg.lat
                     mpstate.status.home_lon = msg.lon
-                    set_hud_variable("home", [0, 0])
+                    set_hud_variable("home", [msg.lon*1.0e-7, msg.lat*1.0e-7])
                     mpstate.status.home_set = True
                 
         if (mpstate.status.home_lat != 0) and (mpstate.status.home_lon != 0):          
@@ -219,18 +219,7 @@ def master_callback(m, master):
             
             home_polar = dist_bearing_from_lon_lat(lon1, lat1, lon2, lat2)
 
-#            dLat = lat2 - lat1
-#            dLon = lon2 - lon1
-#            a = math.sin(0.5*dLat)**2 + math.sin(0.5*dLon)**2 * math.cos(lat1) * math.cos(lat2)
-#            c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0-a))
-#            distance = 6371 * 1000 * c
-        
             set_hud_variable("home_dist", home_polar[0])
-            
-#            if(distance > 1.0):
-#                home_heading = math.atan2(math.cos(lat1)*math.sin(lat2)-math.sin(lat1)*math.cos(lat2)*math.cos(lon2-lon1), math.sin(lon2-lon1)*math.cos(lat2)) 
-#            else:
-#                home_heading = 0;
             set_hud_variable("home_heading", home_polar[1])
              
         set_hud_variable("agl", float(msg.relative_alt)*0.001)

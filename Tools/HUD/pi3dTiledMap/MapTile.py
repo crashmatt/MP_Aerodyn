@@ -31,6 +31,9 @@ class MapTile(object):
         self.tile_create_time = time.time()
         self.tile_update_time = self.tile_create_time
         
+        self.tile_x = tile_x
+        self.tile_y = tile_y
+        
         tilename = 'maptile {:d},{:d}'.format(tile_x , tile_y)
 #        tilename = "maptile [%d],[%d]", tile_x, tile_y
         xpos = float(tile_x*tilePixels)

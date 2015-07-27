@@ -84,7 +84,7 @@ class HUD(object):
         self.update_queue = update_queue
         
         self.show_track = False
-        self.show_tiled = False
+        self.show_tiled = True
 
         self.init_vars()
         self.init_graphics()
@@ -122,7 +122,7 @@ class HUD(object):
         self.home_dist = 0
         self.home_dist_scaled = 0
         self.home_dist_units = "m"
-        self.home = [0.0, 0.0]       # home lon, lat
+        self.home = [0.0, 0.0]       # home [lon, lat]
         self.vertical_speed = 0
         self.asl = 0    	         #altitude above sea level
         self.agl = 0     	         #altitude above ground level
@@ -488,8 +488,6 @@ class HUD(object):
                 ypos = int(self.home_dist * math.sin(direction))
                 self.track.add_segment(xpos, ypos, self.vertical_speed, self.heading)
             
-            if self.show_tiled:
-                self.track_map.update()
              
             if(self.hud_update_frame == 2):
                 self.dataLayer.start_layer()               # Draw on the text layer
@@ -627,7 +625,9 @@ class HUD(object):
         
     def update_maps(self):
         if self.aircraft_pos != [0.0, 0.0]:
-            self.track_map.set_map_focus(self.aircraft_pos)
+            x = self.home_dist * math.sin(math.radians(self.home_direction+180.0))
+            y = self.home_dist * math.cos(math.radians(self.home_direction+180.0))
+            self.track_map.set_map_focus([x,y])
         
     def windspeed_scale(self):
         self.windspeed = self.windspeed_cms * 0.01

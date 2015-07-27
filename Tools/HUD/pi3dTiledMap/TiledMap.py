@@ -31,8 +31,6 @@ class TiledMap(object):
         '''        
         from pi3d.Display import Display
         
-        tileSize = 256
-                
         self.tileSize = tileSize
         self.tileResolution = tileResolution
         self.tile_scale = 1 / (self.tileSize * self.tileResolution)
@@ -42,15 +40,15 @@ class TiledMap(object):
         self.z = z
         self.alpha = alpha
 
-        self.zoom = 0
+        self.zoom = 1.0
         
         self.tiles = dict()
         self.map_objects = list()
    
         # Map focus point    
-        self.map_focus = DEFAULT_ORIGIN  # map focus [lon, lat]
+        self.map_focus = DEFAULT_ORIGIN  # map focus [x, y]
         
-        self.origin = DEFAULT_ORIGIN
+        self.origin = DEFAULT_ORIGIN     # map home/origin [x, y]
 
         self.home_colour = (0,0,1.0,0.5)
         
@@ -72,19 +70,14 @@ class TiledMap(object):
         self.cam_xoffset = (self.screen_width-tileSize) * 0.5
         self.cam_yoffset = (self.screen_height-tileSize) * 0.5
   
-        self.tile = None
-  #      self.map_texture = OffScreenTexture("track",  w=tileSize, h=tileSize)
-  #      self.sprite = FlipSprite(camera=self.map_camera, w=tileSize, h=tileSize, z=5, flip=True)
         self.tiles = dict()
-#        self.tiles["0,0"] =  MapTile(map_camera=self.map_camera, map_shader = self.flatsh, tilePixels=self.tileSize, tile_x=0, tile_y=0)
-#        self.tiles["0,1"] =  MapTile(map_camera=self.map_camera, map_shader = self.flatsh, tilePixels=self.tileSize, tile_x=0, tile_y=1)
                 
         self.inits_done = 0
         
     
     def get_tile_display_range(self):
-        tiles_x = int(ceil(self.w/self.tileSize)) * (2 ** -self.zoom)
-        tiles_y = int(ceil(self.h/self.tileSize)) * (2 ** -self.zoom)
+        tiles_x = int(ceil(self.w/self.tileSize) / self.zoom)
+        tiles_y = int(ceil(self.h/self.tileSize) / self.zoom)
         
         x0, y0 = self.pos_to_map_tile_int(self.map_focus)
         x_span = (tiles_x/2)+1
@@ -92,6 +85,7 @@ class TiledMap(object):
 #        return 0,0,0,0
         return x0-x_span, y0-y_span, x0+x_span,  y0+y_span
     
+    # set the map focus in relative position from origin [x, y]
     def set_map_focus(self, pos):
         self.map_focus = pos
         
@@ -106,50 +100,38 @@ class TiledMap(object):
             return
         
         self.update_tiles()
+        
         for tile in self.tiles.itervalues():
             if tile.is_draw_done() and tile.updateCount == 0:
+#                if tile.tile_x == 0 and tile.tile_y == 0:
                 tile.texture._start(True)
                 self.draw_home()
                 tile.texture._end()
                 tile.updateCount = 1
 
 
-            
     def update_tiles(self):
         x0, y0, x1, y1 = self.get_tile_display_range()
-        for x in range(x0,x1+1):
-            for y in range(y0,y1+1):
+        for x in range(x0,x1+0):
+            for y in range(y0,y1+0):
                 key = '{:d},{:d}'.format(x , y)
                 if not self.tiles.has_key(key):
                     new_tile = MapTile(map_camera=self.map_camera, map_shader = self.flatsh, tilePixels=self.tileSize, tile_x=x, tile_y=y)
-                    #new_tile = MapTile(shader=self.flatsh, map_camera=self.map_camera,  tilePixels=self.tileSize, tile_x=x, tile_y=y)
                     self.tiles[key] = new_tile
                     
-#    def drawMap(self):
+
     def draw(self, alpha=1):
         camera = self.map_camera
-        camera.reset()
-#        camera.position((self.xpos, self.ypos, 0))
-        if self.inits_done == 1:
-            self.inits_done = 2
-            
-        if self.inits_done >= 1:
-            for tile in self.tiles.itervalues():
-                tile.draw()
-        return
-#        camera = self.tile_camera
-#        camera.reset(is_3d=False)
-#        pix_pos = self.tile_pos_to_pix(self.map_focus)        
-#        camera.position((pix_pos[0], pix_pos[1], 0))
-        
+        camera.reset(is_3d=False, scale=self.zoom)
+        camera.position((self.map_focus[0],self.map_focus[1], 0.0))
+
         x0, y0, x1, y1 = self.get_tile_display_range()
-        for x in range(x0,x1+1):
-            for y in range(y0,y1+1):
-                key = '[%d],[%di]', x ,y
+        for x in range(x0,x1):
+            for y in range(y0,y1):
+                key = '{:d},{:d}'.format(x , y)
                 if self.tiles.has_key(key):
                     self.tiles[key].draw()
                     
-
 
     def pos_to_map_tile(self, pos):
         tile_x = (pos[0] * self.tile_scale)
@@ -167,7 +149,6 @@ class TiledMap(object):
         
         
     def draw_home(self):
-#        bar_shape = pi3d.Plane(camera=self.camera2d,  w=self.tileSize, h=self.tileSize)
 #        bar_shape = pi3d.Plane(camera=self.camera2d,  w=100, h=100)
         bar_shape = pi3d.Plane(camera=self.tile_camera,  w=20, h=20)
         bar_shape.set_draw_details(self.matsh, [], 0, 0)
@@ -175,11 +156,11 @@ class TiledMap(object):
         bar_shape.position( 0,  0, 5)
         bar_shape.draw()
 
-        bar_shape.set_material((1.0, 0, 0))
-        bar_shape.position( -self.tileSize*0.25,  -self.tileSize*0.25, 5)
-        bar_shape.draw()
+#        bar_shape.set_material((1.0, 0, 0))
+#        bar_shape.position( -self.tileSize*0.25,  -self.tileSize*0.25, 5)
+#        bar_shape.draw()
 
-        bar_shape.set_material((0, 1.0, 0))
-        bar_shape.position( self.tileSize*0.25,  self.tileSize*0.25, 5)
-        bar_shape.draw()
+#        bar_shape.set_material((0, 1.0, 0))
+#        bar_shape.position( self.tileSize*0.25,  self.tileSize*0.25, 5)
+#        bar_shape.draw()
     
