@@ -83,8 +83,8 @@ class HUD(object):
         #Queue of attribute updates each of which is tuple (attrib, object)
         self.update_queue = update_queue
         
-        self.show_track = False
-        self.show_tiled = True
+        self.show_track = True
+        self.show_tiled = False
 
         self.init_vars()
         self.init_graphics()
@@ -609,7 +609,8 @@ class HUD(object):
                     if hasattr(self, var_update[0]):
                         setattr(self, var_update[0], var_update[1])
                         if var_update[0] == "home":
-                            self.track_map.set_map_origin(var_update[1])
+                            if self.show_tiled:
+                                self.track_map.set_map_origin(var_update[1])
 #                self.update_queue.task_done()
         else:
             pass
@@ -625,12 +626,13 @@ class HUD(object):
         self.status_condition()
         
     def update_maps(self):
-        if self.aircraft_pos != [0.0, 0.0]:
-            x = self.home_dist * math.sin(math.radians(self.home_direction+180.0))
-            y = self.home_dist * math.cos(math.radians(self.home_direction+180.0))
-            self.track_map.set_map_focus([x,y])
-            self.track_map.set_aircraft_pos([x,y])
-            self.track_map.set_climbrate(self.vertical_speed)
+        if self.show_tiled:
+            if self.aircraft_pos != [0.0, 0.0]:
+                x = self.home_dist * math.sin(math.radians(self.home_direction+180.0))
+                y = self.home_dist * math.cos(math.radians(self.home_direction+180.0))
+                self.track_map.set_map_focus([x,y])
+                self.track_map.set_aircraft_pos([x,y])
+                self.track_map.set_climbrate(self.vertical_speed)
         
     def windspeed_scale(self):
         self.windspeed = self.windspeed_cms * 0.01
