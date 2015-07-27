@@ -58,10 +58,11 @@ class Polar(object):
         # bearing calc from here: http://stackoverflow.com/questions/1971585/mapping-math-and-javascript
         # added sanity check for short distance
         if(self.distance > 1.0):
-            self.angle = math.atan2(coslat1*math.sin(lat2)-math.sin(lat1)*coslat2*math.cos(dLon), math.sin(dLon)*coslat2) 
+            angle = math.atan2(coslat1*math.sin(lat2)-math.sin(lat1)*coslat2*math.cos(dLon), math.sin(dLon)*coslat2) 
+            self.angle = math.degrees(angle)
         else:
             self.angle = 0;
-
+            
 
 class GeoCoord(object):
     '''
