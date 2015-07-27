@@ -487,7 +487,8 @@ class HUD(object):
                 xpos = int(self.home_dist * math.cos(direction))
                 ypos = int(self.home_dist * math.sin(direction))
                 self.track.add_segment(xpos, ypos, self.vertical_speed, self.heading)
-            
+            if self.show_tiled:
+                self.track_map.add_segment()
              
             if(self.hud_update_frame == 2):
                 self.dataLayer.start_layer()               # Draw on the text layer
@@ -628,6 +629,8 @@ class HUD(object):
             x = self.home_dist * math.sin(math.radians(self.home_direction+180.0))
             y = self.home_dist * math.cos(math.radians(self.home_direction+180.0))
             self.track_map.set_map_focus([x,y])
+            self.track_map.set_aircraft_pos([x,y])
+            self.track_map.set_climbrate(self.vertical_speed)
         
     def windspeed_scale(self):
         self.windspeed = self.windspeed_cms * 0.01

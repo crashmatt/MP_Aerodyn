@@ -10,7 +10,8 @@ from pi3d.shape.FlipSprite import FlipSprite
 from MapTile import MapTile
 from _dbus_bindings import String
 from math import sin, cos, log , pi, ceil
-
+from Line2d import Line2d
+import colorsys
 
 DEFAULT_ORIGIN = [0.0, 0.0]
 
@@ -33,7 +34,7 @@ class TiledMap(object):
         
         self.tileSize = tileSize
         self.tileResolution = tileResolution
-        self.tile_scale = 1 / (self.tileSize * self.tileResolution)
+        self.tile_scale = 1.0 / (self.tileSize * self.tileResolution)
 
         self.w = w
         self.h = h
@@ -46,10 +47,15 @@ class TiledMap(object):
         self.map_objects = list()
    
         # Map focus point    
-        self.map_focus = DEFAULT_ORIGIN  # map focus [x, y]
+        self._map_focus = DEFAULT_ORIGIN  # map focus [x, y]
         
-        self.origin = DEFAULT_ORIGIN     # map home/origin [x, y]
-
+        self._origin = DEFAULT_ORIGIN     # map home/origin [x, y]
+        
+        self._aircraft_pos      = DEFAULT_ORIGIN
+        self._last_aircraft_pos = DEFAULT_ORIGIN
+        
+        self._climbrate = 0.0
+        
         self.home_colour = (0,0,1.0,0.5)
         
         # camera for viewing the map. Owned by the track since it can move
@@ -79,7 +85,7 @@ class TiledMap(object):
         tiles_x = int(ceil(self.w/self.tileSize) / self.zoom)
         tiles_y = int(ceil(self.h/self.tileSize) / self.zoom)
         
-        x0, y0 = self.pos_to_map_tile_int(self.map_focus)
+        x0, y0 = self.pos_to_map_tile_int(self._map_focus)
         x_span = (tiles_x/2)+1
         y_span = (tiles_y/2)+1
 #        return 0,0,0,0
@@ -87,10 +93,17 @@ class TiledMap(object):
     
     # set the map focus in relative position from origin [x, y]
     def set_map_focus(self, pos):
-        self.map_focus = pos
+        self._map_focus = pos
         
     def set_map_origin(self, origin):
-        self.origin = origin
+        self._origin = origin
+
+    def set_aircraft_pos(self, pos):
+        self._aircraft_pos = pos
+        
+    def set_climbrate(self, climbrate):
+        self._climbrate = climbrate
+            
         
     def gen_map(self):
         if self.inits_done == 0:
@@ -119,11 +132,58 @@ class TiledMap(object):
                     new_tile = MapTile(map_camera=self.map_camera, map_shader = self.flatsh, tilePixels=self.tileSize, tile_x=x, tile_y=y)
                     self.tiles[key] = new_tile
                     
+    def interpolate_ratio(self, ratio, y1, y2):
+        delta = y2 - y1
+        return (ratio * delta) + y1
+        
+    def interpolate(self, x, x1, x2, y1, y2):
+        deltax = x2 - x1
+        ratio = (x - x1) / deltax
+        deltay = y2 - y1
+        return (ratio * deltay) + y1
+                    
+    def get_rate_colour(self, rate):
+        colour = (1.0, 1.0, 1.0, 1.0)
+
+        if(rate <= -20):
+            colour = (0.0, 0.0, 1.0)
+        elif(rate >= 20):
+            colour = (1.0, 0.0, 0.0)
+        else:
+            hue = 0.333
+            if rate >= 0:
+                hue = self.interpolate(rate, 0, 20, 0.333, 0.0)
+            else:
+                hue = self.interpolate(rate, 0, -20, 0.666, 0.0)
+            colour = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
+        return colour
+                    
+    def add_segment(self):
+        if self._last_aircraft_pos == self._aircraft_pos:
+            return
+        
+        pos1 = self.pos_to_map_tile(self._last_aircraft_pos)
+        pos2 = self.pos_to_map_tile(self._aircraft_pos)
+        rate_colour = self.get_rate_colour(self._climbrate)
+        
+        for x in range (int(pos1[0]), int(pos2[0])+1):
+            for y in range (int(pos1[1]), int(pos2[1])+1):
+                key = '{:d},{:d}'.format(x , y)
+                if self.tiles.has_key(key):
+                    rel1 = self.tile_pos_to_pix((pos1[0]-x, pos1[1]-y))
+                    rel2 = self.tile_pos_to_pix((pos2[0]-x, pos2[1]-y))
+                    tile = self.tiles[key]
+                    tile.texture._start(False)
+                    segment = Line2d(camera=self.tile_camera, matsh=self.matsh, points=(rel1,rel2), thickness=3, colour=rate_colour )
+                    segment.draw()              
+                    tile.texture._end()
+        self._last_aircraft_pos = self._aircraft_pos
+
 
     def draw(self, alpha=1):
         camera = self.map_camera
         camera.reset(is_3d=False, scale=self.zoom)
-        camera.position((self.map_focus[0],self.map_focus[1], 0.0))
+        camera.position((self._map_focus[0],self._map_focus[1], 0.0))
 
         x0, y0, x1, y1 = self.get_tile_display_range()
         for x in range(x0,x1):
