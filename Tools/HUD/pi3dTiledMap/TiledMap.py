@@ -15,7 +15,7 @@ import colorsys
 from pi3dTiledMap import CoordSys
 from pi3dTiledMap.CoordSys import Cartesian
 from gi.overrides.keysyms import careof
-
+import time
 
 class TiledMap(object):
     '''
@@ -46,11 +46,9 @@ class TiledMap(object):
         self.zoom = 1.0
         
         self.tiles = dict()
-        self.map_objects = list()
+        self.inits_done = 0
    
-        # Map focus point    
         self._map_focus         = CoordSys.Cartesian(0.0,0.0)
-        
         self._aircraft_pos      = CoordSys.Cartesian(0.0,0.0)
         self._last_aircraft_pos = CoordSys.Cartesian(0.0,0.0)
         
@@ -75,11 +73,7 @@ class TiledMap(object):
         
         self.cam_xoffset = (self.screen_width-tileSize) * 0.5
         self.cam_yoffset = (self.screen_height-tileSize) * 0.5
-  
-        self.tiles = dict()
-                
-        self.inits_done = 0
-        
+          
     
     def get_tile_display_range(self):
         tiles_x = int(ceil(self.w/self.tileSize) / self.zoom)
@@ -134,6 +128,15 @@ class TiledMap(object):
 
 
     def update_tiles(self):
+        remove_keys = []
+        for key in self.tiles.iterkeys():
+            if time.time() > self.tiles[key].tile_update_time + 30.0:
+                remove_keys.append(key)
+        
+        for key in remove_keys:
+            tile = self.tiles.pop(key)
+            tile = None
+        
         x0, y0, x1, y1 = self.get_tile_display_range()
         for x in range(x0,x1+0):
             for y in range(y0,y1+0):

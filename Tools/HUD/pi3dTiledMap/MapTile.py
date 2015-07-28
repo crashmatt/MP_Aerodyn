@@ -42,6 +42,10 @@ class MapTile(object):
         self.texture = OffScreenTexture(name="map_tile",  w=self.tilePixels, h=self.tilePixels)
         self.sprite = FlipSprite(camera=map_camera, w=self.tilePixels, h=self.tilePixels, z=6.0, x=xpos, y=ypos, flip=True)
         
+    def __del__(self):
+        self.texture.delete_buffers()
+            
+        
     def draw(self):
         self.sprite.draw(self.map_shader, [self.texture], camera = self.map_camera)
         self._drawDone = True
