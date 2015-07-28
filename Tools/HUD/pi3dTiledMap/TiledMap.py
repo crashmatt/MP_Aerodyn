@@ -12,8 +12,10 @@ from _dbus_bindings import String
 from math import sin, cos, log , pi, ceil
 from Line2d import Line2d
 import colorsys
+from pi3dTiledMap import CoordSys
+from pi3dTiledMap.CoordSys import Cartesian
+from gi.overrides.keysyms import careof
 
-DEFAULT_ORIGIN = [0.0, 0.0]
 
 class TiledMap(object):
     '''
@@ -47,12 +49,10 @@ class TiledMap(object):
         self.map_objects = list()
    
         # Map focus point    
-        self._map_focus = DEFAULT_ORIGIN  # map focus [x, y]
+        self._map_focus         = CoordSys.Cartesian(0.0,0.0)
         
-        self._origin = DEFAULT_ORIGIN     # map home/origin [x, y]
-        
-        self._aircraft_pos      = DEFAULT_ORIGIN
-        self._last_aircraft_pos = DEFAULT_ORIGIN
+        self._aircraft_pos      = CoordSys.Cartesian(0.0,0.0)
+        self._last_aircraft_pos = CoordSys.Cartesian(0.0,0.0)
         
         self._climbrate = 0.0
         
@@ -85,9 +85,14 @@ class TiledMap(object):
         tiles_x = int(ceil(self.w/self.tileSize) / self.zoom)
         tiles_y = int(ceil(self.h/self.tileSize) / self.zoom)
         
-        x0, y0 = self.pos_to_map_tile_int(self._map_focus)
+        tileCoord = CoordSys.TileCoord(cartesian=self._map_focus, tileSize=self.tileSize)
+        tileNum = tileCoord.get_tile_number()
+                                       
         x_span = (tiles_x/2)+1
         y_span = (tiles_y/2)+1
+        
+        x0 = tileNum.tile_num_x
+        y0 = tileNum.tile_num_y
 #        return 0,0,0,0
         return x0-x_span, y0-y_span, x0+x_span,  y0+y_span
     
@@ -162,19 +167,25 @@ class TiledMap(object):
         if self._last_aircraft_pos == self._aircraft_pos:
             return
         
-        pos1 = self.pos_to_map_tile(self._last_aircraft_pos)
-        pos2 = self.pos_to_map_tile(self._aircraft_pos)
+        pos1 = CoordSys.TileCoord(cartesian=self._last_aircraft_pos, tileSize=self.tileSize)
+        pos2 = CoordSys.TileCoord(cartesian=self._aircraft_pos, tileSize=self.tileSize)
         rate_colour = self.get_rate_colour(self._climbrate)
         
-        for x in range (int(pos1[0]), int(pos2[0])+1):
-            for y in range (int(pos1[1]), int(pos2[1])+1):
+        tile1 = pos1.get_tile_number()
+        tile2 = pos2.get_tile_number()
+        
+        for x in range (tile1.tile_num_x, tile2.tile_num_x+1):
+            for y in range (tile1.tile_num_y, tile2.tile_num_y+1):
                 key = '{:d},{:d}'.format(x , y)
                 if self.tiles.has_key(key):
-                    rel1 = self.tile_pos_to_pix((pos1[0]-x, pos1[1]-y))
-                    rel2 = self.tile_pos_to_pix((pos2[0]-x, pos2[1]-y))
                     tile = self.tiles[key]
+                    rel1 = pos1.get_relative_tile_coord(tile.tile_no)
+                    rel2 = pos2.get_relative_tile_coord(tile.tile_no)
+                    pix1 = rel1.get_tile_pixel_pos(tile.tilePixels).point()
+                    pix2 = rel2.get_tile_pixel_pos(tile.tilePixels).point()
+                    
                     tile.texture._start(False)
-                    segment = Line2d(camera=self.tile_camera, matsh=self.matsh, points=(rel1,rel2), thickness=3, colour=rate_colour )
+                    segment = Line2d(camera=self.tile_camera, matsh=self.matsh, points=(pix1,pix2), thickness=3, colour=rate_colour )
                     segment.draw()              
                     tile.texture._end()
         self._last_aircraft_pos = self._aircraft_pos
@@ -183,7 +194,9 @@ class TiledMap(object):
     def draw(self, alpha=1):
         camera = self.map_camera
         camera.reset(is_3d=False, scale=self.zoom)
-        camera.position((self._map_focus[0],self._map_focus[1], 0.0))
+        tileCoord = CoordSys.TileCoord(cartesian=self._map_focus, tileSize=self.tileSize)
+        pxlPos = tileCoord.get_abs_pixel_pos(self.tileSize)
+        camera.position((pxlPos.map_pixel_x,pxlPos.map_pixel_y, 0.0))
 
         x0, y0, x1, y1 = self.get_tile_display_range()
         for x in range(x0,x1):
@@ -193,21 +206,6 @@ class TiledMap(object):
                     self.tiles[key].draw()
                     
 
-    def pos_to_map_tile(self, pos):
-        tile_x = (pos[0] * self.tile_scale)
-        tile_y = (pos[1] * self.tile_scale)
-        return [tile_x, tile_y]
-
-    
-    def pos_to_map_tile_int(self, pos):
-        if pos is not None:
-            tile_x, tile_y = self.pos_to_map_tile(pos)
-            return int(tile_x), int(tile_y)
-        
-    def tile_pos_to_pix(self, pos):
-        return [float(pos[0]*self.tileSize*self.tileResolution), float(pos[1]*self.tileSize*self.tileResolution)]
-        
-        
     def draw_home(self):
 #        bar_shape = pi3d.Plane(camera=self.camera2d,  w=100, h=100)
         bar_shape = pi3d.Plane(camera=self.tile_camera,  w=20, h=20)

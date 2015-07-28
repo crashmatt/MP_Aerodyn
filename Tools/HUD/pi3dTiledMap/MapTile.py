@@ -8,6 +8,7 @@ import pi3d
 from pi3d.util.OffScreenTexture import OffScreenTexture
 from pi3d.shape.FlipSprite import FlipSprite
 import time
+from pi3dTiledMap import CoordSys
 
 class MapTile(object):
     '''
@@ -30,9 +31,8 @@ class MapTile(object):
         
         self.tile_create_time = time.time()
         self.tile_update_time = self.tile_create_time
-        
-        self.tile_x = tile_x
-        self.tile_y = tile_y
+
+        self.tile_no = CoordSys.TileNumber(tile_x, tile_y)        
         
         tilename = 'maptile {:d},{:d}'.format(tile_x , tile_y)
 #        tilename = "maptile [%d],[%d]", tile_x, tile_y

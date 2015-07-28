@@ -11,7 +11,7 @@ class Cartesian(object):
     Class for Cartesian coordinate
     '''
 
-    def __init__(self, x=0, y=0, polar=0):
+    def __init__(self, x=0, y=0, polar=None):
         '''
         Constructor
         '''
@@ -92,27 +92,34 @@ class TileCoord(object):
     Class for absolute map tile co-ordinates scaled in map tile size
     '''
 
-    def __init__(self, tile_x, tile_y):
+    def __init__(self, tile_x=0.0, tile_y=0.0, cartesian=None, tileSize=None):
         '''
         Constructor
         '''
         self.tile_x = tile_x
         self.tile_y = tile_y
+        
+        if cartesian is not None and tileSize is not None:
+            self.from_cartesian(cartesian,tileSize)
 
     def get_tile_number(self):
         '''
         Return the tile number which this tile co-ordinate is in
         '''
-        return TileNumber(int(self.tile_x), int(self.tile_y))
+        return TileNumber( int(math.floor(self.tile_x+0.5)), int(math.floor(self.tile_y+0.5)))
     
     def get_relative_tile_coord(self, TileNumber):
-        xrel = self.tile_x - TileNumber.tile_x
-        yrel = self.tile_y - TileNumber.tile_y
+        xrel = self.tile_x - float(TileNumber.tile_num_x)
+        yrel = self.tile_y - float(TileNumber.tile_num_y)
         return RelTileCoord(xrel, yrel)
      
     def get_abs_pixel_pos(self, tilePixelSize):
         return MapPixelPos(self.tile_x*tilePixelSize, self.tile_y*tilePixelSize)
     
+    def from_cartesian(self, cartesian, tileSize):
+        tileScale = 1.0 / float(tileSize)
+        self.tile_x = cartesian.x * tileScale
+        self.tile_y = cartesian.y * tileScale
      
 class RelTileCoord(object):
     '''
@@ -142,6 +149,9 @@ class TilePixelPos(object):
         '''
         self.pixel_x = pixel_x
         self.pixel_y = pixel_y
+    
+    def point(self):
+        return (self.pixel_x, self.pixel_y)
     
     
 class MapPixelPos(object):
