@@ -36,6 +36,7 @@ from multiprocessing import Queue
 import fnmatch
 
 import platform
+from pi3dTiledMap.CoordSys import Cartesian
 PLATFORM = platform.system()
 
 from HUDFilters import Filter
@@ -84,8 +85,8 @@ class HUD(object):
         #Queue of attribute updates each of which is tuple (attrib, object)
         self.update_queue = update_queue
         
-        self.show_track = True
-        self.show_tiled = False
+        self.show_track = False 
+        self.show_tiled = True
 
         self.init_vars()
         self.init_graphics()
@@ -219,7 +220,7 @@ class HUD(object):
         if self.show_track:
             self.track = HUDTrack(camera=self.text_camera, shader=self.flatsh, alpha=self.pitch_ladder_alpha)
         if self.show_tiled:
-            self.track_map = TiledMap.TiledMap(tileSize=256, w=512, h=512, z=6.0)
+            self.track_map = TiledMap.TiledMap(tileSize=256, w=512, h=512, z=6.0, alpha=0.8)
 
         self.background = pi3d.Plane(w=self.DISPLAY.width, h=self.DISPLAY.height, z=self.background_distance,
                                 camera=self.hud_camera, name="background", )
@@ -535,7 +536,7 @@ class HUD(object):
             if self.show_track:
                 self.track.draw_track(alpha=1.0)
             if self.show_tiled:
-                self.track_map.draw(alpha=1.0)
+                self.track_map.draw()
                 
             self.background.draw()
             self.ladder.draw_ladder(self.roll_filter.estimate(), self.pitch_filter.estimate(), 0)
@@ -630,12 +631,10 @@ class HUD(object):
         
     def update_maps(self):
         if self.show_tiled:
-            if self.aircraft_pos != [0.0, 0.0]:
-                x = self.home_dist * math.sin(math.radians(self.home_direction+180.0))
-                y = self.home_dist * math.cos(math.radians(self.home_direction+180.0))
-                self.track_map.set_map_focus([x,y])
-                self.track_map.set_aircraft_pos([x,y])
-                self.track_map.set_climbrate(self.vertical_speed)
+            pos = Cartesian(polar=self.home_polar.reverse())
+            self.track_map.set_map_focus(pos)
+            self.track_map.set_aircraft_pos(pos)
+            self.track_map.set_climbrate(self.vertical_speed)
         
     def windspeed_scale(self):
         self.windspeed = self.windspeed_cms * 0.01

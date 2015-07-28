@@ -121,10 +121,15 @@ class TiledMap(object):
         
         for tile in self.tiles.itervalues():
             if tile.is_draw_done() and tile.updateCount == 0:
-#                if tile.tile_x == 0 and tile.tile_y == 0:
-                tile.texture._start(True)
-                self.draw_home()
-                tile.texture._end()
+                if tile.tile_no.tile_num_x == 0 and tile.tile_no.tile_num_y == 0:
+                    tile.texture._start(True)
+                    self.draw_home()
+                    tile.texture._end()
+                else:
+                    tile.texture._start(True)
+                    self.draw_tile_centre()
+                    tile.texture._end()
+
                 tile.updateCount = 1
 
 
@@ -162,6 +167,9 @@ class TiledMap(object):
                 hue = self.interpolate(rate, 0, -20, 0.666, 0.0)
             colour = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
         return colour
+
+    def set_tile_alpha(self, tile):
+        tile.set_alpha(self.alpha)
                     
     def add_segment(self):
         if self._last_aircraft_pos == self._aircraft_pos:
@@ -184,14 +192,14 @@ class TiledMap(object):
                     pix1 = rel1.get_tile_pixel_pos(tile.tilePixels).point()
                     pix2 = rel2.get_tile_pixel_pos(tile.tilePixels).point()
                     
-                    tile.texture._start(False)
+                    tile.start(False)
                     segment = Line2d(camera=self.tile_camera, matsh=self.matsh, points=(pix1,pix2), thickness=3, colour=rate_colour )
                     segment.draw()              
-                    tile.texture._end()
+                    tile.end()
         self._last_aircraft_pos = self._aircraft_pos
 
 
-    def draw(self, alpha=1):
+    def draw(self):
         camera = self.map_camera
         camera.reset(is_3d=False, scale=self.zoom)
         tileCoord = CoordSys.TileCoord(cartesian=self._map_focus, tileSize=self.tileSize)
@@ -203,12 +211,27 @@ class TiledMap(object):
             for y in range(y0,y1):
                 key = '{:d},{:d}'.format(x , y)
                 if self.tiles.has_key(key):
-                    self.tiles[key].draw()
+                    tile = self.tiles[key]
+                    self.set_tile_alpha(tile)
+                    tile.draw()
                     
 
     def draw_home(self):
 #        bar_shape = pi3d.Plane(camera=self.camera2d,  w=100, h=100)
         bar_shape = pi3d.Plane(camera=self.tile_camera,  w=20, h=20)
+        bar_shape.set_draw_details(self.matsh, [], 0, 0)
+        bar_shape.set_material(self.home_colour)
+        bar_shape.position( 0,  0, 5)
+        bar_shape.draw()
+        
+    def draw_tile_centre(self):
+        bar_shape = pi3d.Plane(camera=self.tile_camera,  w=3, h=20)
+        bar_shape.set_draw_details(self.matsh, [], 0, 0)
+        bar_shape.set_material(self.home_colour)
+        bar_shape.position( 0,  0, 5)
+        bar_shape.draw()
+
+        bar_shape = pi3d.Plane(camera=self.tile_camera,  w=20, h=3)
         bar_shape.set_draw_details(self.matsh, [], 0, 0)
         bar_shape.set_material(self.home_colour)
         bar_shape.position( 0,  0, 5)

@@ -48,4 +48,14 @@ class MapTile(object):
         
     def is_draw_done(self):
         return self._drawDone
+    
+    def start(self, clear=True):
+        self.texture._start(clear)
+    
+    def end(self):
+        self.texture._end()
+        self.tile_update_time = time.time()
+        
+    def set_alpha(self, alpha):
+        self.sprite.set_alpha(alpha)
         
