@@ -28,6 +28,7 @@ from Box2d import Box2d
 import HUDConfig as HUDConfig
 
 from pi3dTiledMap import TiledMap
+from pi3dTiledMap import CoordSys
 
 import os
 from multiprocessing import Queue
@@ -119,10 +120,11 @@ class HUD(object):
         self.heading = 0
         self.home_heading = 0
         self.home_direction = 0
-        self.home_dist = 0
+#        self.home_dist = 0
         self.home_dist_scaled = 0
         self.home_dist_units = "m"
         self.home = [0.0, 0.0]       # home [lon, lat]
+        self.home_polar = CoordSys.Polar(0.0,0.0)
         self.vertical_speed = 0
         self.asl = 0    	         #altitude above sea level
         self.agl = 0     	         #altitude above ground level
@@ -483,10 +485,11 @@ class HUD(object):
             self.dynamic_items.gen_items(self.hud_update_frame)
              
             if self.show_track:
-                direction = math.radians(math.pi-self.home_heading)
-                xpos = int(self.home_dist * math.cos(direction))
-                ypos = int(self.home_dist * math.sin(direction))
-                self.track.add_segment(xpos, ypos, self.vertical_speed, self.heading)
+#                direction = math.radians(math.pi-self.home_heading)
+#                xpos = int(self.home_dist * math.cos(direction))
+#                ypos = int(self.home_dist * math.sin(direction))
+                relPos = CoordSys.Cartesian(polar=self.home_polar.reverse())
+                self.track.add_segment(relPos.x, relPos.y, self.vertical_speed, self.heading)
             if self.show_tiled:
                 self.track_map.add_segment()
              
@@ -666,6 +669,7 @@ class HUD(object):
         
         
     def calc_home_direction(self):
+        self.home_heading = self.home_polar.angle
         self.home_direction = self.home_heading - self.heading
         if(self.home_direction > 360):
             self.home_direction = self.home_direction - 360
@@ -680,15 +684,16 @@ class HUD(object):
     
     def home_dist_scale(self):
         """ Scale from home distance in meters to other scales depending on range"""
-        if(self.home_dist >=1000):
-            self.home_dist_scaled = self.home_dist * 0.001
+        home_dist = self.home_polar.distance
+        if(home_dist >=1000):
+            self.home_dist_scaled = home_dist * 0.001
             self.home_dist_units = "km"
             if(self.home_dist_scaled > 9.9):
                 self.home_distance_number.textformat = "{:02.1f}"
             else:
                 self.home_distance_number.textformat = "{:01.2f}"
         else:
-            self.home_dist_scaled = int(self.home_dist)
+            self.home_dist_scaled = int(home_dist)
             self.home_dist_units = "m"
             self.home_distance_number.textformat = "{:03.0f}"
         

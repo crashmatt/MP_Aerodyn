@@ -11,13 +11,21 @@ class Cartesian(object):
     Class for Cartesian coordinate
     '''
 
-    def __init__(self, x, y):
+    def __init__(self, x=0, y=0, polar=0):
         '''
         Constructor
         '''
-        self.x = x
-        self.y = y
-    
+        if polar is not None:
+            self.from_polar(polar)
+        else:
+            self.x = x
+            self.y = y
+
+    def from_polar(self, polar):
+        rad_angle = math.radians(polar.angle)
+        self.x = polar.distance * math.cos(rad_angle)
+        self.y = polar.distance * math.sin(rad_angle)
+        
 
 class Polar(object):
     '''
@@ -28,17 +36,19 @@ class Polar(object):
         '''
         Constructor
         '''
-        if geo_coord1 is None or geo_coord2 is None:
-            self.distance = distance
-            self.angle = heading
-        else:
+        self.distance = distance
+        self.angle = heading
+
+        if geo_coord1 is not None and geo_coord2 is not None:
             self.from_geo_coords(geo_coord1, geo_coord2)
         
-    def to_coordinate(self):
-        rad_angle = math.radians(self.heading)
-        x = self.distance * math.sin(rad_angle)
-        y = self.distance * math.sin(rad_angle)
-        return Cartesian(x,y)
+    def reverse(self):
+        rev_angle = 180.0 - self.angle
+        if rev_angle > 180.0:
+            rev_angle = rev_angle - 360.0
+        elif rev_angle < -180.0:
+            rev_angle = rev_angle + 360.0
+        return Polar(distance=self.distance, heading=rev_angle)
     
     def from_geo_coords(self, geo_coord1, geo_coord2):
         lon1 = math.radians(geo_coord1.lon)
@@ -152,9 +162,9 @@ class TileNumber(object):
     Class for map tile numbering
     '''
 
-    def __init__(self, tile_x, tile_y):
+    def __init__(self, tile_num_x, tile_num_y):
         '''
         Constructor
         '''
-        self.tile_x = tile_x
-        self.tile_y = tile_y
+        self.tile_num_x = tile_num_x
+        self.tile_num_y = tile_num_y
