@@ -16,6 +16,7 @@ from pi3dTiledMap import CoordSys
 from pi3dTiledMap.CoordSys import Cartesian
 from gi.overrides.keysyms import careof
 import time
+from pygame.examples.scroll import zoom_factor
 
 class TiledMap(object):
     '''
@@ -43,11 +44,14 @@ class TiledMap(object):
         self.z = z
         self.alpha = alpha
 
-        self.set_zoom(1.0)
+        self._zoom_target = 1.0
+        self._zoom_rate = 1.0
+        self._zoom = 1.0
         self.tile_timeout   = 120.0
         
         self.tiles = dict()
         self.inits_done = 0
+        self._last_update_time = time.time()
    
         self._map_focus         = CoordSys.Cartesian(0.0,0.0)
         self._aircraft_pos      = CoordSys.Cartesian(0.0,0.0)
@@ -74,14 +78,14 @@ class TiledMap(object):
         
         self.cam_xoffset = (self.screen_width-tileSize) * 0.5
         self.cam_yoffset = (self.screen_height-tileSize) * 0.5
-    
-    def set_zoom(self, zoom):
-        self._zoom          = zoom
-        self._inv_zoom      = 1 / self._zoom
-          
+        
+    def set_zoom_target(self,zoom, rate):
+        self._zoom_target = zoom
+        self._zoom_rate = rate
+                  
     
     def get_tile_display_range(self):
-        delta = CoordSys.Cartesian(self.w * self._inv_zoom * 0.5, self.h * self._inv_zoom * 0.5)
+        delta = CoordSys.Cartesian(self.w  * 0.5 / self._zoom, self.h * 0.5 / self._zoom)
 
         map_corner1 = self._map_focus - delta
         map_corner2 = self._map_focus + delta
@@ -118,6 +122,7 @@ class TiledMap(object):
             self.inits_done = 1
             return
         
+        self._update_zoom()
         self.update_tiles()
         
         for tile in self.tiles.itervalues():
@@ -155,6 +160,16 @@ class TiledMap(object):
                 if not self.tiles.has_key(key):
                     new_tile = MapTile(map_camera=self.map_camera, map_shader = self.flatsh, tilePixels=self.tileSize, tile_x=x, tile_y=y)
                     self.tiles[key] = new_tile
+
+
+    def _update_zoom(self):
+        now = time.time()
+        deltaT = now - self._last_update_time
+        deltaZ = self._zoom_target - self._zoom
+        deltaZ = deltaZ * (deltaT * self._zoom_rate)
+        self._zoom = self._zoom + deltaZ
+        self._last_update_time = now
+        
                     
     def interpolate_ratio(self, ratio, y1, y2):
         delta = y2 - y1
