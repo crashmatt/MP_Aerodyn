@@ -127,15 +127,9 @@ class TiledMap(object):
         
         for tile in self.tiles.itervalues():
             if tile.is_draw_done() and tile.updateCount == 0:
-                if tile.tile_no.tile_num_x == 0 and tile.tile_no.tile_num_y == 0:
-                    tile.texture._start(True)
-                    self.draw_home()
-                    tile.texture._end()
-                else:
-                    tile.texture._start(True)
-                    self.draw_tile_markers()
-                    tile.texture._end()
-
+                tile.texture._start(True)
+                self.draw_tile_markers(tile.tile_no)
+                tile.texture._end()
                 tile.updateCount = 1
 
 
@@ -253,14 +247,47 @@ class TiledMap(object):
         bar_shape.position( 0,  0, 5)
         bar_shape.draw()
         
-    def draw_tile_markers(self):
-        bar_shape = pi3d.Plane(camera=self.tile_camera,  w=3, h=20)
+    def draw_tile_markers(self, tilenum):
+        if tilenum.tile_num_x == 0 and tilenum.tile_num_y == 0 :
+            self.draw_home()
+            return
+        
+        if tilenum.tile_num_x < 0:
+            xoffset = 10
+            rot = 0
+        elif tilenum.tile_num_x > 0:
+            xoffset = -10
+            rot = 0
+
+        if tilenum.tile_num_y < 0:
+            yoffset = -10
+            rot = 0
+        elif tilenum.tile_num_y > 0:
+            yoffset = 10
+            rot = 0
+        
+        if tilenum.tile_num_x == 0:
+            xoffset = 10
+            yoffset = 0  
+            if tilenum.tile_num_y > 0:
+                rot = -45
+            else:
+                rot = 45
+        elif tilenum.tile_num_y == 0:
+            xoffset = 0
+            yoffset = 10
+            if tilenum.tile_num_x > 0:
+                rot = -45
+            else:
+                rot = 45
+            
+        bar_shape = pi3d.Plane(camera=self.tile_camera,  w=3, h=20, rz=rot)
         bar_shape.set_draw_details(self.matsh, [], 0, 0)
         bar_shape.set_material(self.home_colour)
-        bar_shape.position( 0,  0, 5)
+        bar_shape.position( xoffset,  yoffset, 5)
         bar_shape.draw()
 
-        bar_shape = pi3d.Plane(camera=self.tile_camera,  w=20, h=3)
+        bar_shape = pi3d.Plane(camera=self.tile_camera,  w=20, h=3, rz=rot)
         bar_shape.set_draw_details(self.matsh, [], 0, 0)
         bar_shape.set_material(self.home_colour)
         bar_shape.position( 0,  0, 5)
