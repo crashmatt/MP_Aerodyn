@@ -636,9 +636,9 @@ class HUD(object):
             self.track_map.set_aircraft_pos(pos)
             self.track_map.set_climbrate(self.vertical_speed)
             if self.flap_pos == "FLAP DOWN":
-                self.track_map.set_zoom_target(2.0, 1.0)
+                self.track_map.set_zoom_target(1.5, 1.0)
             elif self.flap_pos == "FLAP UP":
-                self.track_map.set_zoom_target(0.5, 1.0)
+                self.track_map.set_zoom_target(0.75, 1.0)
             else:
                 self.track_map.set_zoom_target(1.0, 1.0)
         
