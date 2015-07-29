@@ -55,10 +55,12 @@ class MapTile(object):
     
     def start(self, clear=True):
         self.texture._start(clear)
+        # Only set update time if tile is not cleared
+        if not clear:
+            self.tile_update_time = time.time()
     
     def end(self):
         self.texture._end()
-        self.tile_update_time = time.time()
         
     def set_alpha(self, alpha):
         self.sprite.set_alpha(alpha)

@@ -26,6 +26,12 @@ class Cartesian(object):
         self.x = polar.distance * math.cos(rad_angle)
         self.y = polar.distance * math.sin(rad_angle)
         
+    def __add__(self, other):
+        return Cartesian(self.x + other.x, self.y + other.y)
+    
+    def __sub__(self, other):
+        return Cartesian(self.x - other.y, self.y - other.y)
+        
 
 class Polar(object):
     '''

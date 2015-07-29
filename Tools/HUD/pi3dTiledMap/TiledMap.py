@@ -43,7 +43,8 @@ class TiledMap(object):
         self.z = z
         self.alpha = alpha
 
-        self.zoom = 1.0
+        self.set_zoom(1.0)
+        self.tile_timeout   = 120.0
         
         self.tiles = dict()
         self.inits_done = 0
@@ -73,22 +74,28 @@ class TiledMap(object):
         
         self.cam_xoffset = (self.screen_width-tileSize) * 0.5
         self.cam_yoffset = (self.screen_height-tileSize) * 0.5
+    
+    def set_zoom(self, zoom):
+        self._zoom          = zoom
+        self._inv_zoom      = 1 / self._zoom
           
     
     def get_tile_display_range(self):
-        tiles_x = int(ceil(self.w/self.tileSize) / self.zoom)
-        tiles_y = int(ceil(self.h/self.tileSize) / self.zoom)
-        
-        tileCoord = CoordSys.TileCoord(cartesian=self._map_focus, tileSize=self.tileSize)
-        tileNum = tileCoord.get_tile_number()
-                                       
-        x_span = (tiles_x/2)+1
-        y_span = (tiles_y/2)+1
-        
-        x0 = tileNum.tile_num_x
-        y0 = tileNum.tile_num_y
+        delta = CoordSys.Cartesian(self.w * self._inv_zoom * 0.5, self.h * self._inv_zoom * 0.5)
+
+        map_corner1 = self._map_focus - delta
+        map_corner2 = self._map_focus + delta
+                
+        tileCoord1 = CoordSys.TileCoord(cartesian=map_corner1, tileSize=self.tileSize)
+        tileNum1 = tileCoord1.get_tile_number()
+
+        tileCoord2 = CoordSys.TileCoord(cartesian=map_corner2, tileSize=self.tileSize)
+        tileNum2 = tileCoord2.get_tile_number()
+                
 #        return 0,0,0,0
-        return x0-x_span, y0-y_span, x0+x_span,  y0+y_span
+        return tileNum1, tileNum2
+    
+    
     
     # set the map focus in relative position from origin [x, y]
     def set_map_focus(self, pos):
@@ -121,7 +128,7 @@ class TiledMap(object):
                     tile.texture._end()
                 else:
                     tile.texture._start(True)
-                    self.draw_tile_centre()
+                    self.draw_tile_markers()
                     tile.texture._end()
 
                 tile.updateCount = 1
@@ -129,17 +136,21 @@ class TiledMap(object):
 
     def update_tiles(self):
         remove_keys = []
+        #Check if tile has been used (drawn on other than initial markers)
+        # if so, check it has not gone out of date.
         for key in self.tiles.iterkeys():
-            if time.time() > self.tiles[key].tile_update_time + 30.0:
-                remove_keys.append(key)
+            tile = self.tiles[key]
+            if tile.tile_update_time != tile.tile_create_time:
+                if time.time() > tile.tile_update_time + self.tile_timeout:
+                    remove_keys.append(key)
         
         for key in remove_keys:
             tile = self.tiles.pop(key)
             tile = None
         
-        x0, y0, x1, y1 = self.get_tile_display_range()
-        for x in range(x0,x1+0):
-            for y in range(y0,y1+0):
+        tile1, tile2 = self.get_tile_display_range()
+        for x in range(tile1.tile_num_x ,tile2.tile_num_x+1):
+            for y in range(tile1.tile_num_y ,tile2.tile_num_y+1):
                 key = '{:d},{:d}'.format(x , y)
                 if not self.tiles.has_key(key):
                     new_tile = MapTile(map_camera=self.map_camera, map_shader = self.flatsh, tilePixels=self.tileSize, tile_x=x, tile_y=y)
@@ -204,14 +215,14 @@ class TiledMap(object):
 
     def draw(self):
         camera = self.map_camera
-        camera.reset(is_3d=False, scale=self.zoom)
+        camera.reset(is_3d=False, scale=self._zoom)
         tileCoord = CoordSys.TileCoord(cartesian=self._map_focus, tileSize=self.tileSize)
         pxlPos = tileCoord.get_abs_pixel_pos(self.tileSize)
         camera.position((pxlPos.map_pixel_x,pxlPos.map_pixel_y, 0.0))
 
-        x0, y0, x1, y1 = self.get_tile_display_range()
-        for x in range(x0,x1):
-            for y in range(y0,y1):
+        tile1, tile2 = self.get_tile_display_range()
+        for x in range(tile1.tile_num_x ,tile2.tile_num_x+1):
+            for y in range(tile1.tile_num_y ,tile2.tile_num_y+1):
                 key = '{:d},{:d}'.format(x , y)
                 if self.tiles.has_key(key):
                     tile = self.tiles[key]
@@ -227,7 +238,7 @@ class TiledMap(object):
         bar_shape.position( 0,  0, 5)
         bar_shape.draw()
         
-    def draw_tile_centre(self):
+    def draw_tile_markers(self):
         bar_shape = pi3d.Plane(camera=self.tile_camera,  w=3, h=20)
         bar_shape.set_draw_details(self.matsh, [], 0, 0)
         bar_shape.set_material(self.home_colour)
