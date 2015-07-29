@@ -10,7 +10,7 @@ from pi3d.shape.FlipSprite import FlipSprite
 from MapTile import MapTile
 from _dbus_bindings import String
 from math import sin, cos, log , pi, ceil
-from Line2d import Line2d
+from Lines2d import Lines2d
 import colorsys
 from pi3dTiledMap import CoordSys
 from pi3dTiledMap.CoordSys import Cartesian
@@ -47,7 +47,7 @@ class TiledMap(object):
         self._zoom_target = 1.0
         self._zoom_rate = 1.0
         self._zoom = 1.0
-        self.tile_timeout   = 120.0
+        self.tile_timeout   = 90.0
         
         self.tiles = dict()
         self.inits_done = 0
@@ -216,7 +216,8 @@ class TiledMap(object):
                     pix2 = rel2.get_tile_pixel_pos(tile.tilePixels).point()
                     
                     tile.start(False)
-                    segment = Line2d(camera=self.tile_camera, matsh=self.matsh, points=(pix1,pix2), thickness=3, colour=rate_colour )
+                    segment = Lines2d(camera=self.tile_camera, points=(pix1,pix2), line_width=3, material=rate_colour, z=6.0)
+                    segment.set_draw_details(self.matsh, [], 0, 0)
                     segment.draw()              
                     tile.end()
         self._last_aircraft_pos = self._aircraft_pos
