@@ -48,7 +48,6 @@ class HUDladder(object):
         self.fadingpos_start = 0.25
         self.fadingpos_end = 0.4
         
-
         # 2d camera for generating sprites
         self.camera = camera    #pi3d.Camera(is_3d=False)
         self.shader = shader
@@ -150,6 +149,9 @@ class HUDladderBar(object):
 
         # This is the sprite onto which the texture is drawn, positioned at the correct location on the ladder
         self.sprite = pi3d.FlipSprite(camera=camera, w=self.bar.ix, h=self.bar.iy, y=ypos, z=5, flip=True)
+        
+        self.ladder_text_box_alpha = 0.8
+
 
     # The following functions return values controlling the look and feel of the bar    
 
@@ -235,6 +237,22 @@ class HUDladderBar(object):
 
             bar_shape.position( self.xoffset+dashoffset+(gap_width*0.5) ,  self.yoffset, 5) #
             bar_shape.draw()
+            
+        #draw background text boxes for bar angle text
+        text_box = pi3d.Plane(camera=self.camera,  w=fontsize*300, h=fontsize*175)
+        text_box.set_material((0.0, 0.0, 0.0))
+        text_box.set_alpha(self.ladder_text_box_alpha)
+        text_box.position(bar_width/2 + (font_bar_gap * self.pixel_width) + self.xoffset - fontsize*65, self.yoffset, 6.0)
+        text_box.set_draw_details(matsh, [], 0, 0)        
+        text_box.draw()
+
+        text_box = pi3d.Plane(camera=self.camera,  w=fontsize*300, h=fontsize*175)
+        text_box.set_material((0.0, 0.0, 0.0))
+        text_box.set_alpha(self.ladder_text_box_alpha)
+        text_box.position((-bar_width/2) - (font_bar_gap * self.pixel_width) + self.xoffset + fontsize*65, self.yoffset, 6.0)
+        text_box.set_draw_details(matsh, [], 0, 0)        
+        text_box.draw()
+
         
         degText = "%01d" % self.degree
         degStr = pi3d.String(camera=self.camera, font=font, string=degText, size=fontsize, justify='R', is_3d=False)
