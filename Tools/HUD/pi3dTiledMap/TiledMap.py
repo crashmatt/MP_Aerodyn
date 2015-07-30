@@ -134,19 +134,18 @@ class TiledMap(object):
 
 
     def update_tiles(self):
-        remove_keys = []
-        #Check if tile has been used (drawn on other than initial markers)
+        # Removes old tiles or creates new tiles, one tile at a time to reduce peak workload
+
+        # Check if tile has been used (drawn on other than initial markers)
         # if so, check it has not gone out of date.
         for key in self.tiles.iterkeys():
             tile = self.tiles[key]
             if tile.tile_update_time != tile.tile_create_time:
                 if time.time() > tile.tile_update_time + self.tile_timeout:
-                    remove_keys.append(key)
-        
-        for key in remove_keys:
-            tile = self.tiles.pop(key)
-            tile = None
-        
+                    #remove_keys.append(key)
+                    self.tiles.pop(key)
+                    return
+
         tile1, tile2 = self.get_tile_display_range()
         for x in range(tile1.tile_num_x ,tile2.tile_num_x+1):
             for y in range(tile1.tile_num_y ,tile2.tile_num_y+1):
@@ -154,6 +153,7 @@ class TiledMap(object):
                 if not self.tiles.has_key(key):
                     new_tile = MapTile(map_camera=self.map_camera, map_shader = self.flatsh, tilePixels=self.tileSize, tile_x=x, tile_y=y)
                     self.tiles[key] = new_tile
+                    return
 
 
     def _update_zoom(self):
@@ -204,7 +204,7 @@ class TiledMap(object):
         
         tile1 = pos1.get_tile_number()
         tile2 = pos2.get_tile_number()
-        
+                
         for x in range (tile1.tile_num_x, tile2.tile_num_x+1):
             for y in range (tile1.tile_num_y, tile2.tile_num_y+1):
                 key = '{:d},{:d}'.format(x , y)
@@ -216,7 +216,7 @@ class TiledMap(object):
                     pix2 = rel2.get_tile_pixel_pos(tile.tilePixels).point()
                     
                     tile.start(False)
-                    segment = Lines2d(camera=self.tile_camera, points=(pix1,pix2), line_width=3, material=rate_colour, z=6.0)
+                    segment = Lines2d(camera=self.tile_camera, points=(pix1,pix2), line_width=3.5, material=rate_colour, z=6.0)
                     segment.set_draw_details(self.matsh, [], 0, 0)
                     segment.draw()              
                     tile.end()
