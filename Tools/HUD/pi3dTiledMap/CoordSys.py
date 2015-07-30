@@ -184,3 +184,9 @@ class TileNumber(object):
         '''
         self.tile_num_x = tile_num_x
         self.tile_num_y = tile_num_y
+        
+    def __eq__(self, other):
+        return ( self.tile_num_x, self.tile_num_y ) == ( other.tile_num_x, other.tile_num_y )
+
+    def __ne__(self, other):
+        return not self == other
