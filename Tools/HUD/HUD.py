@@ -201,7 +201,7 @@ class HUD(object):
         x,y = self.grid.get_grid_pixel(-16, 0)
         self.VSI = LinearIndicator(self.text_camera, self.flatsh, self.matsh, self, "vertical_speed", 
                                    indmax=20, indmin=-20, x=x, y=y, z=3, width=18, length=180, 
-                                   orientation="V", line_colour=(255,255,255,255), fill_colour=(0,0,0,0.5), 
+                                   orientation="V", line_colour=(255,255,255,255), fill_colour=(0,0,0,0.75), 
                                    line_thickness = 1, needle_img=needle_path)
 
         #Add slip indicator.  Scale is in degrees
