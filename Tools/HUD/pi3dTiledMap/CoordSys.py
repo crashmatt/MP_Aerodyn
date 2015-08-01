@@ -49,7 +49,7 @@ class Polar(object):
             self.from_geo_coords(geo_coord1, geo_coord2)
         
     def reverse(self):
-        rev_angle = 180.0 - self.angle
+        rev_angle = self.angle + 180.0 
         if rev_angle > 180.0:
             rev_angle = rev_angle - 360.0
         elif rev_angle < -180.0:
@@ -126,7 +126,11 @@ class TileCoord(object):
         tileScale = 1.0 / float(tileSize)
         self.tile_x = cartesian.x * tileScale
         self.tile_y = cartesian.y * tileScale
-     
+        
+    def __sub__(self, other):
+        return RelTileCoord(self.tile_x - other.tile_x, self.tile_y - other.tile_y)
+    
+         
 class RelTileCoord(object):
     '''
     Class for realtive map tile co-ordinates scaled in map tile size
@@ -136,13 +140,26 @@ class RelTileCoord(object):
         '''
         Constructor
         '''
-        self.tile_x = tile_x
-        self.tile_y = tile_y
+        self.tile_rel_x = tile_x
+        self.tile_rel_y = tile_y
     
     def get_tile_pixel_pos(self, tilePixelSize):
-        return TilePixelPos(tilePixelSize*self.tile_x, tilePixelSize*self.tile_y)
+        return TilePixelPos(tilePixelSize*self.tile_rel_x, tilePixelSize*self.tile_rel_y)
 
+    def __div__(self, other):
+        if other.tile_rel_x == 0:
+            ratio_x = 0
+        else:
+            ratio_x = self.tile_rel_x
         
+        if other.tile_rel_y == 0:
+            ratio_y = 0
+        else:
+            ratio_y = self.tile_rel_y        
+        return ratio_x, ratio_y
+
+    def fabs(self):
+        return RelTileCoord( math.fabs(self.tile_rel_x), math.fabs(self.tile_rel_y) )
 
 class TilePixelPos(object):
     '''
@@ -190,3 +207,5 @@ class TileNumber(object):
 
     def __ne__(self, other):
         return not self == other
+    
+    

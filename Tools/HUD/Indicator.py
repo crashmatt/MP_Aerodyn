@@ -143,7 +143,7 @@ class DirectionIndicator(Indicator):
 #        elif(deltapos < (self.length * -0.5)):
 #            deltapos = (self.length * -0.5)
 
-        self.pointer.rotateToZ(self.value)
+        self.pointer.rotateToZ(-self.value)
         self.changed = True
         
     def draw_item(self):

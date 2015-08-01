@@ -674,7 +674,7 @@ class HUD(object):
         
         
     def calc_home_direction(self):
-        self.home_heading = self.home_polar.angle
+        self.home_heading = self.home_polar.angle + 180
         self.home_direction = self.home_heading - self.heading
         if(self.home_direction > 360):
             self.home_direction = self.home_direction - 360

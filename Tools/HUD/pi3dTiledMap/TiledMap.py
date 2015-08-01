@@ -9,7 +9,7 @@ from pi3d.util.OffScreenTexture import OffScreenTexture
 from pi3d.shape.FlipSprite import FlipSprite
 from MapTile import MapTile
 from _dbus_bindings import String
-from math import sin, cos, log , pi, ceil
+from math import sin, cos, log , pi, ceil, atan2, degrees, fabs, sqrt
 from Lines2d import Lines2d
 import colorsys
 from pi3dTiledMap import CoordSys
@@ -59,7 +59,8 @@ class TiledMap(object):
         
         self._climbrate = 0.0
         
-        self.home_colour = (0,0,1.0,0.5)
+        self.home_colour = (0.0, 0.0, 1.0, 0.5)
+        self.marker_colour = (0.2, 0.2, 0.8, 0.5)
         
         # camera for viewing the map. Owned by the track since it can move
         self.map_camera = pi3d.Camera(is_3d = False)
@@ -97,7 +98,7 @@ class TiledMap(object):
         tileNum2 = tileCoord2.get_tile_number()
                 
 #        return 0,0,0,0
-        return tileNum1, tileNum2
+        return tileCoord1, tileCoord2, tileNum1, tileNum2
     
     
     
@@ -146,7 +147,7 @@ class TiledMap(object):
                     self.tiles.pop(key)
                     return
 
-        tile1, tile2 = self.get_tile_display_range()
+        __, __, tile1, tile2 = self.get_tile_display_range()
         for x in range(tile1.tile_num_x ,tile2.tile_num_x+1):
             for y in range(tile1.tile_num_y ,tile2.tile_num_y+1):
                 key = '{:d},{:d}'.format(x , y)
@@ -174,7 +175,8 @@ class TiledMap(object):
         ratio = (x - x1) / deltax
         deltay = y2 - y1
         return (ratio * deltay) + y1
-                    
+            
+            
     def get_rate_colour(self, rate):
         colour = (1.0, 1.0, 1.0, 1.0)
 
@@ -191,8 +193,13 @@ class TiledMap(object):
             colour = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
         return colour
 
-    def set_tile_alpha(self, tile):
-        tile.set_alpha(self.alpha)
+    def set_tile_alpha(self, tile, distance):
+        alpha = self.interpolate(distance, 1.0, 1.5, 1.0, 0.0)
+        if alpha < 0.0:
+            alpha = 0.0
+        elif alpha > self.alpha:
+            alpha = self.alpha
+        tile.set_alpha(alpha)
                     
     def add_segment(self):
         if self._last_aircraft_pos == self._aircraft_pos:
@@ -229,14 +236,23 @@ class TiledMap(object):
         tileCoord = CoordSys.TileCoord(cartesian=self._map_focus, tileSize=self.tileSize)
         pxlPos = tileCoord.get_abs_pixel_pos(self.tileSize)
         camera.position((pxlPos.map_pixel_x,pxlPos.map_pixel_y, 0.0))
+        
+        centerTileCoord = CoordSys.TileCoord(cartesian=self._map_focus, tileSize=self.tileSize)
 
-        tile1, tile2 = self.get_tile_display_range()
+        tileCoord1, tileCoord2, tile1, tile2 = self.get_tile_display_range()
+        tileCoordRange = tileCoord1 - tileCoord2
+        
         for x in range(tile1.tile_num_x ,tile2.tile_num_x+1):
             for y in range(tile1.tile_num_y ,tile2.tile_num_y+1):
+                relTile = centerTileCoord.get_relative_tile_coord(CoordSys.TileNumber(x,y))
+                relTile = relTile.fabs()
+                ratio_x, ratio_y = relTile / tileCoordRange
+                ratio_distance = sqrt(ratio_x**2 + ratio_y**2)
+                                
                 key = '{:d},{:d}'.format(x , y)
                 if self.tiles.has_key(key):
                     tile = self.tiles[key]
-                    self.set_tile_alpha(tile)
+                    self.set_tile_alpha(tile, ratio_distance)
                     tile.draw()
                     
 
@@ -253,52 +269,13 @@ class TiledMap(object):
             self.draw_home()
             return
         
-        if tilenum.tile_num_x < 0:
-            xoffset = 10
-            rot = 0
-        elif tilenum.tile_num_x > 0:
-            xoffset = -10
-            rot = 0
-
-        if tilenum.tile_num_y < 0:
-            yoffset = -10
-            rot = 0
-        elif tilenum.tile_num_y > 0:
-            yoffset = 10
-            rot = 0
+        points = ((14,-14), (0,0), (14,14))
         
-        if tilenum.tile_num_x == 0:
-            xoffset = 10
-            yoffset = 0  
-            if tilenum.tile_num_y > 0:
-                rot = -45
-            else:
-                rot = 45
-        elif tilenum.tile_num_y == 0:
-            xoffset = 0
-            yoffset = 10
-            if tilenum.tile_num_x > 0:
-                rot = -45
-            else:
-                rot = 45
-            
-        bar_shape = pi3d.Plane(camera=self.tile_camera,  w=3, h=20, rz=rot)
-        bar_shape.set_draw_details(self.matsh, [], 0, 0)
-        bar_shape.set_material(self.home_colour)
-        bar_shape.position( xoffset,  yoffset, 5)
-        bar_shape.draw()
-
-        bar_shape = pi3d.Plane(camera=self.tile_camera,  w=20, h=3, rz=rot)
-        bar_shape.set_draw_details(self.matsh, [], 0, 0)
-        bar_shape.set_material(self.home_colour)
-        bar_shape.position( 0,  0, 5)
-        bar_shape.draw()
-
-#        bar_shape.set_material((1.0, 0, 0))
-#        bar_shape.position( -self.tileSize*0.25,  -self.tileSize*0.25, 5)
-#        bar_shape.draw()
-
-#        bar_shape.set_material((0, 1.0, 0))
-#        bar_shape.position( self.tileSize*0.25,  self.tileSize*0.25, 5)
-#        bar_shape.draw()
+        thickness = 5
+        rot = atan2(tilenum.tile_num_y, tilenum.tile_num_x)
+        rot = degrees(rot) # - 45
+        
+        marker = Lines2d(camera=self.tile_camera, points=points, line_width=thickness, material=self.marker_colour, z=6.0, rz=rot)
+        marker.set_draw_details(self.matsh, [], 0, 0)
+        marker.draw()
     

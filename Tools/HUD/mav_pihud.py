@@ -6,7 +6,7 @@ mavlink connection for pi3d based HUD
 Copyright Matthew Coleman
 Released under the GNU GPL version 3 or later
 
-Cutdown of mavproxy by Andrew Tridgell
+Based on cutdown of mavproxy by Andrew Tridgell
 
 '''
 
