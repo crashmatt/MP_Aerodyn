@@ -47,7 +47,9 @@ class TiledMap(object):
         self._zoom_target = 1.0
         self._zoom_rate = 1.0
         self._zoom = 1.0
-        self.tile_timeout   = 90.0
+        self.tile_timeout   = 120.0
+        self.track_timeout  = 90.0
+        self.track_cutback  = 0.6  # Age limit as ratio of timeout
         
         self.tiles = dict()
         self.inits_done = 0
@@ -132,13 +134,52 @@ class TiledMap(object):
                 self.draw_tile_markers(tile.tile_no)
                 tile.texture._end()
                 tile.updateCount = 1
+                
+    def _redraw_tile(self, tile):
+        #remove old items from tile item list
+        new_list = []
+        track_age_limit = time.time() - (self.track_cutback * self.track_timeout)
+        for item in tile.tile_items:
+            if item[0] > track_age_limit:
+                new_list.append(item)
+        tile.tile_items = new_list
 
+        tile.texture._start(True)
+        self.draw_tile_markers(tile.tile_no)        
+        for item in tile.tile_items:
+            self._draw_segment(tile, item[1], item[2], item[3])        
+        tile.texture._end()
+        
+#        for item in tile.tile_items:
+            
+        
 
     def update_tiles(self):
         # Removes old tiles or creates new tiles, one tile at a time to reduce peak workload
 
+        # Check through the range of tiles on screen
+        __, __, tile1, tile2 = self.get_tile_display_range()
+        for x in range(tile1.tile_num_x ,tile2.tile_num_x+1):
+            for y in range(tile1.tile_num_y ,tile2.tile_num_y+1):
+                key = '{:d},{:d}'.format(x , y)
+                # Create new tiles where needed
+                if not self.tiles.has_key(key):
+                    new_tile = MapTile(map_camera=self.map_camera, map_shader = self.flatsh, tilePixels=self.tileSize, tile_no=CoordSys.TileNumber(x,y) )
+                    self.tiles[key] = new_tile
+                    return
+                # Remove old tracks from tiles
+                else:
+                    tile = self.tiles[key]
+                    tile_items = tile.tile_items
+                    if len(tile_items) > 2:
+                        start_time = tile_items[0][0]
+                        if (time.time() - start_time) > self.track_timeout:
+                            self._redraw_tile(tile)
+                            return                
+                    
+
         # Check if tile has been used (drawn on other than initial markers)
-        # if so, check it has not gone out of date.
+        # if so, check it has not gone out of date or the track is out of date
         for key in self.tiles.iterkeys():
             tile = self.tiles[key]
             if tile.tile_update_time != tile.tile_create_time:
@@ -147,14 +188,6 @@ class TiledMap(object):
                     self.tiles.pop(key)
                     return
 
-        __, __, tile1, tile2 = self.get_tile_display_range()
-        for x in range(tile1.tile_num_x ,tile2.tile_num_x+1):
-            for y in range(tile1.tile_num_y ,tile2.tile_num_y+1):
-                key = '{:d},{:d}'.format(x , y)
-                if not self.tiles.has_key(key):
-                    new_tile = MapTile(map_camera=self.map_camera, map_shader = self.flatsh, tilePixels=self.tileSize, tile_x=x, tile_y=y)
-                    self.tiles[key] = new_tile
-                    return
 
 
     def _update_zoom(self):
@@ -221,14 +254,18 @@ class TiledMap(object):
                     rel2 = pos2.get_relative_tile_coord(tile.tile_no)
                     pix1 = rel1.get_tile_pixel_pos(tile.tilePixels).point()
                     pix2 = rel2.get_tile_pixel_pos(tile.tilePixels).point()
-                    
                     tile.start(False)
-                    segment = Lines2d(camera=self.tile_camera, points=(pix1,pix2), line_width=3.5, material=rate_colour, z=6.0)
-                    segment.set_draw_details(self.matsh, [], 0, 0)
-                    segment.draw()              
+                    self._draw_segment(tile, pix1, pix2, rate_colour)
                     tile.end()
+                    tile.tile_items.append((time.time(), pix1, pix2, rate_colour))
         self._last_aircraft_pos = self._aircraft_pos
 
+
+    def _draw_segment(self, tile, point1, point2, material):
+        segment = Lines2d(camera=self.tile_camera, points=(point1,point2), line_width=3.5, material=material, z=6.0)
+        segment.set_draw_details(self.matsh, [], 0, 0)
+        segment.draw()      
+                
 
     def draw(self):
         camera = self.map_camera

@@ -10,13 +10,13 @@ from pi3d.shape.FlipSprite import FlipSprite
 import time
 from pi3dTiledMap import CoordSys
 
+
 class MapTile(object):
     '''
     classdocs
     '''
 
-
-    def __init__(self, map_camera, map_shader, tilePixels, tile_x, tile_y):
+    def __init__(self, map_camera, map_shader, tilePixels, tile_no):
         '''
         tilePixels = size of tile in pixels
         '''
@@ -32,12 +32,14 @@ class MapTile(object):
         self.tile_create_time = time.time()
         self.tile_update_time = self.tile_create_time
 
-        self.tile_no = CoordSys.TileNumber(tile_x, tile_y)        
+        # Items draw on the tile that need to be tracked
+        self.tile_items = []
+
+        self.tile_no = tile_no
         
-        tilename = 'maptile {:d},{:d}'.format(tile_x , tile_y)
-#        tilename = "maptile [%d],[%d]", tile_x, tile_y
-        xpos = float(tile_x*tilePixels)
-        ypos = float(tile_y*tilePixels)
+        tilename = 'maptile {:d},{:d}'.format(tile_no.tile_num_x , tile_no.tile_num_y)
+        xpos = float(tile_no.tile_num_x*tilePixels)
+        ypos = float(tile_no.tile_num_y*tilePixels)
 
         self.texture = OffScreenTexture(name="map_tile",  w=self.tilePixels, h=self.tilePixels)
         self.sprite = FlipSprite(camera=map_camera, w=self.tilePixels, h=self.tilePixels, z=6.0, x=xpos, y=ypos, flip=True)
