@@ -135,7 +135,7 @@ class TiledMap(object):
                 tile.texture._end()
                 tile.updateCount = 1
                 
-    def _redraw_tile(self, tile):
+    def _regen_tile(self, tile):
         #remove old items from tile item list
         new_list = []
         track_age_limit = time.time() - (self.track_cutback * self.track_timeout)
@@ -143,12 +143,28 @@ class TiledMap(object):
             if item[0] > track_age_limit:
                 new_list.append(item)
         tile.tile_items = new_list
-
+        
         tile.texture._start(True)
-        self.draw_tile_markers(tile.tile_no)        
-        for item in tile.tile_items:
-            self._draw_segment(tile, item[1], item[2], item[3])        
+        tile.tile_redraw_index = -1
+        self.draw_tile_markers(tile.tile_no)
+        self._draw_tile_section(tile)
         tile.texture._end()
+    
+    def _draw_tile_section(self, tile):
+        if tile.tile_redraw_index == -1:
+            start = len(tile.tile_items) - 1
+        else:
+            start = tile.tile_redraw_index
+        
+        end = start - 50
+        if end < 0:
+            end = 0
+            
+        for index in range(end, start):
+            item = tile.tile_items[index]
+            self._draw_segment(tile, item[1], item[2], item[3])
+
+        tile.tile_redraw_index = end
         
 #        for item in tile.tile_items:
             
@@ -174,8 +190,12 @@ class TiledMap(object):
                     if len(tile_items) > 2:
                         start_time = tile_items[0][0]
                         if (time.time() - start_time) > self.track_timeout:
-                            self._redraw_tile(tile)
-                            return                
+                            self._regen_tile(tile)
+                            return
+                    if tile.tile_redraw_index != 0:
+                        tile.texture._start(False)
+                        self._draw_tile_section(tile)
+                        tile.texture._end()
                     
 
         # Check if tile has been used (drawn on other than initial markers)

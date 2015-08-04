@@ -34,6 +34,7 @@ class MapTile(object):
 
         # Items draw on the tile that need to be tracked
         self.tile_items = []
+        self.tile_redraw_index = 0
 
         self.tile_no = tile_no
         
