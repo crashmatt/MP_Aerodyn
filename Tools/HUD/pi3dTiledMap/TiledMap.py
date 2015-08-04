@@ -16,7 +16,6 @@ from pi3dTiledMap import CoordSys
 from pi3dTiledMap.CoordSys import Cartesian
 from gi.overrides.keysyms import careof
 import time
-from pygame.examples.scroll import zoom_factor
 
 class TiledMap(object):
     '''
