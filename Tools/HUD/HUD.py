@@ -220,7 +220,7 @@ class HUD(object):
         if self.show_track:
             self.track = HUDTrack(camera=self.text_camera, shader=self.flatsh, alpha=self.pitch_ladder_alpha)
         if self.show_tiled:
-            self.track_map = TiledMap.TiledMap(tileSize=256, w=512, h=512, z=6.0, alpha=0.8)
+            self.track_map = TiledMap.TiledMap(tileSize=256, w=512, h=512, z=6.0, alpha=0.95)
 
         self.background = pi3d.Plane(w=self.DISPLAY.width, h=self.DISPLAY.height, z=self.background_distance,
                                 camera=self.hud_camera, name="background", )

@@ -155,7 +155,7 @@ class TiledMap(object):
         else:
             start = tile.tile_redraw_index
         
-        end = start - 50
+        end = start - 100
         if end < 0:
             end = 0
             
@@ -246,7 +246,7 @@ class TiledMap(object):
         return colour
 
     def set_tile_alpha(self, tile, distance):
-        alpha = self.interpolate(distance, 1.0, 1.5, 1.0, 0.0)
+        alpha = self.interpolate(distance, 1.0, 1.75, 1.0, 0.0)
         if alpha < 0.0:
             alpha = 0.0
         elif alpha > self.alpha:
@@ -281,7 +281,7 @@ class TiledMap(object):
 
 
     def _draw_segment(self, tile, point1, point2, material):
-        segment = Lines2d(camera=self.tile_camera, points=(point1,point2), line_width=3.5, material=material, z=6.0)
+        segment = Lines2d(camera=self.tile_camera, points=(point1,point2), line_width=5, material=material, z=6.0)
         segment.set_draw_details(self.matsh, [], 0, 0)
         segment.draw()      
                 
@@ -325,7 +325,7 @@ class TiledMap(object):
             self.draw_home()
             return
         
-        points = ((14,-14), (0,0), (14,14))
+        points = ((15,-15), (0,0), (15,15))
         
         thickness = 5
         rot = atan2(tilenum.tile_num_y, tilenum.tile_num_x)
