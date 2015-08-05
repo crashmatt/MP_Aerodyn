@@ -60,8 +60,8 @@ class TiledMap(object):
         
         self._climbrate = 0.0
         
-        self.home_colour = (0.0, 0.0, 1.0, 0.5)
-        self.marker_colour = (0.2, 0.2, 0.8, 0.5)
+        self.home_colour = (0.2, 0.2, 1.0, 0.6)
+        self.marker_colour = (0.2, 0.2, 1.0, 0.6)
         
         # camera for viewing the map. Owned by the track since it can move
         self.map_camera = pi3d.Camera(is_3d = False)
