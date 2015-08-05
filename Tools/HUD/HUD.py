@@ -486,9 +486,6 @@ class HUD(object):
             self.dynamic_items.gen_items(self.hud_update_frame)
              
             if self.show_track:
-#                direction = math.radians(math.pi-self.home_heading)
-#                xpos = int(self.home_dist * math.cos(direction))
-#                ypos = int(self.home_dist * math.sin(direction))
                 relPos = CoordSys.Cartesian(polar=self.home_polar.reverse())
                 self.track.add_segment(relPos.x, relPos.y, self.vertical_speed, self.heading)
             if self.show_tiled:
