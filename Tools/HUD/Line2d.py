@@ -14,7 +14,7 @@ class Line2d(MergeShape):
     A 2d line with thickness
     '''
 
-    def __init__(self, camera, matsh, points, thickness, colour=(255,255,255,255)):
+    def __init__(self, camera, matsh, points, thickness, colour=(1.0, 1.0, 1.0)):
         '''
         Constructor
         '''
