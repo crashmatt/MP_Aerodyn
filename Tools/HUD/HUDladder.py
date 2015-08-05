@@ -151,6 +151,7 @@ class HUDladderBar(object):
         self.sprite = pi3d.FlipSprite(camera=camera, w=self.bar.ix, h=self.bar.iy, y=ypos, z=5, flip=True)
         
         self.ladder_text_box_alpha = 0.8
+        self.bar_box_alpha = 0.9
 
 
     # The following functions return values controlling the look and feel of the bar    
@@ -219,7 +220,8 @@ class HUDladderBar(object):
         
         self.bar._start()
 
-        half_bar_width = self.get_bar_width() * Display.INSTANCE.width * 0.5
+        bar_width = self.get_bar_width() * Display.INSTANCE.width
+        half_bar_width = bar_width * 0.5
         gap_width = Display.INSTANCE.width * bar_gap
         bar_length = half_bar_width - gap_width
         
@@ -237,6 +239,17 @@ class HUDladderBar(object):
 
             bar_shape.position( self.xoffset+dashoffset+(gap_width*0.5) ,  self.yoffset, 5) #
             bar_shape.draw()
+
+            bar_box = pi3d.Plane(camera=self.camera,  w=dash_length+self.get_bar_thickness()*2, h=self.get_bar_thickness()*3)
+            bar_box.set_material((0.0,0.0,0.0))
+            bar_box.set_draw_details(matsh, [], 0, 0)
+            bar_box.set_alpha(self.bar_box_alpha)
+            
+            bar_box.position( self.xoffset-dashoffset-(gap_width*0.5) ,  self.yoffset, 6.0)
+            bar_box.draw()
+
+            bar_box.position( self.xoffset+dashoffset+(gap_width*0.5) ,  self.yoffset, 6.0)
+            bar_box.draw()
             
         #draw background text boxes for bar angle text
         text_box = pi3d.Plane(camera=self.camera,  w=fontsize*300, h=fontsize*175)
@@ -297,7 +310,7 @@ class HUDLadderCenter(object):
 
 
 class HUDLadderRollIndicator(object):
-    def __init__(self, camera, matsh, radius=0.3, line_thickness=2, line_colour=(255,255,255,255), max_angle=60, tick_angle=15, tick_len=0.025):
+    def __init__(self, camera, matsh, radius=0.3, line_thickness=2, line_colour=(1.0,1.0,1.0), max_angle=60, tick_angle=15, tick_len=0.025, alpha=0.8):
         self.camera = camera
         self.matsh = matsh
         self.radius = radius
@@ -306,6 +319,7 @@ class HUDLadderRollIndicator(object):
         self.tick_len = tick_len
         self.line_thickness = line_thickness
         self.line_colour = line_colour
+        self.alpha = alpha
         
     def draw(self):
         grid = ScreenScale(100,100)
@@ -325,8 +339,10 @@ class HUDLadderRollIndicator(object):
             txpos =  tlen *  math.sin(math.radians(angle)) + xpos
             
             tmark = Line2d(self.camera, self.matsh, ((xpos,ypos), (txpos, typos)), self.line_thickness)
+            tmark.set_alpha(self.alpha)
             tmark.draw()
             
         lines = Line2d(self.camera, self.matsh, points, self.line_thickness)
+        lines.set_alpha(self.alpha)
         lines.draw()        
             
