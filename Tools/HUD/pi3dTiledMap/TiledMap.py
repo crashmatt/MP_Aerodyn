@@ -48,7 +48,7 @@ class TiledMap(object):
         self._zoom = 1.0
         self.tile_timeout   = 120.0
         self.track_timeout  = 90.0
-        self.track_cutback  = 0.6  # Age limit as ratio of timeout
+        self.track_cutback  = 0.5  # Age limit as ratio of timeout
         
         self.tiles = dict()
         self.inits_done = 0
@@ -155,7 +155,7 @@ class TiledMap(object):
         else:
             start = tile.tile_redraw_index
         
-        end = start - 100
+        end = start - 50
         if end < 0:
             end = 0
             
