@@ -254,7 +254,7 @@ class TiledMap(object):
         return colour
 
     def set_tile_alpha(self, tile, distance):
-        alpha = self.interpolate(distance, 1.0, 1.75, 1.0, 0.0)
+        alpha = self.interpolate(distance, 1.0, 1.9, 1.0, 0.1)
         if alpha < 0.0:
             alpha = 0.0
         elif alpha > self.alpha:
