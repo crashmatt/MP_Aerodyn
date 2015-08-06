@@ -17,6 +17,7 @@ from pi3dTiledMap.CoordSys import Cartesian
 from gi.overrides.keysyms import careof
 import time
 
+
 class TiledMap(object):
     '''
     A tiled map system running under pi3d.  Organises and draws small parts of a map (tiles) from a larger collection. 
@@ -48,7 +49,7 @@ class TiledMap(object):
         self._zoom = 1.0
         self.tile_timeout   = 120.0
         self.track_timeout  = 90.0
-        self.track_cutback  = 0.5  # Age limit as ratio of timeout
+        self.track_cutback  = 0.66  # Age limit as ratio of timeout
         
         self.tiles = dict()
         self.inits_done = 0
@@ -130,7 +131,7 @@ class TiledMap(object):
         for tile in self.tiles.itervalues():
             if tile.is_draw_done() and tile.updateCount == 0:
                 tile.texture._start(True)
-                self.draw_tile_markers(tile.tile_no)
+                self._draw_tile_markers(tile.tile_no)
                 tile.texture._end()
                 tile.updateCount = 1
                 
@@ -143,32 +144,43 @@ class TiledMap(object):
                 new_list.append(item)
         tile.tile_items = new_list
         
-        tile.texture._start(True)
-        tile.tile_redraw_index = -1
-        self.draw_tile_markers(tile.tile_no)
-        self._draw_tile_section(tile)
-        tile.texture._end()
+        tile.regen_start()
+            
     
     def _draw_tile_section(self, tile):
-        if tile.tile_redraw_index == -1:
-            start = len(tile.tile_items) - 1
-        else:
-            start = tile.tile_redraw_index
+        if not tile.regen_running():
+            return False
         
-        end = start - 50
-        if end < 0:
-            end = 0
-            
-        for index in range(end, start):
+        redraw_index = tile.get_regen_item_index()
+        if redraw_index == -1:
+            tile.redraw_start(True)        
+            self._draw_tile_markers(tile.tile_no)
+            tile.redraw_end()
+            tile.set_regen_index_to_start()
+            return
+
+        item_end_index = len(tile.tile_items) - 1
+        if redraw_index >= item_end_index:
+            tile.regen_end()
+            return
+        
+        end = redraw_index + 20
+        
+        if end >= item_end_index:
+            end = item_end_index
+        
+        for index in range(redraw_index, end):
             item = tile.tile_items[index]
+            tile.redraw_start(False)
             self._draw_segment(tile, item[1], item[2], item[3])
+            tile.redraw_end()
 
-        tile.tile_redraw_index = end
+        tile.set_regen_index(end)
         
-#        for item in tile.tile_items:
-            
+        if end >= item_end_index:
+            tile.regen_end()
         
-
+        
     def update_tiles(self):
         # Removes old tiles or creates new tiles, one tile at a time to reduce peak workload
 
@@ -185,17 +197,13 @@ class TiledMap(object):
                 # Remove old tracks from tiles
                 else:
                     tile = self.tiles[key]
-                    tile_items = tile.tile_items
-                    if len(tile_items) > 2:
-                        start_time = tile_items[0][0]
-                        if (time.time() - start_time) > self.track_timeout:
-                            self._regen_tile(tile)
-                            return
-                    if tile.tile_redraw_index != 0:
-                        tile.texture._start(False)
+
+                    if tile.regen_running():
                         self._draw_tile_section(tile)
-                        tile.texture._end()
+                        return
                     
+                    if tile.get_items_age() > self.track_timeout:
+                        self._regen_tile(tile)                    
 
         # Check if tile has been used (drawn on other than initial markers)
         # if so, check it has not gone out of date or the track is out of date
@@ -312,7 +320,7 @@ class TiledMap(object):
                     tile.draw()
                     
 
-    def draw_home(self):
+    def _draw_home(self):
 #        bar_shape = pi3d.Plane(camera=self.camera2d,  w=100, h=100)
         bar_shape = pi3d.Plane(camera=self.tile_camera,  w=20, h=20)
         bar_shape.set_draw_details(self.matsh, [], 0, 0)
@@ -320,9 +328,9 @@ class TiledMap(object):
         bar_shape.position( 0,  0, 5)
         bar_shape.draw()
         
-    def draw_tile_markers(self, tilenum):
+    def _draw_tile_markers(self, tilenum):
         if tilenum.tile_num_x == 0 and tilenum.tile_num_y == 0 :
-            self.draw_home()
+            self._draw_home()
             return
         
         points = ((15,-15), (0,0), (15,15))
