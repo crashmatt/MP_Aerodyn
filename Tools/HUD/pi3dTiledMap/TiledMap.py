@@ -13,9 +13,11 @@ from math import sin, cos, log , pi, ceil, atan2, degrees, fabs, sqrt
 from Lines2d import Lines2d
 import colorsys
 from pi3dTiledMap import CoordSys
+from pi3dTiledMap import TiledSprite
 from pi3dTiledMap.CoordSys import Cartesian
 from gi.overrides.keysyms import careof
 import time
+import pi3dTiledMap
 
 
 class TiledMap(object):
@@ -78,6 +80,8 @@ class TiledMap(object):
         
         self.screen_width = Display.INSTANCE.width
         self.screen_height = Display.INSTANCE.height
+        
+        self.empty_tile_texture = OffScreenTexture("empty_tile", tileSize, tileSize)
         
         self.cam_xoffset = (self.screen_width-tileSize) * 0.5
         self.cam_yoffset = (self.screen_height-tileSize) * 0.5
@@ -305,19 +309,34 @@ class TiledMap(object):
 
         tileCoord1, tileCoord2, tile1, tile2 = self.get_tile_display_range()
         tileCoordRange = tileCoord1 - tileCoord2
+        pixelSize = tileCoordRange.get_tile_pixel_pos(self.tileSize)
         
-        for x in range(tile1.tile_num_x ,tile2.tile_num_x+1):
-            for y in range(tile1.tile_num_y ,tile2.tile_num_y+1):
-                relTile = centerTileCoord.get_relative_tile_coord(CoordSys.TileNumber(x,y))
-                relTile = relTile.fabs()
-                ratio_x, ratio_y = relTile / tileCoordRange
-                ratio_distance = sqrt(ratio_x**2 + ratio_y**2)
+        textures = []
+        texture = None
+        
+        for y in range(tile1.tile_num_y ,tile2.tile_num_y+1):
+            for x in range(tile1.tile_num_x ,tile2.tile_num_x+1):
+ #               relTile = centerTileCoord.get_relative_tile_coord(CoordSys.TileNumber(x,y))
+ #               relTile = relTile.fabs()
+ #               ratio_x, ratio_y = relTile / tileCoordRange
+ #               ratio_distance = sqrt(ratio_x**2 + ratio_y**2)
+                tileCoord = CoordSys.TileCoord(x,y)
+                pxlPos = tileCoord.get_abs_pixel_pos(self.tileSize)
                                 
                 key = '{:d},{:d}'.format(x , y)
                 if self.tiles.has_key(key):
                     tile = self.tiles[key]
-                    self.set_tile_alpha(tile, ratio_distance)
-                    tile.draw()
+                    tile.draw_done()
+ #                   self.set_tile_alpha(tile, ratio_distance)
+                    texture = tile.texture
+                else:
+                    texture = self.empty_tile_texture
+                
+                apnd = [texture, pxlPos.map_pixel_x, pxlPos.map_pixel_y, self.tileSize, self.tileSize, True]
+                textures.append(apnd)
+
+        sprites = TiledSprite.TiledSprite(camera=camera, shader=self.flatsh, name="MapTiles", tiles=textures)
+        sprites.draw()
                     
 
     def _draw_home(self):
