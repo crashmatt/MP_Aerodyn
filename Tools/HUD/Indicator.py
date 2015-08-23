@@ -5,6 +5,7 @@ Created on 27 Jul 2014
 '''
 
 from Box2d import Box2d
+from Line2d import Line2d
 import pi3d
 from gettattra import *
 from LayerItems import LayerItem
@@ -83,18 +84,20 @@ class LinearIndicator(Indicator):
                                        w=self.needle_texture.ix, h=self.needle_texture.iy, 
                                        x=self.x, y=self.y, z=0.5, rz=rot, name="needle")
         
-    def value_to_deltapos(self, value):
-        """ travel limited position on the indicator"""
-        indrange = float(self.indmax - self.indmin)
-        deltapos = (( float(self.value - self.indmin) / indrange) * self.length) - (self.length * 0.5)
-
-       #limit travel to meter endpoints
-        if(deltapos > (self.length * 0.5)):
-            deltapos = (self.length * 0.5)
-        elif(deltapos < (self.length * -0.5)):
-            deltapos = (self.length * -0.5)
-        
-        return deltapos
+#===============================================================================
+#     def value_to_deltapos(self, value):
+#         """ travel limited position on the indicator"""
+#         indrange = float(self.indmax - self.indmin)
+#         deltapos = (( float(self.value - self.indmin) / indrange) * self.length) - (self.length * 0.5)
+# 
+#        #limit travel to meter endpoints
+#         if(deltapos > (self.length * 0.5)):
+#             deltapos = (self.length * 0.5)
+#         elif(deltapos < (self.length * -0.5)):
+#             deltapos = (self.length * -0.5)
+#         
+#         return deltapos
+#===============================================================================
 
         
     def gen_item(self):
@@ -152,4 +155,111 @@ class DirectionIndicator(Indicator):
     def draw(self):
         self.pointer.draw()
         self.changed = False
+        
+        
+
+class RollingIndicator(Indicator):
+    def __init__(self, camera, flatsh, matsh, dataobj, attr, indmax=1, indmin=0, x=0, y=0, z=3, 
+                 width=20, length=100, orientation="V",
+                 line_colour=(1.0,1.0,1.0), fill_colour=(0.0,0.0,0.0), line_thickness = 1, 
+                 needle_img="default_needle.jpg", phase=0, tick_spacing=0.5, needle_colour=(1.0,1.0,1.0), needle_thickness=1): #default_needle.img
+        '''
+        *width* width of the indicator
+        *length* length of the indicator
+        *orientation* 'V' for vertical 'H' for horizontal
+        length and width is rotated with orientation
+        '''
+        super(RollingIndicator, self).__init__(dataobj, attr, x=x, y=y, phase=phase, indmax=indmax, indmin=indmin, z=z, camera=camera, shader=matsh )
+        
+        self.width = width
+        self.length = length
+        self.orientation = orientation
+        self.line_colour = line_colour
+        self.fill_colour = fill_colour
+        self.line_thickness = line_thickness
+        self.camera = camera
+        self.matsh = matsh
+        self.flatsh = flatsh
+        self.x = x
+        self.y = y
+        self.z = z
+        
+        self.roll_position = 0
+        
+        if(orientation=="H"):
+            width = self.length
+            height = self.width
+            rot = 90
+        else:
+            width = self.width
+            height = self.length
+            rot = 0
+            
+        self.bezel = Box2d(camera=self.camera, w=width, h=height, d=1.0,
+                         x=self.x, y=self.y, z=self.z,
+                         line_colour=self.line_colour, fill_colour=self.fill_colour, 
+                         line_thickness=self.line_thickness,  shader=matsh, justify='C')
+
+        
+        if needle_img != None:
+            self.needle_texture = pi3d.Texture(needle_img)
+            self.needle = pi3d.ImageSprite(camera=self.camera, texture=self.needle_texture, shader=flatsh, 
+                                       w=self.needle_texture.ix, h=self.needle_texture.iy, 
+                                       x=self.x, y=self.y, z=0.5, rz=rot, name="needle")
+        else:
+            halfwidth = width * 0.5
+            self.needle = Line2d(camera=self.camera, matsh=matsh, points=((-halfwidth+x,y),(halfwidth+x,y)), thickness=needle_thickness,  colour=needle_colour)            
+            
+    def value_to_deltapos(self, value):
+        """ travel limited position on the indicator"""
+        indrange = float(self.indmax - self.indmin)
+        half_length = self.length * 0.5
+        deltapos = (( float(self.value - self.indmin) / indrange) * self.length) - (half_length)
+
+       #limit travel to meter endpoints
+        if deltapos > half_length:
+            deltapos = half_length
+        elif deltapos < -half_length:
+            deltapos = -half_length
+        
+        if self.roll_position > half_length:
+            self.roll_position = self.roll_position - half_length
+        elif self.roll_position < -half_length:
+            self.roll_position = self.roll_position + half_length
+                
+        return self.roll_position
+
+        
+    def gen_item(self):
+        self.value = getattra(self.dataobj, self.attr, None)
+        indrange = float(self.indmax - self.indmin)
+
+        half_length = self.length * 0.5
+        deltapos = (( float(self.value - self.indmin) / indrange) * self.length) - half_length
+        deltapos = deltapos * 0.25
+        
+        #limit travel to meter endpoints
+        if deltapos > half_length:
+            deltapos = half_length
+        elif deltapos < -half_length:
+            deltapos = -half_length
+
+        self.roll_position = self.roll_position + deltapos
+
+        if self.roll_position > half_length:
+            self.roll_position = self.roll_position - self.length
+        elif self.roll_position < -half_length:
+            self.roll_position = self.roll_position + self.length
+        
+        if(self.orientation == "H"):
+            self.needle.positionX(self.x + self.roll_position)
+        else:
+            self.needle.positionY(self.y + self.roll_position)
+        self.changed = True
+        
+        
+    def draw(self):
+        self.needle.draw()
+        self.changed = False
+        
         

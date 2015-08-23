@@ -22,6 +22,7 @@ from ScreenGrid import ScreenScale
 
 from Indicator import LinearIndicator
 from Indicator import DirectionIndicator
+from Indicator import RollingIndicator
 
 from Box2d import Box2d
 
@@ -198,11 +199,11 @@ class HUD(object):
         #Explicit working directory path done so that profiling works correctly. Don't know why. It just is.
         needle_path = os.path.abspath(os.path.join(self.working_directory, 'default_needle.img'))
 
-        x,y = self.grid.get_grid_pixel(-16, 0)
-        self.VSI = LinearIndicator(self.text_camera, self.flatsh, self.matsh, self, "vertical_speed", 
-                                   indmax=20, indmin=-20, x=x, y=y, z=3, width=18, length=180, 
+        x,y = self.grid.get_grid_pixel(-15, 0)
+        self.VSI = RollingIndicator(self.text_camera, self.flatsh, self.matsh, self, "vertical_speed", 
+                                   indmax=20, indmin=-20, x=x, y=y, z=3, width=30, length=180, 
                                    orientation="V", line_colour=(255,255,255,255), fill_colour=(0,0,0,0.75), 
-                                   line_thickness = 1, needle_img=needle_path)
+                                   line_thickness = 1, needle_img=None, needle_thickness=8, needle_colour=self.hud_colour)
 
         #Add slip indicator.  Scale is in degrees
         x,y = self.grid.get_grid_pixel(0, -5)
