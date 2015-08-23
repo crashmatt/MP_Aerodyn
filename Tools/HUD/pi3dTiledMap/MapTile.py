@@ -94,6 +94,11 @@ class MapTile(object):
     def regen_running(self):
         return self._regen_texture != None
         
+    def draw_done(self):
+        if self.sprite != None:
+            self._drawDone = True
+        if self._regen_texture != None and self._regen_index == -2:
+            self._regen_index = -1        
 
     def draw(self):
         if self.sprite != None:
