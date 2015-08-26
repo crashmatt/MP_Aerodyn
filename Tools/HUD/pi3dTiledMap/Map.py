@@ -72,15 +72,25 @@ class Map(object):
         self.screen_height = Display.INSTANCE.height
         
 #        self.cam_xoffset = (self.screen_width-tileSize) * 0.5
-#        self.cam_yoffset = (self.screen_height-tileSize) * 0.5
+#        self.cam_yoffset = (self.screen_height-tileSize) * 0.5       
+#        self.map_texture = OffScreenTexture(name="map_texture", w=self.screen_width, h=self.screen_height)
+#        self.map_sprite = FlipSprite(camera=self.tile_camera, w=self.screen_width, h=self.screen_height, z=6.0, flip=True)
         
-        self.map_texture = OffScreenTexture(name="map_texture", w=self.screen_width, h=self.screen_height)
-        self.map_sprite = FlipSprite(camera=self.tile_camera, w=self.screen_width, h=self.screen_height, z=6.0, flip=True)
+        self.home = pi3d.Plane(camera=self.tile_camera,  w=20, h=20)
+        self.home.set_draw_details(self.matsh, [], 0, 0)
+        self.home.set_material(self.home_colour)
         
         self.track = np.zeros((2000,3), dtype=np.float)
         self.track_index = 0
         self.track_sprite = pi3d.Points(camera=self.map_camera, vertices=self.track, point_size=self._track_width)
 #        self.track_sprite = pi3d.Lines(camera=self.map_camera, vertices=self.track, line_width=self._track_width)
+
+  #=============================================================================
+  # colour = mix(mix(vec4(0.0, 0.0, 1.0, 1.0), vec4(0.0, 1.0, 0.0, 1.0),
+  #               clamp(vertex.z * 2.0 - 1.0, 0.0, 1.0)),
+  #                 vec4(1.0, 0.0, 0.0, 1.0),
+  #                   clamp(1.0 - vertex.z * 2.0, 0.0, 1.0));
+  #=============================================================================
         
         self.trackshader = pi3d.Shader(vshader_source = """
 
@@ -93,10 +103,7 @@ varying vec4 colour;
 void main(void) {
 
   gl_Position = modelviewmatrix[1] * vec4(vertex, 1.0);
-  colour = mix(mix(vec4(0.0, 0.0, 1.0, 1.0), vec4(0.0, 1.0, 0.0, 1.0),
-                clamp(vertex.z * 2.0 - 1.0, 0.0, 1.0)),
-                  vec4(1.0, 0.0, 0.0, 1.0),
-                    clamp(1.0 - vertex.z * 2.0, 0.0, 1.0));
+  colour = vec4(cos((vertex.z*2.094) - 2.094), cos(vertex.z*2.094), cos((vertex.z*2.094) + 2.094), 1.0 ); 
   colour.a = 1.5 - length(gl_Position.xy);
 
   gl_PointSize = unib[2][2];
@@ -185,11 +192,16 @@ void main(void) {
             return
 
 #        self.track.append((self._aircraft_pos.x, self._aircraft_pos.y, 0.5))
-        colour = self._climbrate * (-0.5 / 15.0) + 0.5
+        colour = self._climbrate * (1.0/25.0)
+        if colour < 0.0:
+            colour = -sqrt(-colour)
+        else:
+            colour = sqrt(colour)
+            
         if colour > 1.0:
             colour = 1.0
-        if colour < 0:
-            colour = 0
+        if colour < -1.0:
+            colour = -1.0
         
         self.track[self.track_index] = [self._aircraft_pos.x, self._aircraft_pos.y, colour]
         
@@ -205,37 +217,17 @@ void main(void) {
         b.re_init(self.track, offset=0)
         
         self.track_index = (self.track_index + 1) % len(self.track)
-        
-#        self.map_texture._start(True)
-#        self.track_sprite.position(self._aircraft_pos.x-self.track_sprite.x(), self._aircraft_pos.y-self.track_sprite.y(), 0.0)
-#        self.track_sprite.draw()
-#        self.map_texture._end()
-  
+          
         self._last_aircraft_pos = self._aircraft_pos
 
 
     def draw(self):
-#        camera = self.map_camera
-#        camera.reset(is_3d=False, scale=self._zoom)
-#        tileCoord = CoordSys.TileCoord(cartesian=self._map_focus, tileSize=self.tileSize)
-#        pxlPos = tileCoord.get_abs_pixel_pos(self.tileSize)
-#        camera.position((self._map_focus.x,self._map_focus.y, 0.0))
-
-#        self.map_sprite.set_draw_details(self.flatsh, [self.map_texture])
-#        self.map_sprite.draw()
         self.track_sprite.draw()
-        
+        self.home.position( -self._aircraft_pos.x*self._zoom,  -self._aircraft_pos.y*self._zoom, 5.9)
+        self.home.draw()
         return
                     
 
-#===============================================================================
-#     def _draw_home(self):
-# #        bar_shape = pi3d.Plane(camera=self.camera2d,  w=100, h=100)
-#         bar_shape = pi3d.Plane(camera=self.tile_camera,  w=20, h=20)
-#         bar_shape.set_draw_details(self.matsh, [], 0, 0)
-#         bar_shape.set_material(self.home_colour)
-#         bar_shape.position( 0,  0, 5)
-#         bar_shape.draw()
 #         
 #     def _draw_tile_markers(self, tilenum):
 #         if tilenum.tile_num_x == 0 and tilenum.tile_num_y == 0 :
