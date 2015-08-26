@@ -206,23 +206,24 @@ void main(void) {
         
         self.track_index = (self.track_index + 1) % len(self.track)
         
-        self.map_texture._start(True)
+#        self.map_texture._start(True)
 #        self.track_sprite.position(self._aircraft_pos.x-self.track_sprite.x(), self._aircraft_pos.y-self.track_sprite.y(), 0.0)
-        self.track_sprite.draw()
-        self.map_texture._end()
+#        self.track_sprite.draw()
+#        self.map_texture._end()
   
         self._last_aircraft_pos = self._aircraft_pos
 
 
     def draw(self):
-        camera = self.map_camera
+#        camera = self.map_camera
 #        camera.reset(is_3d=False, scale=self._zoom)
 #        tileCoord = CoordSys.TileCoord(cartesian=self._map_focus, tileSize=self.tileSize)
 #        pxlPos = tileCoord.get_abs_pixel_pos(self.tileSize)
 #        camera.position((self._map_focus.x,self._map_focus.y, 0.0))
 
-        self.map_sprite.set_draw_details(self.flatsh, [self.map_texture])
-        self.map_sprite.draw()
+#        self.map_sprite.set_draw_details(self.flatsh, [self.map_texture])
+#        self.map_sprite.draw()
+        self.track_sprite.draw()
         
         return
                     
