@@ -223,6 +223,7 @@ void main(void) {
 
     def draw(self):
         self.track_sprite.draw()
+        self.home.scale(self._zoom, self._zoom, 1.0)
         self.home.position( -self._aircraft_pos.x*self._zoom,  -self._aircraft_pos.y*self._zoom, 5.9)
         self.home.draw()
         return
