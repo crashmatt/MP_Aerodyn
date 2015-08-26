@@ -43,19 +43,15 @@ class Map(object):
         self._zoom_target = 1.0
         self._zoom_rate = 1.0
         self._zoom = 1.0
-        self.tile_timeout   = 120.0
-        self.track_timeout  = 90.0
-        self.track_cutback  = 0.66  # Age limit as ratio of timeout
-        
-        self.tiles = dict()
-        self.inits_done = 0
-        self._last_update_time = time.time()
+        self._track_width = 5
    
         self._map_focus         = CoordSys.Cartesian(0.0,0.0)
         self._aircraft_pos      = CoordSys.Cartesian(0.0,0.0)
         self._last_aircraft_pos = CoordSys.Cartesian(0.0,0.0)
         
         self._climbrate = 0.0
+
+        self._last_update_time = time.time()
         
         self.home_colour = (0.2, 0.2, 1.0, 0.6)
         self.marker_colour = (0.2, 0.2, 1.0, 0.6)
@@ -79,15 +75,12 @@ class Map(object):
 #        self.cam_yoffset = (self.screen_height-tileSize) * 0.5
         
         self.map_texture = OffScreenTexture(name="map_texture", w=self.screen_width, h=self.screen_height)
-        self.map_sprite = FlipSprite(camera=self.tile_camera, w=self.screen_width, h=self.screen_height, z=5.0, flip=True)
-        
-#        s_arr = np.array([[W * math.sin(i / 123.234) / 2.0,
-#                   H * math.cos(i / 162.34) / 2.0 + i**0.5 / 100.0,
-#                   (i % 200) / 200.0] for i in range(ASZ)])
+        self.map_sprite = FlipSprite(camera=self.tile_camera, w=self.screen_width, h=self.screen_height, z=6.0, flip=True)
         
         self.track = np.zeros((2000,3), dtype=np.float)
         self.track_index = 0
-        self.track_sprite = pi3d.Points(camera=self.map_camera, vertices=self.track, point_size=4)
+        self.track_sprite = pi3d.Points(camera=self.map_camera, vertices=self.track, point_size=self._track_width)
+#        self.track_sprite = pi3d.Lines(camera=self.map_camera, vertices=self.track, line_width=self._track_width)
         
         self.trackshader = pi3d.Shader(vshader_source = """
 
@@ -95,24 +88,27 @@ precision mediump float;
 attribute vec3 vertex;
 uniform mat4 modelviewmatrix[2];
 uniform vec3 unib[4];
-varying float colour;
+varying vec4 colour;
 
 void main(void) {
-  colour = vertex[2];
 
   gl_Position = modelviewmatrix[1] * vec4(vertex, 1.0);
+  colour = mix(mix(vec4(0.0, 0.0, 1.0, 1.0), vec4(0.0, 1.0, 0.0, 1.0),
+                clamp(vertex.z * 2.0 - 1.0, 0.0, 1.0)),
+                  vec4(1.0, 0.0, 0.0, 1.0),
+                    clamp(1.0 - vertex.z * 2.0, 0.0, 1.0));
+  colour.a = 1.5 - length(gl_Position.xy);
+
   gl_PointSize = unib[2][2];
 }
 """,
 fshader_source = """
 precision mediump float;
 
-varying float colour;
+varying vec4 colour;
 
 void main(void) {
-  gl_FragColor = vec4(1.0 - colour * 2.0,
-                      1.0 - abs(colour * 2.0 - 1.0),
-                      colour * 2.0 - 1.0, 1.0);
+  gl_FragColor = colour;
 }
 """)
         self.track_sprite.set_shader(self.trackshader)
@@ -137,8 +133,7 @@ void main(void) {
             
         
     def gen_map(self):
-        pass
-#        self._update_zoom()
+        self._update_zoom()
 
 
     def _update_zoom(self):
@@ -198,6 +193,14 @@ void main(void) {
         
         self.track[self.track_index] = [self._aircraft_pos.x, self._aircraft_pos.y, colour]
         
+        self.track_sprite.scale(self._zoom, self._zoom, 1.0)
+        if (self._zoom > 1.0):
+            self.track_sprite.set_point_size(self._track_width * self._zoom)
+        else:
+            self.track_sprite.set_point_size(self._track_width)
+        
+        self.track_sprite.position(-self._aircraft_pos.x * self._zoom, -self._aircraft_pos.y * self._zoom, 6.0)
+        
         b = self.track_sprite.buf[0]
         b.re_init(self.track, offset=0)
         
@@ -213,10 +216,10 @@ void main(void) {
 
     def draw(self):
         camera = self.map_camera
-        camera.reset(is_3d=False, scale=self._zoom)
+#        camera.reset(is_3d=False, scale=self._zoom)
 #        tileCoord = CoordSys.TileCoord(cartesian=self._map_focus, tileSize=self.tileSize)
 #        pxlPos = tileCoord.get_abs_pixel_pos(self.tileSize)
-        camera.position((self._map_focus.x,self._map_focus.y, 0.0))
+#        camera.position((self._map_focus.x,self._map_focus.y, 0.0))
 
         self.map_sprite.set_draw_details(self.flatsh, [self.map_texture])
         self.map_sprite.draw()
