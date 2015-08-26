@@ -29,6 +29,7 @@ from Box2d import Box2d
 import HUDConfig as HUDConfig
 
 from pi3dTiledMap import TiledMap
+from pi3dTiledMap import Map
 from pi3dTiledMap import CoordSys
 
 import os
@@ -87,7 +88,8 @@ class HUD(object):
         self.update_queue = update_queue
         
         self.show_track = False 
-        self.show_tiled = True
+        self.show_tiled = False
+        self.show_map = True
 
         self.init_vars()
         self.init_graphics()
@@ -222,6 +224,8 @@ class HUD(object):
             self.track = HUDTrack(camera=self.text_camera, shader=self.flatsh, alpha=self.pitch_ladder_alpha)
         if self.show_tiled:
             self.track_map = TiledMap.TiledMap(tileSize=256, w=512, h=512, z=6.0, alpha=0.95)
+        if self.show_map:
+            self.track_map = Map.Map(w=512, h=512, z=6.0, alpha=0.95)
 
         self.background = pi3d.Plane(w=self.DISPLAY.width, h=self.DISPLAY.height, z=self.background_distance,
                                 camera=self.hud_camera, name="background", )
@@ -491,6 +495,8 @@ class HUD(object):
                 self.track.add_segment(relPos.x, relPos.y, self.vertical_speed, self.heading)
             if self.show_tiled:
                 self.track_map.add_segment()
+            if self.show_map:
+                self.track_map.add_segment()
              
             if(self.hud_update_frame == 2):
                 self.dataLayer.start_layer()               # Draw on the text layer
@@ -508,6 +514,8 @@ class HUD(object):
                 if self.show_track:
                     self.track.gen_track()
                 if self.show_tiled:
+                    self.track_map.gen_map()
+                if self.show_map:
                     self.track_map.gen_map()
  
                 if self.static_items.gen_items():
@@ -534,6 +542,8 @@ class HUD(object):
             if self.show_track:
                 self.track.draw_track(alpha=1.0)
             if self.show_tiled:
+                self.track_map.draw()
+            if self.show_map:
                 self.track_map.draw()
                 
             self.background.draw()
@@ -613,6 +623,8 @@ class HUD(object):
                         if var_update[0] == "home":
                             if self.show_tiled:
                                 self.track_map.set_map_origin(var_update[1])
+                            if self.show_map:
+                                self.track_map.set_map_origin(var_update[1])
 #                self.update_queue.task_done()
         else:
             pass
@@ -628,7 +640,7 @@ class HUD(object):
         self.status_condition()
         
     def update_maps(self):
-        if self.show_tiled:
+        if self.show_tiled or self.show_map:
             pos = Cartesian(polar=self.home_polar.reverse())
             self.track_map.set_map_focus(pos)
             self.track_map.set_aircraft_pos(pos)
