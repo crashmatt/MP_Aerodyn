@@ -53,8 +53,8 @@ class Map(object):
 
         self._last_update_time = time.time()
         
-        self.home_colour = (0.2, 0.2, 1.0, 0.6)
-        self.marker_colour = (0.2, 0.2, 1.0, 0.6)
+        self.home_colour = (1.0, 0.2, 1.0, 0.8)
+        self.marker_colour = (1.0, 0.2, 1.0, 0.8)
         
         # camera for viewing the map. Owned by the track since it can move
         self.map_camera = pi3d.Camera(is_3d = False)
@@ -70,27 +70,22 @@ class Map(object):
         
         self.screen_width = Display.INSTANCE.width
         self.screen_height = Display.INSTANCE.height
-        
-#        self.cam_xoffset = (self.screen_width-tileSize) * 0.5
-#        self.cam_yoffset = (self.screen_height-tileSize) * 0.5       
-#        self.map_texture = OffScreenTexture(name="map_texture", w=self.screen_width, h=self.screen_height)
-#        self.map_sprite = FlipSprite(camera=self.tile_camera, w=self.screen_width, h=self.screen_height, z=6.0, flip=True)
-        
-        self.home = pi3d.Plane(camera=self.tile_camera,  w=20, h=20)
+               
+        self.home = pi3d.Plane(camera=self.tile_camera,  w=20, h=20, z=5.8)
         self.home.set_draw_details(self.matsh, [], 0, 0)
         self.home.set_material(self.home_colour)
+        self.home.set_alpha(alpha)
+        
+        self.home_pointer = pi3d.Lines(camera=self.tile_camera, vertices=[[0, self.screen_height*0.25, 1.0],[0, self.screen_height*0.30, 1.0]], z=5.9, line_width=6)
+        self.home_pointer.set_draw_details(self.matsh, [], 0, 0)
+        self.home_pointer.set_material(self.marker_colour)
+        self.home_pointer.set_alpha(alpha)
         
         self.track = np.zeros((2000,3), dtype=np.float)
         self.track_index = 0
         self.track_sprite = pi3d.Points(camera=self.map_camera, vertices=self.track, point_size=self._track_width)
 #        self.track_sprite = pi3d.Lines(camera=self.map_camera, vertices=self.track, line_width=self._track_width)
-
-  #=============================================================================
-  # colour = mix(mix(vec4(0.0, 0.0, 1.0, 1.0), vec4(0.0, 1.0, 0.0, 1.0),
-  #               clamp(vertex.z * 2.0 - 1.0, 0.0, 1.0)),
-  #                 vec4(1.0, 0.0, 0.0, 1.0),
-  #                   clamp(1.0 - vertex.z * 2.0, 0.0, 1.0));
-  #=============================================================================
+#        self.home_pointer.set_alpha(alpha)
         
         self.trackshader = pi3d.Shader(vshader_source = """
 
@@ -191,7 +186,6 @@ void main(void) {
         if self._last_aircraft_pos == self._aircraft_pos:
             return
 
-#        self.track.append((self._aircraft_pos.x, self._aircraft_pos.y, 0.5))
         colour = self._climbrate * (1.0/25.0)
         if colour < 0.0:
             colour = -sqrt(-colour)
@@ -226,6 +220,10 @@ void main(void) {
         self.home.scale(self._zoom, self._zoom, 1.0)
         self.home.position( -self._aircraft_pos.x*self._zoom,  -self._aircraft_pos.y*self._zoom, 5.9)
         self.home.draw()
+        
+        rot = degrees(atan2(self._aircraft_pos.x, -self._aircraft_pos.y))
+        self.home_pointer.rotateToZ(rot)
+        self.home_pointer.draw()
         return
                     
 
