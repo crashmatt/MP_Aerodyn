@@ -81,6 +81,17 @@ class Map(object):
         self.home_pointer.set_material(self.marker_colour)
         self.home_pointer.set_alpha(alpha)
         
+        cirle_points = np.zeros((40,3), dtype=np.float)
+        for i in range(0,40):
+            deg = i * 2 * pi / 20.0
+            cirle_points[i,0] = 100.0*sin(deg)
+            cirle_points[i,1] = 100.0*cos(deg)
+            cirle_points[i,2] = 5.7            
+        self.distance_markers = pi3d.Lines(camera=self.tile_camera, vertices=cirle_points, z=5.7, line_width=3, closed=True)
+        self.distance_markers.set_draw_details(self.matsh, [], 0, 0)
+        self.distance_markers.set_material(self.marker_colour)
+        self.distance_markers.set_alpha(0.6)
+        
         self.track = np.zeros((2000,3), dtype=np.float)
         self.track_index = 0
         self.track_sprite = pi3d.Points(camera=self.map_camera, vertices=self.track, point_size=self._track_width)
@@ -224,6 +235,11 @@ void main(void) {
         rot = degrees(atan2(self._aircraft_pos.x, -self._aircraft_pos.y))
         self.home_pointer.rotateToZ(rot)
         self.home_pointer.draw()
+        
+        self.distance_markers.position( -self._aircraft_pos.x*self._zoom,  -self._aircraft_pos.y*self._zoom, 5.9)
+#        for i in range (1, 10):
+#            self.distance_markers.scale(self._zoom * i * 2, self._zoom * i * 2, 1.0)
+#            self.distance_markers.draw()
         return
                     
 
