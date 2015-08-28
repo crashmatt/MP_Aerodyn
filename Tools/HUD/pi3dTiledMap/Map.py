@@ -161,7 +161,7 @@ void main(void) {
 
   gl_Position = modelviewmatrix[1] * vec4(vertex, 1.0);
   colour = vec4(cos((vertex.z*2.094) - 2.094), cos(vertex.z*2.094), cos((vertex.z*2.094) + 2.094), 1.0 ); 
-  colour.a = 1.5 - length(gl_Position.xy);
+  colour.a = clamp(1.5 - length(gl_Position.xy), 0.1, 0.8) ;
 
   gl_PointSize = unib[2][2];
 }
