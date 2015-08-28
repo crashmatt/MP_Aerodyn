@@ -63,10 +63,47 @@ class Map(object):
         self.tile_camera = pi3d.Camera(is_3d=False)    #pi3d.Camera(is_3d=False)
 
         # shader for drawing the map        
-        self.flatsh = pi3d.Shader("uv_flat")
+#        self.flatsh = pi3d.Shader("uv_flat")
         
         #shader for drawing simple colour shapes on the map
         self.matsh = pi3d.Shader("mat_flat")
+        
+        
+        self.point_shader = pi3d.Shader(vshader_source = """
+
+precision mediump float;
+attribute vec3 vertex;
+uniform mat4 modelviewmatrix[2];
+uniform vec3 unib[4];
+varying float dist;
+
+void main(void) {
+  gl_Position = modelviewmatrix[1] * vec4(vertex, 1.0);
+  gl_PointSize = unib[2][2];
+  dist = length(gl_Position.xy);
+}
+""",
+fshader_source = """
+precision mediump float;
+uniform vec3 unib[4];
+varying float dist;
+
+void main(void) {
+  gl_FragColor = vec4(unib[1][0], unib[1][1], unib[1][2], 1.0);
+  gl_FragColor.a = 1.2-dist;
+                      
+}
+""")
+
+#uniform vec3 unib[4];
+#  gl_FragColor = vec4(unif[4], 1.0); // ------ combine using factors
+
+
+
+
+  #-- //if (distance(gl_PointCoord, vec2(0.5)) > 0.5) discard; //circular points
+  # gl_FragColor = (1.0 - ffact) * texc + ffact * vec4(unif[4], unif[5][1]); // ------ combine using factors
+  #----------------------------------------------- gl_FragColor.a *= unif[5][2];
         
         self.screen_width = Display.INSTANCE.width
         self.screen_height = Display.INSTANCE.height
@@ -76,21 +113,35 @@ class Map(object):
         self.home.set_material(self.home_colour)
         self.home.set_alpha(alpha)
         
-        self.home_pointer = pi3d.Lines(camera=self.tile_camera, vertices=[[0, self.screen_height*0.25, 1.0],[0, self.screen_height*0.30, 1.0]], z=5.9, line_width=6)
+        self.home_pointer = pi3d.Lines(camera=self.tile_camera, vertices=[[0, self.screen_height*0.3, 1.0],[0, self.screen_height*0.35, 1.0]], z=5.9, line_width=6)
         self.home_pointer.set_draw_details(self.matsh, [], 0, 0)
         self.home_pointer.set_material(self.marker_colour)
         self.home_pointer.set_alpha(alpha)
         
-        cirle_points = np.zeros((40,3), dtype=np.float)
+        circle_points = np.zeros((40,3), dtype=np.float)
         for i in range(0,40):
             deg = i * 2 * pi / 20.0
-            cirle_points[i,0] = 100.0*sin(deg)
-            cirle_points[i,1] = 100.0*cos(deg)
-            cirle_points[i,2] = 5.7            
-        self.distance_markers = pi3d.Lines(camera=self.tile_camera, vertices=cirle_points, z=5.7, line_width=3, closed=True)
-        self.distance_markers.set_draw_details(self.matsh, [], 0, 0)
-        self.distance_markers.set_material(self.marker_colour)
-        self.distance_markers.set_alpha(0.6)
+            circle_points[i,0] = 100.0*sin(deg)
+            circle_points[i,1] = 100.0*cos(deg)
+            circle_points[i,2] = 5.7         
+               
+        self.distance_radius = pi3d.Lines(camera=self.tile_camera, vertices=circle_points, z=5.7, line_width=3, closed=True)
+        #self.distance_radius = pi3d.Points(camera=self.map_camera, vertices=circle_points, z=5.7, point_size=6)
+        self.distance_radius.set_draw_details(self.point_shader, [], 0, 0)
+        self.distance_radius.set_material(self.marker_colour)
+#        self.distance_radius.set_alpha(0.6)
+                
+        dist_spot_points = np.zeros((22*22,3), dtype=np.float)
+        for x in range (0, 21):
+            for y in range (0, 21):
+                index = (x*21) + y
+                dist_spot_points[index,0] = (x-10)*200.0
+                dist_spot_points[index,1] = (y-10)*200.0
+                dist_spot_points[index,2] = 5.6
+        self.distance_spots = pi3d.Points(camera=self.map_camera, vertices=dist_spot_points, z=5.7, point_size=10)
+        self.distance_spots.set_draw_details(self.point_shader, [], 0, 0)
+        self.distance_spots.set_material(self.marker_colour)
+#        self.distance_spots.set_alpha(0.7)
         
         self.track = np.zeros((2000,3), dtype=np.float)
         self.track_index = 0
@@ -236,10 +287,14 @@ void main(void) {
         self.home_pointer.rotateToZ(rot)
         self.home_pointer.draw()
         
-        self.distance_markers.position( -self._aircraft_pos.x*self._zoom,  -self._aircraft_pos.y*self._zoom, 5.9)
+        self.distance_spots.scale(self._zoom, self._zoom, 1.0)
+        self.distance_spots.position( -self._aircraft_pos.x*self._zoom,  -self._aircraft_pos.y*self._zoom, 5.9)
+        self.distance_spots.draw()
+        
+#        self.distance_radius.position( -self._aircraft_pos.x*self._zoom,  -self._aircraft_pos.y*self._zoom, 5.9)
 #        for i in range (1, 10):
-#            self.distance_markers.scale(self._zoom * i * 2, self._zoom * i * 2, 1.0)
-#            self.distance_markers.draw()
+#            self.distance_radius.scale(self._zoom * i * 2, self._zoom * i * 2, 1.0)
+#            self.distance_radius.draw()
         return
                     
 
