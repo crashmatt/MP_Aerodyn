@@ -89,8 +89,8 @@ uniform vec3 unib[4];
 varying float dist;
 
 void main(void) {
-  gl_FragColor = vec4(unib[1][0], unib[1][1], unib[1][2], 1.0);
-  gl_FragColor.a = 1.2-dist;
+  gl_FragColor = vec4(unib[1], 1.0);
+  gl_FragColor.a = clamp(1.2-dist, 0.1, 0.8);
                       
 }
 """)
