@@ -10,6 +10,7 @@ from ScreenGrid import ScreenScale
 from Line2d import Line2d
 import numpy as np
 
+
 class HUDladder(object):
     '''
     Responsible for creating and drawing a HUD pitch ladder according to aircraft attitude
@@ -66,6 +67,50 @@ class HUDladder(object):
         
         self.center = HUDLadderCenter(self.camera, self.matsh)
         self.roll_indicator = HUDLadderRollIndicator(self.camera, self.matsh, line_thickness=3)
+        
+        self.bar_shader = pi3d.Shader(vshader_source = """
+precision mediump float;
+attribute vec3 vertex;
+uniform mat4 modelviewmatrix[2];
+uniform vec3 unib[4];
+varying vec3 vars[2];
+
+void main(void) {
+  gl_Position = modelviewmatrix[1] * vec4(vertex, 1.0);
+  gl_PointSize = unib[2][2];
+  vars[0][0] = length(gl_Position.xy);
+  vars[1] = vec3( cos((vertex.z*2.094) - 2.094), cos(vertex.z*2.094), cos((vertex.z*2.094) + 2.094) );
+}
+""",
+fshader_source = """
+precision mediump float;
+uniform vec3 unib[4];
+uniform vec3 unif[20];
+varying vec3 vars[2];
+
+void main(void) {
+  gl_FragColor = vec4( vars[1], 1.0 ); 
+  gl_FragColor.a = clamp(1.2-vars[0][0], 0.1, 0.8) * unif[5][2];
+}
+""")
+
+
+  #=============================================================================
+  # colour = vec4(cos((vertex.z*2.094) - 2.094), cos(vertex.z*2.094), cos((vertex.z*2.094) + 2.094), 1.0);
+  #=============================================================================
+  #=============================================================================
+  # vars[1] = cos(vertex.z*2.094) - 2.094);
+  # vars[2] = cos(vertex.z*2.094);
+  # vars[3] = cos((vertex.z*2.094) + 2.094);
+  #=============================================================================
+        
+        
+        #=======================================================================
+        # cos(vertex.z*2.094) - 2.094), cos(vertex.z*2.094), cos((vertex.z*2.094) + 2.094)
+        #=======================================================================
+#===============================================================================
+# vec4(unib[1], 1.0);
+#===============================================================================
 
         lines = np.zeros((0,3), dtype=np.float)
         half_ladder_steps = int(math.ceil(90.0 / self.degstep))
@@ -76,27 +121,28 @@ class HUDladder(object):
             angle = bar * self.degstep
             ypos = angle * self.pixelsPerBar / self.degstep
             width = self.screen_width * self.get_bar_width(angle)
-            
+            hue = self.get_bar_hue(angle)
             point[0][0] = -width / 2
             point[0][1] = ypos
-            point[0][2] = 5.0            
+            point[0][2] = hue            
             lines = np.append(lines, point, axis=0)
             point[0][0] = width / 2
             point[0][1] = ypos
-            point[0][2] = 5.0            
+            point[0][2] = hue           
             lines = np.append(lines, point, axis=0)
             
         self.ladder = pi3d.Lines(camera=self.camera, vertices=lines, line_width=3)
         self.ladder.set_line_width(5, strip=False)
-        self.ladder.set_draw_details(self.matsh, [], 0, 0)
+        self.ladder.set_draw_details(self.bar_shader, [], 0, 0)
        
        
     def draw_ladder(self, roll, pitch, yaw):
         """ Draw the ladder. roll, pitch, yaw parameters in degrees"""
         ypos = pitch * self.pixelsPerBar / self.degstep
         self.ladder.rotateToZ(roll)
-        self.ladder.position(0.0, ypos, 4.0)
+        self.ladder.position(0.0, ypos, 5.5)
         self.ladder.draw()
+        
 #------------------------------------------------------------------------------ 
             #--------------------------------------------- for bar in self.bars:
                 #------- if(bar.degree < highpitch) and (bar.degree > lowpitch):
@@ -131,6 +177,15 @@ class HUDladder(object):
             return (0,255,0,255)
         else:
             return (255,0,0,255)
+        
+    def get_bar_hue(self, angle):
+        if(angle == 0):
+            return 0.5
+        elif(angle > 0):
+            return 0
+        else:
+            return 1.0
+        
     
     def get_bar_width(self, angle):
         if(angle == 0):
