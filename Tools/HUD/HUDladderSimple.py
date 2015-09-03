@@ -4,6 +4,7 @@ Created on 11 Jul 2014
 @author: matt
 '''
 import pi3d
+from CLines import CLines
 import math
 import time
 from ScreenGrid import ScreenScale
@@ -68,9 +69,39 @@ class HUDladder(object):
         self.center = HUDLadderCenter(self.camera, self.matsh)
         self.roll_indicator = HUDLadderRollIndicator(self.camera, self.matsh, line_thickness=3)
         
+#===============================================================================
+#         self.bar_shader = pi3d.Shader(vshader_source = """
+# precision mediump float;
+# attribute vec3 vertex;
+# uniform mat4 modelviewmatrix[2];
+# uniform vec3 unib[4];
+# varying vec3 vars[2];
+# 
+# void main(void) {
+#   gl_Position = modelviewmatrix[1] * vec4(vertex, 1.0);
+#   gl_PointSize = unib[2][2];
+#   vars[0][0] = length(gl_Position.xy);
+#   vars[1] = vec3( cos((vertex.z*2.094) - 2.094), cos(vertex.z*2.094), cos((vertex.z*2.094) + 2.094) );
+# }
+# """,
+# fshader_source = """
+# precision mediump float;
+# uniform vec3 unib[4];
+# uniform vec3 unif[20];
+# varying vec3 vars[2];
+# 
+# void main(void) {
+#   gl_FragColor = vec4( vars[1], 1.0 ); 
+#   gl_FragColor.a = clamp(1.2-vars[0][0], 0.1, 0.8) * unif[5][2];
+# }
+# """)
+#===============================================================================
+
+
         self.bar_shader = pi3d.Shader(vshader_source = """
 precision mediump float;
 attribute vec3 vertex;
+attribute vec3 normal;
 uniform mat4 modelviewmatrix[2];
 uniform vec3 unib[4];
 varying vec3 vars[2];
@@ -79,7 +110,7 @@ void main(void) {
   gl_Position = modelviewmatrix[1] * vec4(vertex, 1.0);
   gl_PointSize = unib[2][2];
   vars[0][0] = length(gl_Position.xy);
-  vars[1] = vec3( cos((vertex.z*2.094) - 2.094), cos(vertex.z*2.094), cos((vertex.z*2.094) + 2.094) );
+  vars[1] = normal;
 }
 """,
 fshader_source = """
@@ -94,27 +125,16 @@ void main(void) {
 }
 """)
 
-
-  #=============================================================================
-  # colour = vec4(cos((vertex.z*2.094) - 2.094), cos(vertex.z*2.094), cos((vertex.z*2.094) + 2.094), 1.0);
-  #=============================================================================
-  #=============================================================================
-  # vars[1] = cos(vertex.z*2.094) - 2.094);
-  # vars[2] = cos(vertex.z*2.094);
-  # vars[3] = cos((vertex.z*2.094) + 2.094);
-  #=============================================================================
-        
-        
-        #=======================================================================
-        # cos(vertex.z*2.094) - 2.094), cos(vertex.z*2.094), cos((vertex.z*2.094) + 2.094)
-        #=======================================================================
+# vec3( cos((vertex.z*2.094) - 2.094), cos(vertex.z*2.094), cos((vertex.z*2.094) + 2.094) );
 #===============================================================================
 # vec4(unib[1], 1.0);
 #===============================================================================
 
         lines = np.zeros((0,3), dtype=np.float)
+        colours = np.zeros((0,3), dtype=np.float)
         half_ladder_steps = int(math.ceil(90.0 / self.degstep))
         point = np.zeros((1,3), dtype=np.float)
+        colour = np.zeros((1,3), dtype=np.float)
         
         for step in range(0, (2*half_ladder_steps) + 2):
             bar = (step - half_ladder_steps) 
@@ -122,16 +142,29 @@ void main(void) {
             ypos = angle * self.pixelsPerBar / self.degstep
             width = self.screen_width * self.get_bar_width(angle)
             hue = self.get_bar_hue(angle)
+            col = self.get_bar_colour(angle)
+            
             point[0][0] = -width / 2
             point[0][1] = ypos
             point[0][2] = hue            
             lines = np.append(lines, point, axis=0)
+
+            colour[0][0] = col[0]
+            colour[0][1] = col[1]
+            colour[0][2] = col[2]
+            colours = np.append(colours, colour, axis=0)
+
             point[0][0] = width / 2
             point[0][1] = ypos
             point[0][2] = hue           
             lines = np.append(lines, point, axis=0)
+
+            colour[0][0] = col[0]
+            colour[0][1] = col[1]
+            colour[0][2] = col[2]
+            colours = np.append(colours, colour, axis=0)
             
-        self.ladder = pi3d.Lines(camera=self.camera, vertices=lines, line_width=3)
+        self.ladder = CLines(camera=self.camera, vertices=lines, colours=colours, line_width=5)
         self.ladder.set_line_width(5, strip=False)
         self.ladder.set_draw_details(self.bar_shader, [], 0, 0)
        
@@ -170,10 +203,10 @@ void main(void) {
 
     # The following functions return values controlling the look and feel of the bar    
 
-    def get_bar_colour(self):
-        if(self.degree == 0):
+    def get_bar_colour(self, angle):
+        if(angle == 0):
             return (255,255,255,255)
-        elif(self.degree > 0):
+        elif(angle > 0):
             return (0,255,0,255)
         else:
             return (255,0,0,255)
