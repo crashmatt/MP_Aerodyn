@@ -70,7 +70,6 @@ class Map(object):
         
         
         self.point_shader = pi3d.Shader(vshader_source = """
-
 precision mediump float;
 attribute vec3 vertex;
 uniform mat4 modelviewmatrix[2];
@@ -96,16 +95,6 @@ void main(void) {
 }
 """)
 
-#uniform vec3 unib[4];
-#  gl_FragColor = vec4(unif[4], 1.0); // ------ combine using factors
-
-
-
-
-  #-- //if (distance(gl_PointCoord, vec2(0.5)) > 0.5) discard; //circular points
-  # gl_FragColor = (1.0 - ffact) * texc + ffact * vec4(unif[4], unif[5][1]); // ------ combine using factors
-  #----------------------------------------------- gl_FragColor.a *= unif[5][2];
-        
         self.screen_width = Display.INSTANCE.width
         self.screen_height = Display.INSTANCE.height
                
@@ -167,7 +156,6 @@ void main(void) {
         self.track_sprite = pi3d.Points(camera=self.map_camera, vertices=self.track, point_size=self._track_width)
 
         self.trackshader = pi3d.Shader(vshader_source = """
-
 precision mediump float;
 attribute vec3 vertex;
 uniform mat4 modelviewmatrix[2];
@@ -185,7 +173,6 @@ void main(void) {
 """,
 fshader_source = """
 precision mediump float;
-
 varying vec4 colour;
 
 void main(void) {
