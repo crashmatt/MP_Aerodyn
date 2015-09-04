@@ -125,6 +125,7 @@ void main(void) {
 }
 """)
 
+#
 # vec3( cos((vertex.z*2.094) - 2.094), cos(vertex.z*2.094), cos((vertex.z*2.094) + 2.094) );
 #===============================================================================
 # vec4(unib[1], 1.0);
@@ -143,10 +144,11 @@ void main(void) {
             width = self.screen_width * self.get_bar_width(angle)
             hue = self.get_bar_hue(angle)
             col = self.get_bar_colour(angle)
+            thickness = self.get_bar_thickness(angle)
             
             point[0][0] = -width / 2
             point[0][1] = ypos
-            point[0][2] = hue            
+            point[0][2] = thickness            
             lines = np.append(lines, point, axis=0)
 
             colour[0][0] = col[0]
@@ -156,7 +158,7 @@ void main(void) {
 
             point[0][0] = width / 2
             point[0][1] = ypos
-            point[0][2] = hue           
+            point[0][2] = thickness           
             lines = np.append(lines, point, axis=0)
 
             colour[0][0] = col[0]
@@ -165,7 +167,9 @@ void main(void) {
             colours = np.append(colours, colour, axis=0)
             
         self.ladder = CLines(camera=self.camera, vertices=lines, colours=colours, line_width=5)
-        self.ladder.set_line_width(5, strip=False)
+        #self.ladder = pi3d.Lines(camera=self.camera, vertices=lines, material=(1.0, 1.0, 1.0, 1.0), line_width=5.0)
+#        self.ladder.set_line_width(1.0, strip=False)
+        #self.ladder.set_draw_details(self.matsh, [], 0, 0)
         self.ladder.set_draw_details(self.bar_shader, [], 0, 0)
        
        
@@ -226,8 +230,8 @@ void main(void) {
         else:
             return 0.35
     
-    def get_bar_thickness(self):
-        if(self.degree == 0):
+    def get_bar_thickness(self, angle):
+        if(angle == 0):
             return 6
         else:
             return 4
