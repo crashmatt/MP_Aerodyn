@@ -38,7 +38,7 @@ class HUDladder(object):
         self.heading = 0
         self.track = 0
         
-        self.degstep = 10
+        self.degstep = 20
         self.screenstep = 0.3           # ratio of screen height
         self.bar_gap = 0.05             # ratio of screen width
         self.font_scale = 0.08          # relative to original font size
@@ -106,17 +106,17 @@ class HUDladder(object):
             
             for bar in self.bars:
                 if(bar.degree < highpitch) and (bar.degree > lowpitch):
-                    screenpos = (bar.degree - pitch) * self.screenstep / self.degstep
-                    if(screenpos < 0):
-                        screenpos = -screenpos
-                    if(screenpos < self.fadingpos_start):
-                        fade = self.alpha
-                    elif(screenpos > self.fadingpos_end):
-                        fade = 0
-                    else:
-                        fade = self.alpha * (screenpos - self.fadingpos_end) / (self.fadingpos_start - self.fadingpos_end) 
+                    # screenpos = (bar.degree - pitch) * self.screenstep / self.degstep
+                    #---------------------------------------- if(screenpos < 0):
+                        #-------------------------------- screenpos = -screenpos
+                    #--------------------- if(screenpos < self.fadingpos_start):
+                        #------------------------------------- fade = self.alpha
+                    #--------------------- elif(screenpos > self.fadingpos_end):
+                        #---------------------------------------------- fade = 0
+                    #----------------------------------------------------- else:
+                        # fade = self.alpha * (screenpos - self.fadingpos_end) / (self.fadingpos_start - self.fadingpos_end)
                         
-                    bar.draw_bar(self.camera2d, alpha=fade)
+                    bar.draw_bar(self.camera2d, alpha=1.0)
                     
     def draw_center(self):
         self.center.draw()
@@ -153,6 +153,46 @@ class HUDladderBar(object):
         self.ladder_text_box_alpha = 0.8
         self.bar_box_alpha = 0.9
 
+        self.bar_shader = pi3d.Shader("uv_flat_fade")
+        #-------------------- self.bar_shader = pi3d.Shader(vshader_source = """
+#------------------------------------------------------------------------------ 
+#------------------------------------------------------ precision mediump float;
+#-------------------------------------------------------- attribute vec3 vertex;
+#------------------------------------------------------ attribute vec2 texcoord;
+#---------------------------------------------- uniform mat4 modelviewmatrix[2];
+#--------------------------------------------------------- uniform vec3 unib[4];
+#------------------------------------------------------------------------------ 
+#----------------------------------------------------- varying vec2 texcoordout;
+#----------------------------------------------------------- varying float dist;
+#------------------------------------------------------------------------------ 
+#------------------------------------------------------------- void main(void) {
+  #--------------------------- texcoordout = texcoord * unib[2].xy + unib[3].xy;
+  #------------------------ gl_Position = modelviewmatrix[1] * vec4(vertex,1.0);
+  #------------------------------------------------------- dist = gl_Position.z;
+  #------------------------------------------- gl_PointSize = unib[2][2] / dist;
+#----------------------------------------------------------------------------- }
+#-------------------------------------------------------------------------- """,
+#---------------------------------------------------------- fshader_source = """
+#------------------------------------------------------ precision mediump float;
+#----------------------------------------------------- varying vec2 texcoordout;
+#-------------------------------------------------------- uniform vec3 unif[20];
+#--------------------------------------------------------- uniform vec3 unib[4];
+#------------------------------------------------------- uniform sampler2D tex0;
+#------------------------------------------------------------------------------ 
+#------------------------------------------------------------- void main(void) {
+#-------------------- // NB previous define: tex0, texcoordout, unib, unif, dist
+#------------------------------------------------------------------------------ 
+  # vec4 texc = texture2D(tex0, texcoordout); // ------ material or basic colour from texture
+  # if (texc.a < unib[0][2]) discard; // ------ to allow rendering behind the transparent parts of this object
+  # float ffact = smoothstep(unif[5][0]/3.0, unif[5][0], dist); // ------ smoothly increase fog between 1/3 and full fogdist
+#------------------------------------------------------------------------------ 
+   # gl_FragColor = (1.0 - ffact) * texc + ffact * vec4(unif[4], unif[5][1]); // ------ combine using factors
+  #----------------------------------------------- gl_FragColor.a *= unif[5][2];
+#----------------------------------------------------------------------------- }
+#-------------------------------------------------------------------------- """)
+
+
+#-------------------------------------------------------- uniform vec3 unif[20];
 
     # The following functions return values controlling the look and feel of the bar    
 
@@ -285,7 +325,7 @@ class HUDladderBar(object):
             camera = self.camera
 
         self.sprite.set_alpha(alpha)
-        self.sprite.draw(self.shader, [self.bar], camera = camera)
+        self.sprite.draw(self.bar_shader, [self.bar], camera = camera)
 
 
 
