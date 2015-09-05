@@ -50,6 +50,8 @@ class HUDladder(object):
         self.fadingpos_start = 0.25
         self.fadingpos_end = 0.4
         
+        self.bar_line_thickness = 5;
+        
         # 2d camera for generating sprites
         self.camera = camera    #pi3d.Camera(is_3d=False)
         self.shader = shader
@@ -175,9 +177,12 @@ void main(void) {
        
     def draw_ladder(self, roll, pitch, yaw):
         """ Draw the ladder. roll, pitch, yaw parameters in degrees"""
-        ypos = pitch * self.pixelsPerBar / self.degstep
+        pixel_pitch = pitch * self.pixelsPerBar / self.degstep
+        ypos = pixel_pitch * math.cos(math.radians(roll))
+        xpos = -pixel_pitch * math.sin(math.radians(roll))
         self.ladder.rotateToZ(roll)
-        self.ladder.position(0.0, ypos, 5.5)
+        self.ladder.position(xpos, ypos, 5.5)
+        self.ladder.set_line_width(self.bar_line_thickness, False, False)
         self.ladder.draw()
         
 #------------------------------------------------------------------------------ 
