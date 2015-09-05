@@ -77,7 +77,7 @@ uniform vec3 unib[4];
 varying float dist;
 
 void main(void) {
-  gl_Position = modelviewmatrix[1] * vec4(vertex, 1.0);
+  gl_Position = modelviewmatrix[1] * vec4(vertex.xy, 20.0, 1.0);
   gl_PointSize = unib[2][2];
   dist = length(gl_Position.xy);
 }
@@ -153,7 +153,8 @@ void main(void) {
         
         self.track = np.zeros((2000,3), dtype=np.float)
         self.track_index = 0
-        self.track_sprite = pi3d.Points(camera=self.map_camera, vertices=self.track, point_size=self._track_width)
+        self.track_sprite = pi3d.Points(camera=self.map_camera, vertices=self.track, point_size=self._track_width, z=30.0)
+        #self.track_sprite = pi3d.Lines(camera=self.map_camera, vertices=self.track, line_width=self._track_width)
 
         self.trackshader = pi3d.Shader(vshader_source = """
 precision mediump float;
@@ -271,7 +272,7 @@ void main(void) {
         else:
             self.track_sprite.set_point_size(self._track_width)
         
-        self.track_sprite.position(-self._aircraft_pos.x * self._zoom, -self._aircraft_pos.y * self._zoom, 6.0)
+#        self.track_sprite.position(-self._aircraft_pos.x * self._zoom, -self._aircraft_pos.y * self._zoom, 7.0)
         
         b = self.track_sprite.buf[0]
         b.re_init(self.track, offset=0)
@@ -282,6 +283,8 @@ void main(void) {
 
 
     def draw(self):
+#        self.track_sprite.set_line_width(self._track_width, False, False)
+        self.track_sprite.position(-self._aircraft_pos.x * self._zoom, -self._aircraft_pos.y * self._zoom, 30.0)
         self.track_sprite.draw()
 
         #-------------------------- self.home.scale(self._zoom, self._zoom, 1.0)
@@ -289,6 +292,7 @@ void main(void) {
         #------------------------------------------------------ self.home.draw()
         
         rot = degrees(atan2(self._aircraft_pos.x, -self._aircraft_pos.y))
+        self.home_pointer.set_line_width(10.0, False, False)
         self.home_pointer.rotateToZ(rot)
         self.home_pointer.draw()
         
@@ -296,8 +300,9 @@ void main(void) {
         # self.distance_spots.position( -self._aircraft_pos.x*self._zoom,  -self._aircraft_pos.y*self._zoom, 5.9)
         #-------------------------------------------- self.distance_spots.draw()
         
-        self.distance_radius.position( -self._aircraft_pos.x*self._zoom,  -self._aircraft_pos.y*self._zoom, 5.9)
+        self.distance_radius.set_line_width(3.0, False, False)
         self.distance_radius.scale(self._zoom, self._zoom, 1.0)
+        self.distance_radius.position( -self._aircraft_pos.x*self._zoom,  -self._aircraft_pos.y*self._zoom, 7.0)
         self.distance_radius.draw()
         return
                     
