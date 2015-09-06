@@ -1,8 +1,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pi3d.constants import *
-from pi3d import Shape
-from pi3d.shape import Plane
+from pi3d import Shape, Shader
+#from pi3d.shape import Plane as Plane
+import CPlanes
 
 class Box2d(object):
     """ 3d model inherits from Shape"""
@@ -30,7 +31,7 @@ class Box2d(object):
             self.shader = None
         else:
             self.shader = shader
-            
+                        
         if justify=='L':
             xoffset = int(x - (w * 0.5))
         elif justify=='R':
@@ -39,28 +40,28 @@ class Box2d(object):
             xoffset = int(x)
 
         if(fill_colour[3] > 0):
-            self.box = Plane.Plane(camera=camera, w=w, h=h, x=xoffset, y=y, z=z)
-            self.box.set_material((fill_colour))
+            self.box = CPlanes.CPlanes(camera=camera, w=w, h=h, x=xoffset, y=y, z=z, colour=fill_colour[0:3])
+ #           self.box.set_material((fill_colour))
             self.box.set_draw_details(self.shader, [], 0, 0)
             self.box.set_alpha(fill_colour[3])
 
-        self.boxtop = Plane.Plane(camera=camera, w=w+(line_thickness*2), h=line_thickness, x=xoffset, y=y+(h/2)+(line_thickness/2), z=z)
-        self.boxtop.set_material((line_colour))
+        self.boxtop = CPlanes.CPlanes(camera=camera, w=w+(line_thickness*2), h=line_thickness, x=xoffset, y=y+(h/2)+(line_thickness/2), z=z, colour=line_colour[0:3])
+#        self.boxtop.set_material((line_colour))
         self.boxtop.set_draw_details(self.shader, [], 0, 0)
         self.boxtop.set_alpha(line_colour[3])
 
-        self.boxbottom = Plane.Plane(camera=camera, w=w+(line_thickness*2), h=line_thickness, x=xoffset, y=y-(h/2)-(line_thickness/2), z=z)
-        self.boxbottom.set_material((line_colour))
+        self.boxbottom = CPlanes.CPlanes(camera=camera, w=w+(line_thickness*2), h=line_thickness, x=xoffset, y=y-(h/2)-(line_thickness/2), z=z, colour=line_colour[0:3])
+#        self.boxbottom.set_material((line_colour))
         self.boxbottom.set_draw_details(self.shader, [], 0, 0)
         self.boxbottom.set_alpha(line_colour[3])
 
-        self.boxleft = Plane.Plane(camera=camera, w=line_thickness, h=h+(line_thickness*2), x=xoffset-(w/2)-(line_thickness/2), y=y, z=z)
-        self.boxleft.set_material((line_colour))
+        self.boxleft = CPlanes.CPlanes(camera=camera, w=line_thickness, h=h+(line_thickness*2), x=xoffset-(w/2)-(line_thickness/2), y=y, z=z, colour=line_colour[0:3])
+#        self.boxleft.set_material((line_colour))
         self.boxleft.set_draw_details(self.shader, [], 0, 0)
         self.boxleft.set_alpha(line_colour[3])
 
-        self.boxright = Plane.Plane(camera=camera, w=line_thickness, h=h+(line_thickness*2), x=xoffset+(w/2)+(line_thickness/2), y=y, z=z)
-        self.boxright.set_material((line_colour))
+        self.boxright = CPlanes.CPlanes(camera=camera, w=line_thickness, h=h+(line_thickness*2), x=xoffset+(w/2)+(line_thickness/2), y=y, z=z, colour=line_colour[0:3])
+#        self.boxright.set_material((line_colour))
         self.boxright.set_draw_details(self.shader, [], 0, 0)
         self.boxright.set_alpha(line_colour[3])
         
