@@ -9,7 +9,8 @@ import pi3d
 
 from pi3d.constants import *
 
-from HUDladder  import HUDladder
+from HUDladderSimple  import HUDladder
+#from HUDladder  import HUDladder
 from HUDTrack   import HUDTrack
 from LayerItems import LayerText
 from LayerItems import LayerVarText
@@ -174,8 +175,9 @@ class HUD(object):
         #create shaders
         #shader = pi3d.Shader("uv_reflect")
         self.sh2d =  pi3d.Shader("2d_flat")   #For fixed color
-        self.matsh = pi3d.Shader("mat_flat")  #For fixed color
+        self.matsh = pi3d.Shader("norm_colour")  #For fixed color
         self.flatsh = pi3d.Shader("uv_flat")
+#        self.normsh = pi3d.Shader("norm_colour")
 
         #Create layers
         self.dataLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
@@ -238,6 +240,7 @@ class HUD(object):
         textFont = self.textFont
         flatsh = self.flatsh
         matsh = self.matsh
+#        normsh = self.normsh
         hudFont = textFont        
         layer_text_spacing = self.layer_text_spacing
         
@@ -536,9 +539,9 @@ class HUD(object):
                 self.slow_frame_count = 0
             else:
                 self.slow_frame_count += 1
-      
-# try glScissor for limiting extent of ladder drawing
 
+            self.ladder.draw_ladder(self.roll_filter.estimate(), self.pitch_filter.estimate(), 0)
+      
             if self.show_track:
                 self.track.draw_track(alpha=1.0)
             if self.show_tiled:
@@ -547,7 +550,6 @@ class HUD(object):
                 self.track_map.draw()
                 
             self.background.draw()
-            self.ladder.draw_ladder(self.roll_filter.estimate(), self.pitch_filter.estimate(), 0)
 
             self.dataLayer.draw_layer()
             self.statusLayer.draw_layer()
