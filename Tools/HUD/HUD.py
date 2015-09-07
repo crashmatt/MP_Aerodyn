@@ -76,10 +76,11 @@ class HUD(object):
         self.pitch_ladder_alpha = 1
         self.pitch_ladder_text_alpha = 1.0
         
-        self.hud_colour = (0,255,0,255)
+        self.hud_colour = (0.0,1.0,0.0,1.0)
+        self.font_colour = (0,255,0,255)
         self.textbox_line_colour = self.hud_colour
-        self.textbox_fill_colour = (0,0,0,0.75)
-        self.warning_colour = (255, 0 , 0, 255)
+        self.textbox_fill_colour = (0.1,0.1,0.1,0.75)
+        self.warning_colour = (1.0, 1.0 , 1.0, 1.0)
         
         self.fps = 20
         self.simulate = simulate
@@ -175,6 +176,7 @@ class HUD(object):
         #create shaders
         #shader = pi3d.Shader("uv_reflect")
         self.sh2d =  pi3d.Shader("2d_flat")   #For fixed color
+#        self.matsh = pi3d.Shader("mat_flat")  #For fixed color
         self.matsh = pi3d.Shader("norm_colour")  #For fixed color
         self.flatsh = pi3d.Shader("uv_flat")
 #        self.normsh = pi3d.Shader("norm_colour")
@@ -191,7 +193,7 @@ class HUD(object):
         #fonts
         #hudFont = pi3d.Font("fonts/FreeSans.ttf", (50,255,50,220))
         font_path = os.path.abspath(os.path.join(self.working_directory, 'fonts', 'FreeSansBold.ttf'))
-        self.hudFont = pi3d.Font(font_path, self.hud_colour)   #usr/share/fonts/truetype/freefont/
+        self.hudFont = pi3d.Font(font_path, self.font_colour)   #usr/share/fonts/truetype/freefont/
         self.ladderFont = self.hudFont
         self.textFont = self.hudFont
         
@@ -206,14 +208,14 @@ class HUD(object):
         x,y = self.grid.get_grid_pixel(-15, 0)
         self.VSI = RollingIndicator(self.text_camera, self.flatsh, self.matsh, self, "vertical_speed", 
                                    indmax=20, indmin=-20, x=x, y=y, z=3, width=30, length=180, 
-                                   orientation="V", line_colour=(255,255,255,255), fill_colour=(0,0,0,0.75), 
+                                   orientation="V", line_colour=(1.0, 1.0, 1.0, 1.0), fill_colour=(0,0,0,0.75), 
                                    line_thickness = 1, needle_img=None, needle_thickness=8, needle_colour=self.hud_colour)
 
         #Add slip indicator.  Scale is in degrees
         x,y = self.grid.get_grid_pixel(0, -5)
         self.slip_indicator = LinearIndicator(self.text_camera, self.flatsh, self.matsh, self, "slip", 
                                               indmax=50, indmin=-50, x=x, y=y, z=3, width=21, length=250, 
-                                              orientation="H", line_colour=(255,255,255,255), fill_colour=(0,0,0,0.75), 
+                                              orientation="H", line_colour=(1.0, 1.0, 1.0, 1.0), fill_colour=(0,0,0,0.75), 
                                               line_thickness = 1, needle_img=needle_path)
         print("end creating indicators")
 
