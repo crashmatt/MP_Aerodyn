@@ -37,6 +37,56 @@ class CPlanes(Shape):
 
     self.buf = []
     
+    def __init__(self,  camera=None, light=None, w=1.0, h=1.0, d=1.0,
+               name="", x=0.0, y=0.0, z=0.0,
+               line_colour=(1.0,1.0,1.0,1.0), fill_colour=(0,0,0,1.0), line_thickness = 1,
+               shader=None, justify='C'):
+        """uses standard constructor for Shape extra Keyword arguments:
+
+          *w*
+        width
+          *h*
+        height
+          *d*
+        depth
+          
+        The scale factors are the multiple of the texture to show along that
+        dimension. For no distortion of the image the scale factors need to be
+        proportional to the relative dimension.
+        """
+#       super(Cuboid, self).__init__(camera, light, name, x, y, z, rx, ry, rz,
+#                                1.0, 1.0, 1.0, cx, cy, cz)
+
+        if(shader == None):
+            self.shader = None
+        else:
+            self.shader = shader
+                        
+
+            
+ 
+    
+  def add_filled_box(self, w, h, x=0.0, y=0.0, z=0.0, fill_colour=(0.0, 0.0, 0.0, 1.0), line_colour=(1.0,1.0,1.0,1.0), line_thickness=1):
+    ww = w/2.0
+    hh = h/2.0
+              
+    #order of points is critial to show face. bottom left point must go first
+    self.add_box((x-ww,y-hh, z), (x+ww,hh, z), fill_colour)
+
+    #top
+    self.add_box((x-ww, y+hh, z), (x+ww, y+hh+line_thickness, z), line_colour)
+
+    #bottom
+    self.add_box((x-ww, y-hh-line_thickness, z), (x+ww, y-hh, z), line_colour)
+
+    #left
+    self.add_box((x-ww-line_thickness, y-hh, z), (x+ww, y+hh, z), line_colour)
+
+    #right
+    self.add_box((x+ww, y-hh, z), (x+ww+line_thickness, y+hh, z), line_colour)    
+      
+      
+    
   def add_box(self, pt1, pt2, colour):      
       pts = ( (pt1[0], pt1[1], pt1[2]), (pt1[0], pt2[1], pt1[2] ), (pt2[0], pt2[1], pt2[2]), (pt2[0], pt1[1], pt1[2]) )
       self.add_plane(pts, colour)

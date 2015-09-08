@@ -39,32 +39,11 @@ class Box2d(object):
             xoffset = int(x + (w * 0.5))
         else:
             xoffset = int(x)
-
-        #=======================================================================
-        # self.box = Plane.Plane(camera=camera, x=xoffset, y=y, z=z, h=h, w=w)
-        # self.box.set_draw_details(self.shader, [], 0, 0)
-        # self.box.set_material(fill_colour)
-        # self.box.set_alpha(fill_colour[3])
-        #=======================================================================
+            
         
-        self.box = CPlanes.CPlanes(camera=camera, x=xoffset, y=y, z=z)
-        ww = w/2.0
-        hh = h/2.0
-          
-        #order of points is critial to show face. bottom left point must go first
-        self.box.add_box((-ww,-hh, 0.0), (ww,hh, 0.0), fill_colour)
-
-        #top
-        self.box.add_box((-ww, hh, 0.0), (ww, hh+line_thickness, 0.0), line_colour)
-
-        #bottom
-        self.box.add_box((-ww, -hh-line_thickness, 0.0), (ww, -hh, 0.0), line_colour)
-
-        #left
-        self.box.add_box((-ww-line_thickness, -hh, 0.0), (ww, hh, 0.0), line_colour)
-
-        #right
-        self.box.add_box((ww, -hh, 0.0), (ww+line_thickness, hh, 0.0), line_colour)
+        self.box = CPlanes.CPlanes(camera=camera, x=xoffset, y=y, z=0)
+        
+        self.box.add_filled_box(w, h, 0.0, 0.0, z, fill_colour, line_colour, line_thickness)
         
         self.box.set_draw_details(self.shader, [], 0, 0)
         self.box.init()
@@ -74,8 +53,5 @@ class Box2d(object):
         box = getattr(self, "box", None) 
         if(box != None):
             box.draw()
- #       self.boxtop.draw()
- #       self.boxbottom.draw()
- #       self.boxleft.draw()
- #       self.boxright.draw()
+
 
