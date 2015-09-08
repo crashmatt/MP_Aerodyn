@@ -79,7 +79,7 @@ class HUD(object):
         self.hud_colour = (0.0,1.0,0.0,1.0)
         self.font_colour = (0,255,0,255)
         self.textbox_line_colour = self.hud_colour
-        self.textbox_fill_colour = (0.1,0.1,0.1,0.75)
+        self.textbox_fill_colour = (0.0,0.0,0.0,0.7)
         self.warning_colour = (1.0, 1.0 , 1.0, 1.0)
         
         self.fps = 20

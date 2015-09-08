@@ -29,7 +29,7 @@ class CPlanes(Shape):
     self.ttype = GL_TRIANGLES
     self.verts = np.zeros((0,3), dtype=np.float)
     self.norms = np.zeros((0,3), dtype=np.float)
-    self.texcoords = []
+    self.texcoords = np.zeros((0,2), dtype=np.float)
     self.inds = np.zeros((0,3), dtype=np.int)
     self.planes = []
 
@@ -42,11 +42,21 @@ class CPlanes(Shape):
     norms = np.zeros((4,3), dtype=np.float)
     verts = np.zeros((4,3), dtype=np.float)
     inds = np.zeros((2,3), dtype=np.float)
+    alphas = np.zeros((4,2), dtype=np.float)
     ind_count = len(self.verts)
+    if len(colour) > 3:
+        alpha = colour[3]
+    else:
+        alpha = 1.0
+    
     for index in range(0,4):
         verts[index] = [ pts[index][0], pts[index][1], pts[index][2] ]
         norms[index] = [colour[0], colour[1], colour[2]]
+        alphas[index] = [alpha, 0.0]
+
     inds = [ [ind_count, ind_count+1, ind_count+3], [ind_count+1, ind_count+2, ind_count+3] ]
+
+    self.texcoords = np.append(self.texcoords, alphas, axis=0)
     self.verts = np.append(self.verts, verts, axis=0)
     self.norms = np.append(self.norms, norms, axis=0)
     self.inds = np.append(self.inds, inds, axis=0)
