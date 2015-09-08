@@ -35,8 +35,11 @@ class CPlanes(Shape):
 
 #    self.texcoords = ((0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0))
 
-
     self.buf = []
+    
+  def add_box(self, pt1, pt2, colour):      
+      pts = ( (pt1[0], pt1[1], pt1[2]), (pt1[0], pt2[1], pt1[2] ), (pt2[0], pt2[1], pt2[2]), (pt2[0], pt1[1], pt1[2]) )
+      self.add_plane(pts, colour)
 
   def add_plane(self, pts, colour):
     norms = np.zeros((4,3), dtype=np.float)

@@ -51,51 +51,24 @@ class Box2d(object):
         ww = w/2.0
         hh = h/2.0
           
-        #pts = ( (xoffset-ww, y-hh, 0),(xoffset+ww, y-hh, 0),(xoffset+ww, y+hh, 0),(xoffset-ww, y+hh, 0) ) 
-        
-        pts = ((-ww, hh, 0.0), (ww, hh, 0.0), (ww, -hh, 0.0), (-ww, -hh, 0.0))          
-        self.box.add_plane(pts, fill_colour)
-#        self.box.set_alpha(fill_colour[3])
-
-        #order of points is critial to show face. Effectively a sprite with hidden back face
+        #order of points is critial to show face. bottom left point must go first
+        self.box.add_box((-ww,-hh, 0.0), (ww,hh, 0.0), fill_colour)
 
         #top
-        pts = ((-ww, hh+line_thickness, 0.0), (ww, hh+line_thickness, 0.0), (ww, hh, 0.0), (-ww, hh, 0.0))                  
-        self.box.add_plane(pts, line_colour)
+        self.box.add_box((-ww, hh, 0.0), (ww, hh+line_thickness, 0.0), line_colour)
 
         #bottom
-        pts = ((-ww, -hh, 0.0), (ww, -hh, 0.0), (ww, -hh-line_thickness, 0.0), (-ww, -hh-line_thickness, 0.0))                  
-        self.box.add_plane(pts, line_colour)
+        self.box.add_box((-ww, -hh-line_thickness, 0.0), (ww, -hh, 0.0), line_colour)
 
         #left
-        pts = ((-ww-line_thickness, hh, 0.0), (-ww, hh, 0.0), (-ww, -hh, 0.0), (-ww-line_thickness, -hh, 0.0))
-        self.box.add_plane(pts, line_colour)
-        
-        pts = ((ww, hh, 0.0), (ww+line_thickness, hh, 0.0), (ww+line_thickness, -hh, 0.0), (ww, -hh, 0.0))
-        self.box.add_plane(pts, line_colour)
+        self.box.add_box((-ww-line_thickness, -hh, 0.0), (ww, hh, 0.0), line_colour)
+
+        #right
+        self.box.add_box((ww, -hh, 0.0), (ww+line_thickness, hh, 0.0), line_colour)
         
         self.box.set_draw_details(self.shader, [], 0, 0)
         self.box.init()
 
-
-#        if(fill_colour[3] > 0):
-#            self.box = CPlanes.CPlanes(camera=camera, w=w, h=h, x=xoffset, y=y, z=z, colour=fill_colour[0:3])
-
-#        self.boxtop = CPlanes.CPlanes(camera=camera, w=w+(line_thickness*2), h=line_thickness, x=xoffset, y=y+(h/2)+(line_thickness/2), z=z, colour=line_colour[0:3])
-#        self.boxtop.set_draw_details(self.shader, [], 0, 0)
-#        self.boxtop.set_alpha(line_colour[3])
-
-#        self.boxbottom = CPlanes.CPlanes(camera=camera, w=w+(line_thickness*2), h=line_thickness, x=xoffset, y=y-(h/2)-(line_thickness/2), z=z, colour=line_colour[0:3])
-#        self.boxbottom.set_draw_details(self.shader, [], 0, 0)
-#        self.boxbottom.set_alpha(line_colour[3])
-
-#        self.boxleft = CPlanes.CPlanes(camera=camera, w=line_thickness, h=h+(line_thickness*2), x=xoffset-(w/2)-(line_thickness/2), y=y, z=z, colour=line_colour[0:3])
-#        self.boxleft.set_draw_details(self.shader, [], 0, 0)
-#        self.boxleft.set_alpha(line_colour[3])
-
-#        self.boxright = CPlanes.CPlanes(camera=camera, w=line_thickness, h=h+(line_thickness*2), x=xoffset+(w/2)+(line_thickness/2), y=y, z=z, colour=line_colour[0:3])
-#        self.boxright.set_draw_details(self.shader, [], 0, 0)
-#        self.boxright.set_alpha(line_colour[3])
         
     def draw(self):
         box = getattr(self, "box", None) 
