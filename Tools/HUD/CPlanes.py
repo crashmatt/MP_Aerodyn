@@ -5,6 +5,7 @@ from pi3d.Buffer import Buffer
 from pi3d.Shape import Shape
 import numpy as np
 from numpy import dtype
+import math
 
 class CPlanes(Shape):
   """ Draws a group of disconnected coloured planes. Uses normals as colour and no textures. Only flat material shaders and 2d cameras can be used"""
@@ -65,8 +66,16 @@ class CPlanes(Shape):
 
   def add_line(self, pt1, pt2, thickness=1.0, colour=(1.0,1.0,1.0,1.0)):
     tt = float(thickness) * 0.5
+    deltax = float(pt2[0] - pt1[0])
+    deltay = float(pt2[1] - pt1[1])
+    l = math.sqrt(deltax**2 + deltay**2)
+    if l == 0:
+        return
+    dy = float(thickness) * 0.5 * deltax / l
+    dx = float(thickness) * 0.5 * deltay / l
+    pts = ((pt1[0]+dx, pt1[1]-dy, pt1[2]),  (pt1[0]-dx, pt1[1]+dy, pt1[2]), (pt2[0]-dx, pt2[1]+dy, pt2[2]), (pt2[0]+dx, pt2[1]-dy, pt2[2]))
+    self.add_plane( pts , colour)
     
- 
     
   def add_filled_box(self, w, h, x=0.0, y=0.0, z=0.0, fill_colour=(0.0, 0.0, 0.0, 1.0), line_colour=(1.0,1.0,1.0,1.0), line_thickness=1, justify="C"):
     ww = w/2.0
