@@ -33,17 +33,10 @@ class Box2d(object):
         else:
             self.shader = shader
                         
-        if justify=='L':
-            xoffset = int(x - (w * 0.5))
-        elif justify=='R':
-            xoffset = int(x + (w * 0.5))
-        else:
-            xoffset = int(x)
-            
         
-        self.box = CPlanes.CPlanes(camera=camera, x=xoffset, y=y, z=0)
+        self.box = CPlanes.CPlanes(camera=camera, x=0, y=0, z=0)
         
-        self.box.add_filled_box(w, h, 0.0, 0.0, z, fill_colour, line_colour, line_thickness)
+        self.box.add_filled_box(w, h, x, y, z, fill_colour, line_colour, line_thickness, justify)
         
         self.box.set_draw_details(self.shader, [], 0, 0)
         self.box.init()
