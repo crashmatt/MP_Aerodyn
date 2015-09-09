@@ -10,7 +10,7 @@ import time
 from ScreenGrid import ScreenScale
 from Line2d import Line2d
 import numpy as np
-
+import CPlanes
 
 class HUDladder(object):
     '''
@@ -326,7 +326,7 @@ class HUDLadderCenter(object):
 class HUDLadderRollIndicator(object):
     def __init__(self, camera, matsh, radius=0.3, line_thickness=2, line_colour=(1.0,1.0,1.0), max_angle=60, tick_angle=15, tick_len=0.025, alpha=0.8):
         self.camera = camera
-        self.matsh = matsh
+        normsh = pi3d.Shader("norm_colour")
         self.radius = radius
         self.max_angle = max_angle
         self.tick_angle = tick_angle
@@ -335,7 +335,10 @@ class HUDLadderRollIndicator(object):
         self.line_colour = line_colour
         self.alpha = alpha
         
-    def draw(self):
+        z = 0.0
+        
+        self.indicator = CPlanes.CPlanes(camera=camera, x=0, y=0, z=0)
+        
         grid = ScreenScale(100,100)
         points = []
         (x,rad) = grid.pos_to_pixel(self.radius, self.radius)
@@ -343,20 +346,26 @@ class HUDLadderRollIndicator(object):
         
         ticks = int(self.max_angle / self.tick_angle)
         for tick in xrange(-ticks, ticks+1):
-            angle = tick * self.tick_angle
-            ypos = -rad * math.cos(math.radians(angle))
-            xpos = rad * math.sin(math.radians(angle))
-            points.append((xpos, ypos))
+            angle1 = tick * self.tick_angle
+            ypos1 = -rad * math.cos(math.radians(angle1))
+            xpos1 = rad * math.sin(math.radians(angle1))
+
+            angle2 = (tick + 1) * self.tick_angle
+            ypos2 = -rad * math.cos(math.radians(angle2))
+            xpos2 = rad * math.sin(math.radians(angle2))
+
+            if(tick < ticks):
+                self.indicator.add_line((xpos1,ypos1,z), (xpos2, ypos2,z), self.line_thickness, self.line_colour)
             
-            angle += math.pi * 0.5
-            typos = -tlen *  math.cos(math.radians(angle)) + ypos
-            txpos =  tlen *  math.sin(math.radians(angle)) + xpos
+            angle1 += math.pi * 0.5
+            typos = -tlen *  math.cos(math.radians(angle1)) + ypos1
+            txpos =  tlen *  math.sin(math.radians(angle1)) + xpos1
             
-            tmark = Line2d(self.camera, self.matsh, ((xpos,ypos), (txpos, typos)), self.line_thickness)
-            tmark.set_alpha(self.alpha)
-            tmark.draw()
-            
-        lines = Line2d(self.camera, self.matsh, points, self.line_thickness)
-        lines.set_alpha(self.alpha)
-        lines.draw()        
-            
+            self.indicator.add_line((xpos1,ypos1,z), (txpos, typos,z), self.line_thickness, self.line_colour)
+                    
+        self.indicator.set_draw_details(normsh, [], 0, 0)
+        self.indicator.init()
+        self.indicator.set_alpha(self.alpha)
+
+    def draw(self):
+        self.indicator.draw()
