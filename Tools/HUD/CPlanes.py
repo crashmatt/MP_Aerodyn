@@ -63,27 +63,36 @@ class CPlanes(Shape):
             self.shader = shader
                         
 
-            
+  def add_line(self, pt1, pt2, thickness=1.0, colour=(1.0,1.0,1.0,1.0)):
+    tt = float(thickness) * 0.5
+    
  
     
-  def add_filled_box(self, w, h, x=0.0, y=0.0, z=0.0, fill_colour=(0.0, 0.0, 0.0, 1.0), line_colour=(1.0,1.0,1.0,1.0), line_thickness=1):
+  def add_filled_box(self, w, h, x=0.0, y=0.0, z=0.0, fill_colour=(0.0, 0.0, 0.0, 1.0), line_colour=(1.0,1.0,1.0,1.0), line_thickness=1, justify="C"):
     ww = w/2.0
     hh = h/2.0
+    
+    if justify=='L':
+        xoffset = x - ww
+    elif justify=='R':
+        xoffset = x + ww
+    else:
+        xoffset = x
               
     #order of points is critial to show face. bottom left point must go first
-    self.add_box((x-ww,y-hh, z), (x+ww,hh, z), fill_colour)
+    self.add_box((xoffset-ww,y-hh, z), (xoffset+ww,y+hh, z), fill_colour)
 
     #top
-    self.add_box((x-ww, y+hh, z), (x+ww, y+hh+line_thickness, z), line_colour)
+    self.add_box((xoffset-ww, y+hh, z), (xoffset+ww, y+hh+line_thickness, z), line_colour)
 
     #bottom
-    self.add_box((x-ww, y-hh-line_thickness, z), (x+ww, y-hh, z), line_colour)
+    self.add_box((xoffset-ww, y-hh-line_thickness, z), (xoffset+ww, y-hh, z), line_colour)
 
     #left
-    self.add_box((x-ww-line_thickness, y-hh, z), (x+ww, y+hh, z), line_colour)
+    self.add_box((xoffset-ww-line_thickness, y-hh, z), (xoffset+ww, y+hh, z), line_colour)
 
     #right
-    self.add_box((x+ww, y-hh, z), (x+ww+line_thickness, y+hh, z), line_colour)    
+    self.add_box((xoffset+ww, y-hh, z), (xoffset+ww+line_thickness, y+hh, z), line_colour)    
       
       
     
