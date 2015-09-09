@@ -304,23 +304,21 @@ void main(void) {
 
 
 class HUDLadderCenter(object):
-    def __init__(self, camera, matsh, colour=(255,255,255,255)):
+    def __init__(self, camera, matsh, colour=(1.0,1.0,1.0,1.0)):
         self.camera = camera
-        self.matsh = matsh
-        self.colour = colour
+        normsh = pi3d.Shader("norm_colour")
+        
+        z=1.0
+
+        self.center = CPlanes.CPlanes(camera=camera, x=0, y=0, z=0) 
+        self.center.add_line((0.0, 0.0, z), (0, 20.0 ,z), 4, colour)
+        self.center.add_line((-60.0, 0.0, z), (60.0, 0.0 ,z), 4, colour)
+        self.center.set_alpha(1.0)
+        self.center.init()
+        self.center.set_draw_details(normsh, [], 0, 0)
         
     def draw(self):
-        bar_shape = pi3d.Plane(camera=self.camera,  w=3, h=20)
-        bar_shape.set_draw_details(self.matsh, [], 0, 0)
-        bar_shape.set_material(self.colour)
-        bar_shape.position( 0,  10, 5)
-        bar_shape.draw()
-
-        bar_shape = pi3d.Plane(camera=self.camera,  w=120, h=3)
-        bar_shape.set_draw_details(self.matsh, [], 0, 0)
-        bar_shape.set_material(self.colour)
-        bar_shape.position( 0,  0, 5)
-        bar_shape.draw()
+        self.center.draw()
 
 
 class HUDLadderRollIndicator(object):
