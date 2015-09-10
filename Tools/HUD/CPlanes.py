@@ -92,16 +92,20 @@ class CPlanes(Shape):
     self.add_box((xoffset-ww,y-hh, z), (xoffset+ww,y+hh, z), fill_colour)
 
     #top
-    self.add_box((xoffset-ww, y+hh, z), (xoffset+ww, y+hh+line_thickness, z), line_colour)
+#    self.add_box((xoffset-ww, y+hh, z), (xoffset+ww, y+hh+line_thickness, z), line_colour)
+    self.add_box((xoffset-ww-line_thickness, y+hh, z), (xoffset+ww+line_thickness, y+hh+line_thickness, z), line_colour)
 
     #bottom
-    self.add_box((xoffset-ww, y-hh-line_thickness, z), (xoffset+ww, y-hh, z), line_colour)
+#    self.add_box((xoffset-ww, y-hh-line_thickness, z), (xoffset+ww, y-hh, z), line_colour)
+    self.add_box((xoffset-ww-line_thickness, y-hh-line_thickness, z), (xoffset+ww+line_thickness, y-hh, z), line_colour)
 
     #left
     self.add_box((xoffset-ww-line_thickness, y-hh, z), (xoffset+ww, y+hh, z), line_colour)
+#    self.add_box((xoffset-ww-line_thickness, y-hh-line_thickness, z), (xoffset+ww, y+hh+line_thickness, z), line_colour)
 
     #right
     self.add_box((xoffset+ww, y-hh, z), (xoffset+ww+line_thickness, y+hh, z), line_colour)    
+#    self.add_box((xoffset+ww, y-hh-line_thickness, z), (xoffset+ww+line_thickness, y+hh+line_thickness, z), line_colour)    
       
       
     
