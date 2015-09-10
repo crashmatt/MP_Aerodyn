@@ -60,7 +60,7 @@ class HUDladder(object):
         
 #       self.flatsh = shader    #pi3d.Shader("uv_flat")
         self.matsh = pi3d.Shader("mat_flat")
-        self.normsh = pi3d.Shader("norm_colour")
+        self.normsh = pi3d.Shader("norm_colour_fade")
 
         self.screen_width = Display.INSTANCE.width
         self.screen_height = Display.INSTANCE.height
@@ -199,47 +199,6 @@ void main(void) {
             return (0, 0)
         else:
             return (2, 0.25)
-
-
-    def generate_bar(self, font, shaders=[None]):
-        """ draw the bar onto the off screen texture.  Only done once.
-        *shaders* is array of [flatsh, matsh]    """
-
-        self.genshaders = shaders
-        flatsh = self.genshaders[0]
-        matsh = self.genshaders[1]
-
-        self.font = font
-        
-        barcolour = self.get_bar_colour()
-        bar_gap = self.get_bar_gap()
-        fontsize = self.get_font_size()
-        font_bar_gap = self.get_font_bar_gap()
-
-        from pi3d.Display import Display
-        bar_width = self.get_bar_width() * Display.INSTANCE.width
-        
-        self.bar._start()
-
-        bar_width = self.get_bar_width() * Display.INSTANCE.width
-        half_bar_width = bar_width * 0.5
-        gap_width = Display.INSTANCE.width * bar_gap
-        bar_length = half_bar_width - gap_width
-        
-        bar_pattern = self.get_bar_pattern()
-        dashes = bar_pattern[0]+1
-        dash_separation = (bar_length / dashes)
-        dash_length = dash_separation - (bar_length * bar_pattern[1] * 0.5)
-        for i in xrange(0, dashes):
-            dashoffset = (i * dash_separation) + (dash_length * 0.5)
-            bar_shape = pi3d.Plane(camera=self.camera,  w=dash_length, h=self.get_bar_thickness())
-
-    def draw_bar(self, camera=None, alpha=1):
-        if camera == None:
-            camera = self.camera
-
-        self.sprite.set_alpha(alpha)
-        self.sprite.draw(self.bar_shader, [self.bar], camera = camera)
 
 
 
