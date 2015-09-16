@@ -30,6 +30,8 @@ from pi3d.util.Font import Font
 from encodings.rot_13 import rot13
 from google.protobuf import text_format
 from gettattra import *
+from numpy.f2py.auxfuncs import throw_error
+from __builtin__ import str
 
 class FastText(object):
     def __init__(self, font, camera, max_chars = 100):
@@ -44,11 +46,8 @@ class FastText(object):
 
         self.shader = Shader("shaders/uv_spritemult")
         
-        self.locations = np.zeros((max_chars, 3)) 
-#        self.locations[:,0] = np.random.uniform(-300, 300, max_chars)
-#        self.locations[:,1] = np.random.uniform(-200, 200, max_chars)
-               
-        self.locations[:,2] = 0.5
+        self.locations = np.zeros((max_chars, 3))
+        # :,2 for size range 0.0 to 0.999           
 
         self.normals = np.zeros((max_chars, 3))
         # :,0 for rotation
@@ -59,46 +58,56 @@ class FastText(object):
         there is margin on each side to avoidproblems with overlapping on rotations.
         """
         self.uv = np.zeros((max_chars, 2)) # u picnum.u v
-#        self.uv[:,:] = 0.0 # all start off same. uv is top left corner of square
-        
-#        self.uv[:,0] = np.random.uniform(0, 15, max_chars) * 0.0625 # + 0.0625
-#        self.uv[:,1] = np.random.uniform(0, 15, max_chars) * 0.0625 # + 0.0625
 
         self.text = None
         
         self.text_blocks = []
         
         self.text = Points(camera=camera, vertices=self.locations, normals=self.normals, tex_coords=self.uv,
-                       point_size=64)   #font.height
+                       point_size=self.font.height)
         self.text.set_draw_details(self.shader, [self.font])
             
 
     def regen(self):
         ##### regenerate text from text blocks
         char_index = 0
+        
+        #Reset all chars to zero alpha
+        self.normals[:,1] = 0.0
+
         for block in self.text_blocks:
             if (char_index + block.char_count) < self.max_chars:
-                xpos = block.x
-                ypos = block.y
-                str = block.get_string()
-#                str = str.decode('utf-8')
+                SystemError("FastText exceeded maximum characters")
+            
+            xpos = block.x
+            ypos = block.y
+            str = block.get_string()
                 
-                index = 0
-                for char in str:
-                    ind = index + char_index
-                                        
-                    glyph = self.font.glyph_table[char]
-                    self.uv[ind][0] = glyph[0]
-                    self.uv[ind][1] = glyph[1]
-                    
-                    self.locations[ind][0] = xpos
-                    self.locations[ind][1] = block.y
-                    self.locations[ind][2] = block.size
-                    
-                    self.normals[ind][1] = 1.0
-
-                    xpos += glyph[2] * block.size
-                    index += 1
+#            if str == block.last_string:
+#                break           
+#            block.last_string = str
+                        
+            index = 0
+            for char in str:
+                ind = index + char_index
+                                    
+                glyph = self.font.glyph_table[char]
+                self.uv[ind] = glyph[0:2]
+                
+                self.locations[ind][0] = xpos
+                self.locations[ind][1] = block.y
+                self.locations[ind][2] = block.size
+                
+                # Set alpha
+                self.normals[ind][1] = block.alpha
+                
+                if block.spacing == "C":
+                    xpos += self.font.height * block.size * block.space
+                if block.spacing == "M":
+                    xpos += glyph[2] * block.size * block.space
+                if block.spacing == "F":
+                    xpos += (glyph[2] * block.size) + (self.font.height * block.space)
+                index += 1
                     
             char_index = char_index + block.char_count
                     
@@ -124,7 +133,7 @@ class FastText(object):
         self.text.draw()
  
 class TextBlock(object):
-    def __init__(self, x, y, z, rot, char_count, data_obj, attr, text_format="{:s}", size=0.25, spacing="C", space=1.1):
+    def __init__(self, x, y, z, rot, char_count, data_obj, attr, text_format="{:s}", size=0.25, spacing="C", space=1.1, alpha=1.0):
         """ Arguments:
         *x, y, z*:
           As usual
@@ -139,7 +148,9 @@ class TextBlock(object):
         *size*:
             Size of the text 0 to 0.9999
         *spacing*:
-             Type of character spacing. C=Constant, M=Multiplier, F=Fixed space
+             Type of character spacing. C=Constant, M=Multiplier, F=Fixed space between chars
+        *space*:
+            Value to set the spacing to
         """
         self.x = x 
         self.y = y 
@@ -150,6 +161,10 @@ class TextBlock(object):
         self.attr = attr
         self.text_format = text_format
         self.size = size
+        self.spacing = spacing
+        self.space = space
+        self.last_string = ""
+        self.alpha = alpha
                  
     def get_string(self):
         if(self.attr != None) and (self.data_obj != None):
