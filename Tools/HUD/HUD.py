@@ -20,6 +20,8 @@ from LayerItems import LayerShape
 from LayerItems import LayerDynamicShape
 from LayerItems import LayerStringList
 from ScreenGrid import ScreenScale
+from PointFont  import PointFont
+import FastText
 
 from Indicator import LinearIndicator
 from Indicator import DirectionIndicator
@@ -182,9 +184,9 @@ class HUD(object):
 #        self.normsh = pi3d.Shader("norm_colour")
 
         #Create layers
-        self.dataLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
+#        self.dataLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
         self.statusLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
-        self.slowLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.7, flip=True)
+ #       self.slowLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.7, flip=True)
         self.staticLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
 
         #Create textures
@@ -198,6 +200,13 @@ class HUD(object):
         self.textFont = self.hudFont
         
         self.warningFont = pi3d.Font(font_path, (255,0,0,255))
+        
+        self.pointFont = PointFont(font_path, (0,0,255,255))
+        
+#        self.font_sprite = pi3d.Sprite(camera=self.text_camera, x=512, y=-512, z=1.0, w=self.hudFont.ix, h=self.hudFont.iy)
+#        self.font_sprite.set_draw_details(self.flatsh, [self.pointFont])
+        
+        self.hud_text = FastText.FastText(self.pointFont, self.text_camera)
 
         print("end creating fonts")
         
@@ -246,8 +255,8 @@ class HUD(object):
         hudFont = textFont        
         layer_text_spacing = self.layer_text_spacing
         
-        self.dynamic_items = LayerItems()
-        self.slow_items = LayerItems()
+#        self.dynamic_items = LayerItems()
+#        self.slow_items = LayerItems()
         self.static_items = LayerItems()
         self.status_items = LayerItems()
         
@@ -255,15 +264,22 @@ class HUD(object):
         print("start creating layer items")
         
         # Altitude above ground
-        x,y = self.grid.get_grid_pixel(-18, 3)
-        self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:+04.0f}", dataobj=self,  attr="agl", digits=4, phase=0,
-                                                  x=x, y=y, size=self.font_size*1.5, spacing=layer_text_spacing*1.6, justify='R') )
+        x,y = self.grid.get_grid_pixel(-17, 3)
+#        self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+#                                                 text="{:+04.0f}", dataobj=self,  attr="agl", digits=4, phase=0,
+#                                                  x=x, y=y, size=self.font_size*1.5, spacing=layer_text_spacing*1.6, justify='R') )
+
+        self.test_text = FastText.TextBlock(x, y, 1.0, 0.0, 4, self, "agl", "{:+04.0f}", self.font_size*1.5*4.0, "C", 0.5)
+        self.hud_text.add_text_block(self.test_text)
+
         #AGL text box
         x,y = self.grid.get_grid_pixel(-17.5, 3)   
         self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh, 
                                                      line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour, 
                                                      w=layer_text_spacing*6*1.2, h=self.text_box_height*1.5, x=x-5, y=y, z=6, line_thickness=1, justify='R')) )
+
+
+        
         #AGL label
 #        x,y = self.grid.get_grid_pixel(-15.5, 3)
 #        self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
@@ -271,10 +287,14 @@ class HUD(object):
 
         
         # True airspeed number
-        x,y = self.grid.get_grid_pixel(11, 3)
-        self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:03.0f}", dataobj=self,  attr="tas", digits=3, phase=0,
-                                                  x=x, y=y, size=self.font_size*1.5, spacing=layer_text_spacing*1.6, justify='R') )
+        x,y = self.grid.get_grid_pixel(12, 3)
+#        self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+#                                                 text="{:03.0f}", dataobj=self,  attr="tas", digits=3, phase=0,
+#                                                  x=x, y=y, size=self.font_size*1.5, spacing=layer_text_spacing*1.6, justify='R') )
+
+        self.test_text = FastText.TextBlock(x, y, 1.0, 0.0, 3, self, "tas", "{:03.0f}", self.font_size*1.5*4.0, "C", 0.5)
+        self.hud_text.add_text_block(self.test_text)
+      
         #True airspeed label
 #        x,y = self.grid.get_grid_pixel(-13, 3)
 #        self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
@@ -287,10 +307,14 @@ class HUD(object):
 
 
         #Groundspeed
-        x,y = self.grid.get_grid_pixel(11, -3)
-        self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:03.0f}", dataobj=self,  attr="groundspeed", digits=3, phase=0,
-                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+        x,y = self.grid.get_grid_pixel(12, -3)
+#        self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+#                                                 text="{:03.0f}", dataobj=self,  attr="groundspeed", digits=3, phase=0,
+#                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+
+        self.test_text = FastText.TextBlock(x, y, 1.0, 0.0, 3, self, "groundspeed", "{:03.0f}", self.font_size*4, "C", 0.5)
+        self.hud_text.add_text_block(self.test_text)
+        
         # Groundspeed text box
         x,y = self.grid.get_grid_pixel(11, -3)
         self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh, 
@@ -304,9 +328,13 @@ class HUD(object):
 
         #fps
         x,y = self.grid.get_grid_pixel(-15, -6)
-        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:2.0f}", dataobj=self,  attr="av_fps", digits=2, phase=0,
-                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+#        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+#                                                 text="{:2.0f}", dataobj=self,  attr="av_fps", digits=2, phase=0,
+#                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+
+        self.test_text = FastText.TextBlock(x, y, 1.0, 0.0, 2, self, "av_fps", "{:2.0f}", self.font_size*4*0.75, "C", 0.5)
+        self.hud_text.add_text_block(self.test_text)
+        
         #FPS label
         x,y = self.grid.get_grid_pixel(-17, -6)
         self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
@@ -314,9 +342,13 @@ class HUD(object):
 
         #link quality
         x,y = self.grid.get_grid_pixel(-16, -4.5)
-        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:3d}", dataobj=self,  attr="link_quality", digits=3, phase=0,
-                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+#        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+#                                                 text="{:3d}", dataobj=self,  attr="link_quality", digits=3, phase=0,
+#                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+        
+        self.test_text = FastText.TextBlock(x, y, 1.0, 0.0, 3, self, "link_quality", "{:3d}", self.font_size*4*0.75, "C", 0.5)
+        self.hud_text.add_text_block(self.test_text)
+        
         #Link label
         x,y = self.grid.get_grid_pixel(-17.5, -4.5)
         self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
@@ -324,9 +356,13 @@ class HUD(object):
 
         #hdop
         x,y = self.grid.get_grid_pixel(-15, -5)
-        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:2d}", dataobj=self,  attr="hdop", digits=2, phase=0,
-                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+#        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+#                                                 text="{:2d}", dataobj=self,  attr="hdop", digits=2, phase=0,
+#                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+        
+        self.test_text = FastText.TextBlock(x, y, 1.0, 0.0, 2, self, "hdop", "{:2d}", self.font_size*4*0.75, "C", 0.5)
+        self.hud_text.add_text_block(self.test_text)
+                
         #HDOP label
         x,y = self.grid.get_grid_pixel(-17, -5)
         self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
@@ -334,9 +370,13 @@ class HUD(object):
 
         #satellites
         x,y = self.grid.get_grid_pixel(-15, -5.5)
-        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:2d}", dataobj=self,  attr="satellites", digits=2, phase=0,
-                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+#        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+#                                                 text="{:2d}", dataobj=self,  attr="satellites", digits=2, phase=0,
+#                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+
+        self.test_text = FastText.TextBlock(x, y, 1.0, 0.0, 2, self, "satellites", "{:2d}", self.font_size*4*0.75, "C", 0.5)
+        self.hud_text.add_text_block(self.test_text)
+
         #satellites label
         x,y = self.grid.get_grid_pixel(-17, -5.5)
         self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
@@ -344,10 +384,14 @@ class HUD(object):
 
 
         #flap
-        x,y = self.grid.get_grid_pixel(13.5, -5.5)
-        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:+02d}", dataobj=self,  attr="input_command_pct[6]", digits=3, phase=0,
-                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+        x,y = self.grid.get_grid_pixel(15, -5.5)
+#        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+#                                                 text="{:+02d}", dataobj=self,  attr="input_command_pct[6]", digits=3, phase=0,
+#                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+
+        self.test_text = FastText.TextBlock(x, y, 1.0, 0.0, 2, self, "input_command_pct[6]", "{:+02d}", self.font_size*4*0.75, "C", 0.5)
+        self.hud_text.add_text_block(self.test_text)
+        
         self.input_command_inv[6] = True
         #Flap label
         x,y = self.grid.get_grid_pixel(18, -5.5)
@@ -356,10 +400,14 @@ class HUD(object):
 
 
         #brake
-        x,y = self.grid.get_grid_pixel(13.5, -6)
-        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:+02d}", dataobj=self,  attr="input_command_pct[7]", digits=3, phase=0,
-                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+        x,y = self.grid.get_grid_pixel(15, -6)
+#        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+#                                                 text="{:+02d}", dataobj=self,  attr="input_command_pct[7]", digits=3, phase=0,
+#                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R') )
+
+        self.test_text = FastText.TextBlock(x, y, 1.0, 0.0, 2, self, "input_command_pct[7]", "{:+02d}", self.font_size*4*0.75, "C", 0.5)
+        self.hud_text.add_text_block(self.test_text)
+        
         #Brake label
         x,y = self.grid.get_grid_pixel(18, -6)
         self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
@@ -367,9 +415,14 @@ class HUD(object):
 
         # Vertical speed
         x,y = self.grid.get_grid_pixel(-16, -3)
-        self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:+03.0f}", dataobj=self,  attr="vertical_speed", digits=4, phase=0,
-                                                  x=x, y=y, size=self.font_size*1.5, spacing=layer_text_spacing*1.6, justify='C') )        
+#        self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+#                                                 text="{:+03.0f}", dataobj=self,  attr="vertical_speed", digits=4, phase=0,
+#                                                  x=x, y=y, size=self.font_size*1.5, spacing=layer_text_spacing*1.6, justify='C') )        
+
+        self.test_text = FastText.TextBlock(x, y, 1.0, 0.0, 4, self, "vertical_speed", "{:+03.0f}", self.font_size*1.5*4.0, "C", 0.5)
+        self.hud_text.add_text_block(self.test_text)
+
+
         # Climb rate text box
         x,y = self.grid.get_grid_pixel(-14, -3)
         self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh, 
@@ -377,9 +430,9 @@ class HUD(object):
                                                      w=120, h=self.text_box_height*1.5, x=x, y=y, z=6, line_thickness=1, justify='C')) )
 
         
-        self.dynamic_items.add_item( LayerDynamicShape(self.VSI, phase=0) )
+#        self.dynamic_items.add_item( LayerDynamicShape(self.VSI, phase=0) )
         
-        self.dynamic_items.add_item( LayerDynamicShape(self.slip_indicator, phase=0) )
+#        self.dynamic_items.add_item( LayerDynamicShape(self.slip_indicator, phase=0) )
         
                 #Explicit working directory path done so that profiling works correctly. Don't know why. It just is.
         pointer_path = os.path.abspath(os.path.join(self.working_directory, 'default_pointer.png'))
@@ -387,13 +440,18 @@ class HUD(object):
         
         # Heading number
         x,y = self.grid.get_grid_pixel(5, 5)
-        self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:3.0f}", dataobj=self,  attr="heading", digits=3, phase=0,
-                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='C') )
+#        self.dynamic_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+#                                                 text="{:3.0f}", dataobj=self,  attr="heading", digits=3, phase=0,
+#                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='C') )
+
+        self.test_text = FastText.TextBlock(x, y, 1.0, 0.0, 3, self, "heading", "{:03.0f}", self.font_size*4, "C", 0.5)
+        self.hud_text.add_text_block(self.test_text)
+
         #heading pointer
-        x,y = self.grid.get_grid_pixel(9, 5)
-        self.dynamic_items.add_item( DirectionIndicator(text_camera, self.flatsh, self.matsh, dataobj=self, attr="heading", 
-                                                        x=x, y=y, z=3, pointer_img=pointer_path, phase=2) )
+#        x,y = self.grid.get_grid_pixel(9, 5)
+#        self.dynamic_items.add_item( DirectionIndicator(text_camera, self.flatsh, self.matsh, dataobj=self, attr="heading", 
+#                                                        x=x, y=y, z=3, pointer_img=pointer_path, phase=2) )
+
         #Heading text box
         x,y = self.grid.get_grid_pixel(5, 5)
         self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh,
@@ -402,16 +460,20 @@ class HUD(object):
                                                      line_thickness=1, justify='C')) )
         
         #Home pointer
-        x,y = self.grid.get_grid_pixel(-8, 5)
-        self.dynamic_items.add_item( DirectionIndicator(text_camera, self.flatsh, self.matsh, dataobj=self, attr="home_direction", 
-                                                        x=x, y=y, z=3, pointer_img=pointer_path, phase=2) )
+#        x,y = self.grid.get_grid_pixel(-8, 5)
+#        self.dynamic_items.add_item( DirectionIndicator(text_camera, self.flatsh, self.matsh, dataobj=self, attr="home_direction", 
+#                                                        x=x, y=y, z=3, pointer_img=pointer_path, phase=2) )
 
         # Home distance number
         x,y = self.grid.get_grid_pixel(-6, 5)
-        self.home_distance_number = LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:03.0f}", dataobj=self,  attr="home_dist_scaled", digits=4, phase=0,
-                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R')
-        self.dynamic_items.add_item( self.home_distance_number )
+#        self.home_distance_number = LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+#                                                 text="{:03.0f}", dataobj=self,  attr="home_dist_scaled", digits=4, phase=0,
+#                                                  x=x, y=y, size=self.font_size, spacing=layer_text_spacing, justify='R')
+#        self.dynamic_items.add_item( self.home_distance_number )
+        
+        self.home_distance_number = FastText.TextBlock(x, y, 1.0, 0.0, 4, self, "home_dist_scaled", "{:03.0f}", self.font_size*4, "C", 0.5)
+        self.hud_text.add_text_block(self.home_distance_number)
+        
         # Home distance units
         x,y = self.grid.get_grid_pixel(-1, 5)
         self.status_items.add_item( LayerVarText(hudFont, text="{:s}", dataobj=self, attr="home_dist_units", camera=text_camera, shader=flatsh, x=x, y=y, z=0.5, size=0.125, phase=None) )
@@ -425,15 +487,19 @@ class HUD(object):
 
         
         #Wind pointer
-        x,y = self.grid.get_grid_pixel(12, 4.5)
-        self.slow_items.add_item( DirectionIndicator(text_camera, self.flatsh, self.matsh, dataobj=self, attr="wind_direction", 
-                                                        x=x, y=y, z=3, pointer_img=pointer_path, phase=2) )
+#        x,y = self.grid.get_grid_pixel(12, 4.5)
+#        self.slow_items.add_item( DirectionIndicator(text_camera, self.flatsh, self.matsh, dataobj=self, attr="wind_direction", 
+#                                                        x=x, y=y, z=3, pointer_img=pointer_path, phase=2) )
         # Windspeed number
         x,y = self.grid.get_grid_pixel(14, 4.5)
         
-        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
-                                                 text="{:2.0f}", dataobj=self,  attr="windspeed", digits=2, phase=0,
-                                                  x=x, y=y, size=self.font_size*1.5, spacing=layer_text_spacing*1.5, justify='R') )
+#        self.slow_items.add_item( LayerNumeric(camera=text_camera, font=textFont, shader=flatsh, alpha=self.text_alpha,
+#                                                 text="{:2.0f}", dataobj=self,  attr="windspeed", digits=2, phase=0,
+#                                                  x=x, y=y, size=self.font_size*1.5, spacing=layer_text_spacing*1.5, justify='R') )
+
+        self.test_text = FastText.TextBlock(x, y, 1.0, 0.0, 2, self, "windspeed", "{:2.0f}", self.font_size*1.5*4.0, "C", 0.5)
+        self.hud_text.add_text_block(self.test_text)
+        
         # Windspeed text box
         x,y = self.grid.get_grid_pixel(14, 4.5)
         self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh,
@@ -483,7 +549,7 @@ class HUD(object):
         self.timestamp = time.clock()
 
 #        self.frameCount = 0
-        self.slow_frame_count = 0
+#        self.slow_frame_count = 0
 
     def run_hud(self):
 
@@ -493,7 +559,7 @@ class HUD(object):
              
             self.run_filters()
  
-            self.dynamic_items.gen_items(self.hud_update_frame)
+#            self.dynamic_items.gen_items(self.hud_update_frame)
              
             if self.show_track:
                 relPos = CoordSys.Cartesian(polar=self.home_polar.reverse())
@@ -503,11 +569,11 @@ class HUD(object):
             if self.show_map:
                 self.track_map.add_segment()
              
-            if(self.hud_update_frame == 2):
-                self.dataLayer.start_layer()               # Draw on the text layer
-                self.dynamic_items.draw_items()
-                self.dataLayer.end_layer()                 # stop drawing on the text layer    
-            elif(self.hud_update_frame == 3):
+#            if(self.hud_update_frame == 2):
+#                self.dataLayer.start_layer()               # Draw on the text layer
+#                self.dynamic_items.draw_items()
+#                self.dataLayer.end_layer()                 # stop drawing on the text layer    
+            if(self.hud_update_frame == 3):
                 if(self.status_items.gen_items(phase=None)):
                     self.statusLayer.start_layer()
                     self.status_items.draw_items()
@@ -531,16 +597,16 @@ class HUD(object):
                     self.staticLayer.end_layer()
  
  
-            if(self.slow_frame_count > 20):
+#            if(self.slow_frame_count > 20):
 #                if self.slow_items.gen_items(phase=None):
-                self.slow_items.gen_items(phase=None)
-                if True:
-                    self.slowLayer.start_layer()
-                    self.slow_items.draw_items()
-                    self.slowLayer.end_layer()
-                self.slow_frame_count = 0
-            else:
-                self.slow_frame_count += 1
+#                self.slow_items.gen_items(phase=None)
+#                if True:
+#                    self.slowLayer.start_layer()
+#                    self.slow_items.draw_items()
+#                    self.slowLayer.end_layer()
+#                self.slow_frame_count = 0
+#            else:
+#                self.slow_frame_count += 1
 
             self.ladder.draw_ladder(self.roll_filter.estimate(), self.pitch_filter.estimate(), 0)
       
@@ -552,11 +618,15 @@ class HUD(object):
                 self.track_map.draw()
                 
             self.background.draw()
+            
+            self.hud_text.regen()
+#            self.font_sprite.draw()
+            self.hud_text.draw()
 
-            self.dataLayer.draw_layer()
+#            self.dataLayer.draw_layer()
             self.statusLayer.draw_layer()
             self.staticLayer.draw_layer()
-            self.slowLayer.draw_layer()
+#            self.slowLayer.draw_layer()
 
   
             if time.time() > self.next_time:
@@ -708,13 +778,13 @@ class HUD(object):
             self.home_dist_scaled = home_dist * 0.001
             self.home_dist_units = "km"
             if(self.home_dist_scaled > 9.9):
-                self.home_distance_number.textformat = "{:02.1f}"
+                self.home_distance_number.text_format = "{:02.1f}"
             else:
-                self.home_distance_number.textformat = "{:01.2f}"
+                self.home_distance_number.text_format = "{:01.2f}"
         else:
             self.home_dist_scaled = int(home_dist)
             self.home_dist_units = "m"
-            self.home_distance_number.textformat = "{:03.0f}"
+            self.home_distance_number.text_format = "{:03.0f}"
         
     def run_sim(self):
         frametime = 1 / self.av_fps
