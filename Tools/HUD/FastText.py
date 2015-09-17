@@ -82,9 +82,14 @@ class FastText(object):
             xpos = block.x
             ypos = block.y
             value = block.get_value()
-            
+                        
             if value != block.last_value:
                 block.last_value = value
+
+                # Set alpha for whole text block to zero. Hides old strings that are longer than new ones
+#                for index in range(char_index,char_index+block.char_count+1):
+#                    self.normals[index,1] = 0.0
+                self.normals[char_index:char_index+block.char_count,1] = 0.0
                 
                 str = block.get_string(value)
                     
