@@ -73,7 +73,7 @@ class FastText(object):
         char_index = 0
         
         #Reset all chars to zero alpha
-        self.normals[:,1] = 0.0
+#        self.normals[:,1] = 0.0
 
         for block in self.text_blocks:
             if (char_index + block.char_count) < self.max_chars:
@@ -81,33 +81,38 @@ class FastText(object):
             
             xpos = block.x
             ypos = block.y
-            str = block.get_string()
+            value = block.get_value()
+            
+            if value != block.last_value:
+                block.last_value = value
                 
-#            if str == block.last_string:
-#                break           
-#            block.last_string = str
-                        
-            index = 0
-            for char in str:
-                ind = index + char_index
-                                    
-                glyph = self.font.glyph_table[char]
-                self.uv[ind] = glyph[0:2]
-                
-                self.locations[ind][0] = xpos
-                self.locations[ind][1] = block.y
-                self.locations[ind][2] = block.size
-                
-                # Set alpha
-                self.normals[ind][1] = block.alpha
-                
-                if block.spacing == "C":
-                    xpos += self.font.height * block.size * block.space
-                if block.spacing == "M":
-                    xpos += glyph[2] * block.size * block.space
-                if block.spacing == "F":
-                    xpos += (glyph[2] * block.size) + (self.font.height * block.space)
-                index += 1
+                str = block.get_string(value)
+                    
+    #            if str == block.last_string:
+    #                break           
+    #            block.last_string = str
+                            
+                index = 0
+                for char in str:
+                    ind = index + char_index
+                                        
+                    glyph = self.font.glyph_table[char]
+                    self.uv[ind] = glyph[0:2]
+                    
+                    self.locations[ind][0] = xpos
+                    self.locations[ind][1] = block.y
+                    self.locations[ind][2] = block.size
+                    
+                    # Set alpha
+                    self.normals[ind][1] = block.alpha
+                    
+                    if block.spacing == "C":
+                        xpos += self.font.height * block.size * block.space
+                    if block.spacing == "M":
+                        xpos += glyph[2] * block.size * block.space
+                    if block.spacing == "F":
+                        xpos += (glyph[2] * block.size) + (self.font.height * block.space)
+                    index += 1
                     
             char_index = char_index + block.char_count
                     
@@ -163,17 +168,20 @@ class TextBlock(object):
         self.size = size
         self.spacing = spacing
         self.space = space
-        self.last_string = ""
         self.alpha = alpha
-                 
-    def get_string(self):
-        if(self.attr != None) and (self.data_obj != None):
-            value = getattra(self.data_obj, self.attr, None)
-        else:
-            value = None
+
+        self.last_value = self  # hack so that static None object get initialization
         
+        
+    def get_value(self):
+        if(self.attr != None) and (self.data_obj != None):
+            return getattra(self.data_obj, self.attr, None)
+        return None
+        
+                 
+    def get_string(self, value):        
         if(value != None):
             return self.text_format.format(value)
 
-        return " "
+        return self.text_format
         
