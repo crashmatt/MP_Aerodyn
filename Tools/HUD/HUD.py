@@ -83,7 +83,7 @@ class HUD(object):
         self.font_colour = (0,255,0,255)
         self.textbox_line_colour = self.hud_colour
         self.textbox_fill_colour = (0.0,0.0,0.0,0.7)
-        self.warning_colour = (1.0, 1.0 , 1.0, 1.0)
+        self.warning_colour = (1.0, 0.0 , 0.0, 1.0)
         
         self.values_updated = True
         
@@ -185,11 +185,9 @@ class HUD(object):
 #        self.normsh = pi3d.Shader("norm_colour")
 
         #Create layers
-        self.statusLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
         self.staticLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
 
-#        self.box = CPlanes.CPlanes(camera=camera, x=0, y=0, z=0)
-#        self.box.add_filled_box(w, h, x, y, z, fill_colour, line_colour, line_thickness, justify)
+#        self.bitsnpieces = CPlanes.CPlanes(camera=self.hud_camera, x=0, y=0, z=0)
 
         #Create textures
 
@@ -201,13 +199,8 @@ class HUD(object):
         self.ladderFont = self.hudFont
         self.textFont = self.hudFont
         
-        self.warningFont = pi3d.Font(font_path, (255,0,0,255))
-        
+#        self.warningFont = pi3d.Font(font_path, (255,0,0,255))
         self.pointFont = PointFont(font_path, (0,0,255,255))
-        
-#        self.font_sprite = pi3d.Sprite(camera=self.text_camera, x=512, y=-512, z=1.0, w=self.hudFont.ix, h=self.hudFont.iy)
-#        self.font_sprite.set_draw_details(self.flatsh, [self.pointFont])
-        
         self.hud_text = FastText.FastText(self.pointFont, self.text_camera)
 
         print("end creating fonts")
@@ -257,11 +250,7 @@ class HUD(object):
         hudFont = textFont        
         layer_text_spacing = self.layer_text_spacing
         
-#        self.dynamic_items = LayerItems()
-#        self.slow_items = LayerItems()
         self.static_items = LayerItems()
-        self.status_items = LayerItems()
-        
         
         print("start creating layer items")
         
@@ -275,14 +264,9 @@ class HUD(object):
         self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh, 
                                                      line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour, 
                                                      w=layer_text_spacing*6*1.2, h=self.text_box_height*1.5, x=x-5, y=y, z=6, line_thickness=1, justify='R')) )
+#        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height*1.5, x-5.0, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, 2.0, "R")
 
-
-        
         #AGL label
-#        x,y = self.grid.get_grid_pixel(-15.5, 3)
-#        self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
-#                                              text="m", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
-
         
         # True airspeed number
         x,y = self.grid.get_grid_pixel(12, 3)
@@ -290,9 +274,7 @@ class HUD(object):
         self.hud_text.add_text_block(text_block)
       
         #True airspeed label
-#        x,y = self.grid.get_grid_pixel(-13, 3)
-#        self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
-#                                              text="tas", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
+
         # True airspeed text box
         x,y = self.grid.get_grid_pixel(11, 3)
         self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh, 
@@ -301,20 +283,20 @@ class HUD(object):
 
 
         #Groundspeed
-        x,y = self.grid.get_grid_pixel(12, -3)
+        x,y = self.grid.get_grid_pixel(12, -4)
         text_block = FastText.TextBlock(x, y, 1.0, 0.0, 3, self, "groundspeed", "{:03.0f}", self.font_size*4, "C", 0.5)
         self.hud_text.add_text_block(text_block)
         
         # Groundspeed text box
-        x,y = self.grid.get_grid_pixel(11, -3)
+        x,y = self.grid.get_grid_pixel(11, -4)
         self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh, 
                                                      line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour, 
                                                      w=130, h=self.text_box_height, x=x, y=y, z=6, line_thickness=1, justify='R')) )
         #groundspeed label
-        x,y = self.grid.get_grid_pixel(15.25, -3)
+        x,y = self.grid.get_grid_pixel(15.25, -4)
 #        self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
 #                                              text="gspd", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
-        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 4, None, None, "gspd", self.label_size*4.0, "F", 0.01)
+        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 4, None, None, "gspd", self.label_size*3.0, "F", 0.01)
         self.hud_text.add_text_block(text_block)
 
 
@@ -399,8 +381,11 @@ class HUD(object):
 
         
 #        self.dynamic_items.add_item( LayerDynamicShape(self.VSI, phase=0) )
+#        self.static_items.add_item( LayerShape(self.VSI.bezel) )
+
         
 #        self.dynamic_items.add_item( LayerDynamicShape(self.slip_indicator, phase=0) )
+#        self.static_items.add_item( LayerShape(self.slip_indicator.bezel) )
         
                 #Explicit working directory path done so that profiling works correctly. Don't know why. It just is.
         pointer_path = os.path.abspath(os.path.join(self.working_directory, 'default_pointer.png'))
@@ -463,29 +448,34 @@ class HUD(object):
                                                      line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour,
                                                      w=layer_text_spacing*3*1.5, h=self.text_box_height*1.5, x=x-5, y=y, z=6, 
                                                      line_thickness=1, justify='R')) )
-
-        
-        self.static_items.add_item( LayerShape(self.VSI.bezel) )
-        self.static_items.add_item( LayerShape(self.slip_indicator.bezel) )
         
         
         #Mode status using list of text strings
-        x,y = self.grid.get_grid_pixel(12, 6)
-        text_strings = ["MANUAL", "AUTO", "FBW", "STABILIZE", "RTL", "UNKNOWN", "NO LINK"]
+        x,y = self.grid.get_grid_pixel(10, 6)
+#        text_strings = ["MANUAL", "AUTO", "FBW", "STABILIZE", "RTL", "UNKNOWN", "NO LINK"]
 #        string=self.text, camera=self.camera, font=self.font, is_3d=False, x=self.x, y=self.y, z=self.z, size=self.size, justify='C'       
-        strList = LayerStringList(hudFont, text_strings=text_strings, text_format="{:s}", alpha=self.text_alpha,
-                                  camera=text_camera, dataobj=self, attr="mode", shader=flatsh,
-                                  x=x, y=y, z=1, size=self.font_size, justify='C')
-        self.status_items.add_item(strList)
+#        strList = LayerStringList(hudFont, text_strings=text_strings, text_format="{:s}", alpha=self.text_alpha,
+#                                  camera=text_camera, dataobj=self, attr="mode", shader=flatsh,
+#                                  x=x, y=y, z=1, size=self.font_size, justify='C')
+#        self.status_items.add_item(strList)
         
-        x,y = self.grid.get_grid_pixel(0, 6)
-        text_strings = ["BRAKES", "NO LINK", "HEARTBEAT", "FLAP UP", "FLAP DOWN", "LINK WARN", ""]
+        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 9, self, "mode", "{:s}", self.font_size*4.0, "F", 0.06, self.text_alpha)
+        self.hud_text.add_text_block(text_block)
+        
+        
+        x,y = self.grid.get_grid_pixel(-5, 6)
+#        text_strings = ["BRAKES", "NO LINK", "HEARTBEAT", "FLAP UP", "FLAP DOWN", "LINK WARN", ""]
 #        string=self.text, camera=self.camera, font=self.font, is_3d=False, x=self.x, y=self.y, z=self.z, size=self.size, justify='C'       
-        strList = LayerStringList(self.warningFont, text_strings=text_strings, text_format="{:s}", alpha=self.text_alpha,
-                                  camera=text_camera, dataobj=self, attr="warning", shader=flatsh,
-                                  x=x, y=y, z=1, size=self.font_size, justify='C')
-        self.status_items.add_item(strList)
+#        strList = LayerStringList(self.warningFont, text_strings=text_strings, text_format="{:s}", alpha=self.text_alpha,
+#                                  camera=text_camera, dataobj=self, attr="warning", shader=flatsh,
+#                                  x=x, y=y, z=1, size=self.font_size, justify='C')
+#        self.status_items.add_item(strList)
 
+        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 10, self, "warning", "{:s}", self.font_size*4.0, "F", 0.06, self.text_alpha)
+        self.hud_text.add_text_block(text_block)
+
+        
+#        self.bitsnpieces.init()
 
         print("finished creating layers")
 
@@ -515,8 +505,6 @@ class HUD(object):
             self.update()
              
             self.run_filters()
- 
-#            self.dynamic_items.gen_items(self.hud_update_frame)
              
             if self.show_track:
                 relPos = CoordSys.Cartesian(polar=self.home_polar.reverse())
@@ -526,15 +514,13 @@ class HUD(object):
             if self.show_map:
                 self.track_map.add_segment()
              
-#            if(self.hud_update_frame == 2):
-#                self.dataLayer.start_layer()               # Draw on the text layer
-#                self.dynamic_items.draw_items()
-#                self.dataLayer.end_layer()                 # stop drawing on the text layer    
-            if(self.hud_update_frame == 3):
-                if(self.status_items.gen_items(phase=None)):
-                    self.statusLayer.start_layer()
-                    self.status_items.draw_items()
-                    self.statusLayer.end_layer()
+            if(self.hud_update_frame == 3):                    
+                if self.static_items.gen_items():
+                    self.staticLayer.start_layer()
+                    self.static_items.draw_items()
+                    self.ladder.draw_center()
+                    self.ladder.draw_roll_indicator()
+                    self.staticLayer.end_layer()
                  
             elif(self.hud_update_frame == 4):
                 self.ladder.gen_ladder()
@@ -545,13 +531,8 @@ class HUD(object):
                     self.track_map.gen_map()
                 if self.show_map:
                     self.track_map.gen_map()
- 
-                if self.static_items.gen_items():
-                    self.staticLayer.start_layer()
-                    self.static_items.draw_items()
-                    self.ladder.draw_center()
-                    self.ladder.draw_roll_indicator()
-                    self.staticLayer.end_layer()
+                     
+                
  
  
 #            if(self.slow_frame_count > 20):
@@ -580,14 +561,13 @@ class HUD(object):
                 self.hud_text.regen()
                 self.values_updated = False
                 
+#            self.bitsnpieces.draw()
+            
 #            self.font_sprite.draw()
             self.hud_text.draw()
 
-#            self.dataLayer.draw_layer()
-            self.statusLayer.draw_layer()
+#            self.statusLayer.draw_layer()
             self.staticLayer.draw_layer()
-#            self.slowLayer.draw_layer()
-
   
             if time.time() > self.next_time:
                 self.next_time = time.time() + self.spf
@@ -601,7 +581,6 @@ class HUD(object):
             if(self.hud_update_frame > self.hud_update_frames):
                 self.hud_update_frame = 0
   
-
             #pi3d.screenshot("/media/E856-DA25/New/fr%03d.jpg" % fr)
   #          frameCount += 1
 
@@ -612,9 +591,7 @@ class HUD(object):
                 k = self.mykeys.read()
                 if k==27:
                     self.mykeys.close()
-                    self.dataLayer.delete_buffers()
                     self.staticLayer.delete_buffers()
-                    self.statusLayer.delete_buffers()
                     self.DISPLAY.destroy()
                     quit()
                     break
@@ -624,9 +601,7 @@ class HUD(object):
             #If slave process then check for quit flag being set
             else:
                 if self.quit:
-                    self.dataLayer.delete_buffers()
                     self.staticLayer.delete_buffers()
-                    self.statusLayer.delete_buffers()
                     self.DISPLAY.destroy()
             
     def run_filters(self):
