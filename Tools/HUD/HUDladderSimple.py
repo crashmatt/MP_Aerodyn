@@ -68,8 +68,8 @@ class HUDladder(object):
         self.bar_count = int(math.ceil(self.maxDegrees / self.degstep))
         self.pixelsPerBar = self.screenstep * self.screen_height
         
-        self.center = HUDLadderCenter(self.camera, self.matsh)
-        self.roll_indicator = HUDLadderRollIndicator(self.camera, self.matsh, line_thickness=3)
+#        self.center = HUDLadderCenter(self.camera, self.matsh)
+#        self.roll_indicator = HUDLadderRollIndicator(self.camera, self.matsh, line_thickness=3, standalone=True)
         
         self.ladder = CPlanes.CPlanes(camera=camera, x=0, y=0, z=0)
 
@@ -144,10 +144,12 @@ void main(void) {
         pass
                     
     def draw_center(self):
-        self.center.draw()
+        pass
+#        self.center.draw()
         
     def draw_roll_indicator(self):
-        self.roll_indicator.draw()
+        pass
+#        self.roll_indicator.draw()
 
 
     # The following functions return values controlling the look and feel of the bar    
@@ -203,27 +205,36 @@ void main(void) {
 
 
 class HUDLadderCenter(object):
-    def __init__(self, camera, matsh, colour=(1.0,1.0,1.0,1.0)):
-        self.camera = camera
-        normsh = pi3d.Shader("norm_colour")
+    def __init__(self, camera, matsh, colour=(1.0,1.0,1.0,1.0), standalone=False):
         
-        z=1.0
+        self.z=1.0
+        self.colour = colour
 
-        self.center = CPlanes.CPlanes(camera=camera, x=0, y=0, z=0) 
-        self.center.add_line((0.0, 0.0, z), (0, 20.0 ,z), 4, colour)
-        self.center.add_line((-60.0, 0.0, z), (60.0, 0.0 ,z), 4, colour)
-        self.center.set_alpha(1.0)
-        self.center.init()
-        self.center.set_draw_details(normsh, [], 0, 0)
+        if standalone:
+            self.camera = camera
+            self.normsh = pi3d.Shader("norm_colour")
+            self.center = CPlanes.CPlanes(camera=camera, x=0, y=0, z=0) 
+            self.center.set_alpha(1.0)
+            self.center.set_draw_details(self.normsh, [], 0, 0)
+            
+            self.generate(self.center)
+            self.center.init()
+        
+    
+    def generate(self, planes):
+        """
+        *plane*: A CPlanes object to add the shape to 
+        """
+        planes.add_line((0.0, 0.0, self.z), (0, 20.0 ,self.z), 4, self.colour)
+        planes.add_line((-60.0, 0.0, self.z), (60.0, 0.0 ,self.z), 4, self.colour)
         
     def draw(self):
-        self.center.draw()
+        if standalone:
+            self.center.draw()
 
 
 class HUDLadderRollIndicator(object):
-    def __init__(self, camera, matsh, radius=0.3, line_thickness=2, line_colour=(1.0,1.0,1.0), max_angle=60, tick_angle=15, tick_len=0.025, alpha=0.8):
-        self.camera = camera
-        normsh = pi3d.Shader("norm_colour")
+    def __init__(self, camera, matsh, radius=0.3, line_thickness=2, line_colour=(1.0,1.0,1.0), max_angle=60, tick_angle=15, tick_len=0.025, alpha=0.8, standalone=False):
         self.radius = radius
         self.max_angle = max_angle
         self.tick_angle = tick_angle
@@ -231,12 +242,22 @@ class HUDLadderRollIndicator(object):
         self.line_thickness = line_thickness
         self.line_colour = line_colour
         self.alpha = alpha
-        
-        z = 0.0
-        
-        self.indicator = CPlanes.CPlanes(camera=camera, x=0, y=0, z=0)
-        
-        grid = ScreenScale(100,100)
+        self.standalone = standalone
+
+        if self.standalone:      
+            self.normsh = pi3d.Shader("norm_colour")
+            self.indicator = CPlanes.CPlanes(camera=camera, x=0, y=0, z=0)
+            self.indicator.set_draw_details(self.normsh, [], 0, 0)
+            self.generate(self.indicator)
+            self.indicator.init()
+            self.indicator.set_alpha(self.alpha)
+
+
+    def generate(self, planes, grid_size=100):
+        """
+        *plane*: A CPlanes object to add the shape to 
+        """
+        grid = ScreenScale(grid_size, grid_size)
         points = []
         (x,rad) = grid.pos_to_pixel(self.radius, self.radius)
         (x,tlen) = grid.pos_to_pixel(self.tick_len, self.tick_len)
@@ -250,19 +271,19 @@ class HUDLadderRollIndicator(object):
             angle2 = (tick + 1) * self.tick_angle
             ypos2 = -rad * math.cos(math.radians(angle2))
             xpos2 = rad * math.sin(math.radians(angle2))
+            
+            z=0
 
             if(tick < ticks):
-                self.indicator.add_line((xpos1,ypos1,z), (xpos2, ypos2,z), self.line_thickness, self.line_colour)
+                planes.add_line((xpos1,ypos1,z), (xpos2, ypos2,z), self.line_thickness, self.line_colour)
             
             angle1 += math.pi * 0.5
             typos = -tlen *  math.cos(math.radians(angle1)) + ypos1
             txpos =  tlen *  math.sin(math.radians(angle1)) + xpos1
             
-            self.indicator.add_line((xpos1,ypos1,z), (txpos, typos,z), self.line_thickness, self.line_colour)
+            planes.add_line((xpos1,ypos1,z), (txpos, typos,z), self.line_thickness, self.line_colour)
                     
-        self.indicator.set_draw_details(normsh, [], 0, 0)
-        self.indicator.init()
-        self.indicator.set_alpha(self.alpha)
 
     def draw(self):
-        self.indicator.draw()
+        if self.standalone:
+            self.indicator.draw()

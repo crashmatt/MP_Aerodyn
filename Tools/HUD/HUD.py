@@ -9,7 +9,7 @@ import pi3d
 
 from pi3d.constants import *
 
-from HUDladderSimple  import HUDladder
+from HUDladderSimple  import HUDladder, HUDLadderRollIndicator, HUDLadderCenter
 #from HUDladder  import HUDladder
 from HUDTrack   import HUDTrack
 from LayerItems import LayerText
@@ -73,7 +73,7 @@ class HUD(object):
         self.label_size = 0.125
         self.layer_text_spacing = 16
         self.text_box_height = 30
-        self.text_box_line_width = 3.0
+        self.text_box_line_width = 2
         
         self.text_alpha = 1.0
         self.label_alpha = 1.0
@@ -186,11 +186,10 @@ class HUD(object):
 #        self.normsh = pi3d.Shader("norm_colour")
 
         #Create layers
-        self.staticLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
+#        self.staticLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
 
         self.bitsnpieces = CPlanes.CPlanes(camera=self.hud_camera, x=0, y=0, z=0)
         self.bitsnpieces.set_draw_details(self.matsh, [], 0, 0)
-            
 
         #Create textures
 
@@ -231,6 +230,14 @@ class HUD(object):
         self.ladder = HUDladder(font=self.hudFont, camera=self.hud_camera, shader=self.flatsh, alpha=self.pitch_ladder_alpha)
         print("end creating ladder")
 
+        print("Create static HUD shapes")
+        rollindicator = HUDLadderRollIndicator(camera=None, matsh=None, line_thickness=3, line_colour=(1.0,1.0,1.0,0.8), standalone=False)
+        rollindicator.generate(self.bitsnpieces)
+        
+        ladderCenter = HUDLadderCenter(camera=None, matsh=None, colour=(1.0, 0.0, 1.0, 1.0), standalone=False)
+        ladderCenter.generate(self.bitsnpieces)
+
+        print("Create track map")
         if self.show_track:
             self.track = HUDTrack(camera=self.text_camera, shader=self.flatsh, alpha=self.pitch_ladder_alpha)
         if self.show_tiled:
@@ -253,7 +260,7 @@ class HUD(object):
         hudFont = textFont        
         layer_text_spacing = self.layer_text_spacing
         
-        self.static_items = LayerItems()
+#        self.static_items = LayerItems()
         
         print("start creating layer items")
         
@@ -379,7 +386,7 @@ class HUD(object):
 #        self.dynamic_items.add_item( LayerDynamicShape(self.slip_indicator, phase=0) )
 #        self.static_items.add_item( LayerShape(self.slip_indicator.bezel) )
         
-                #Explicit working directory path done so that profiling works correctly. Don't know why. It just is.
+        #Explicit working directory path done so that profiling works correctly. Don't know why. It just is.
         pointer_path = os.path.abspath(os.path.join(self.working_directory, 'default_pointer.png'))
         
         
@@ -438,10 +445,10 @@ class HUD(object):
         
         # Windspeed text box
         x,y = self.grid.get_grid_pixel(14, 4.5)
-        self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh,
-                                                     line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour,
-                                                     w=layer_text_spacing*3*1.5, h=self.text_box_height*1.5, x=x-5, y=y, z=6, 
-                                                     line_thickness=1, justify='R')) )
+#        self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh,
+#                                                     line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour,
+#                                                     w=layer_text_spacing*3*1.5, h=self.text_box_height*1.5, x=x-5, y=y, z=6, 
+#                                                     line_thickness=1, justify='R')) )
         self.bitsnpieces.add_filled_box(layer_text_spacing*3*1.5, self.text_box_height*1.5, x-5.0, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "R")
         
         
@@ -495,13 +502,13 @@ class HUD(object):
             if self.show_map:
                 self.track_map.add_segment()
              
-            if(self.hud_update_frame == 3):                    
-                if self.static_items.gen_items():
-                    self.staticLayer.start_layer()
-                    self.static_items.draw_items()
-                    self.ladder.draw_center()
-                    self.ladder.draw_roll_indicator()
-                    self.staticLayer.end_layer()
+#            if(self.hud_update_frame == 3):                    
+#                if self.static_items.gen_items():
+#                    self.staticLayer.start_layer()
+#                    self.static_items.draw_items()
+#                    self.ladder.draw_center()
+#                    self.ladder.draw_roll_indicator()
+#                    self.staticLayer.end_layer()
                  
             elif(self.hud_update_frame == 4):
                 self.ladder.gen_ladder()
@@ -548,7 +555,7 @@ class HUD(object):
             self.hud_text.draw()
 
 #            self.statusLayer.draw_layer()
-            self.staticLayer.draw_layer()
+#            self.staticLayer.draw_layer()
   
             if time.time() > self.next_time:
                 self.next_time = time.time() + self.spf
