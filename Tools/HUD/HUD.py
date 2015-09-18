@@ -10,15 +10,6 @@ import pi3d
 from pi3d.constants import *
 
 from HUDladderSimple  import HUDladder, HUDLadderRollIndicator, HUDLadderCenter
-#from HUDladder  import HUDladder
-from HUDTrack   import HUDTrack
-from LayerItems import LayerText
-from LayerItems import LayerVarText
-from LayerItems import LayerItems
-from LayerItems import LayerNumeric
-from LayerItems import LayerShape
-from LayerItems import LayerDynamicShape
-from LayerItems import LayerStringList
 from ScreenGrid import ScreenScale
 from PointFont  import PointFont
 import CPlanes
@@ -28,11 +19,9 @@ from Indicator import LinearIndicator
 from Indicator import DirectionIndicator
 from Indicator import RollingIndicator
 
-from Box2d import Box2d
-
 import HUDConfig as HUDConfig
 
-from pi3dTiledMap import TiledMap
+#from pi3dTiledMap import TiledMap
 from pi3dTiledMap import Map
 from pi3dTiledMap import CoordSys
 
@@ -186,8 +175,6 @@ class HUD(object):
 #        self.normsh = pi3d.Shader("norm_colour")
 
         #Create layers
-#        self.staticLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
-
         self.bitsnpieces = CPlanes.CPlanes(camera=self.hud_camera, x=0, y=0, z=0)
         self.bitsnpieces.set_draw_details(self.matsh, [], 0, 0)
 
@@ -195,14 +182,9 @@ class HUD(object):
 
         print("start creating fonts")
         #fonts
-        #hudFont = pi3d.Font("fonts/FreeSans.ttf", (50,255,50,220))
         font_path = os.path.abspath(os.path.join(self.working_directory, 'fonts', 'FreeSansBold.ttf'))
-        self.hudFont = pi3d.Font(font_path, self.font_colour)   #usr/share/fonts/truetype/freefont/
-        self.ladderFont = self.hudFont
-        self.textFont = self.hudFont
-        
 #        self.warningFont = pi3d.Font(font_path, (255,0,0,255))
-        self.pointFont = PointFont(font_path, (0,0,255,255))
+        self.pointFont = PointFont(font_path, self.font_colour)
         self.hud_text = FastText.FastText(self.pointFont, self.text_camera)
 
         print("end creating fonts")
@@ -227,7 +209,7 @@ class HUD(object):
 
 
         print("start creating ladder")
-        self.ladder = HUDladder(font=self.hudFont, camera=self.hud_camera, shader=self.flatsh, alpha=self.pitch_ladder_alpha)
+        self.ladder = HUDladder(font=self.pointFont, camera=self.hud_camera, shader=self.flatsh, alpha=self.pitch_ladder_alpha)
         print("end creating ladder")
 
         print("Create static HUD shapes")
@@ -238,10 +220,6 @@ class HUD(object):
         ladderCenter.generate(self.bitsnpieces)
 
         print("Create track map")
-        if self.show_track:
-            self.track = HUDTrack(camera=self.text_camera, shader=self.flatsh, alpha=self.pitch_ladder_alpha)
-        if self.show_tiled:
-            self.track_map = TiledMap.TiledMap(tileSize=256, w=512, h=512, z=6.0, alpha=0.95)
         if self.show_map:
             self.track_map = Map.Map(w=512, h=512, z=6.0, alpha=0.95)
 
@@ -252,15 +230,8 @@ class HUD(object):
 
         print("start creating layers")
 
-        text_camera = self.text_camera
-        textFont = self.textFont
-        flatsh = self.flatsh
-        matsh = self.matsh
 #        normsh = self.normsh
-        hudFont = textFont        
         layer_text_spacing = self.layer_text_spacing
-        
-#        self.static_items = LayerItems()
         
         print("start creating layer items")
         
@@ -298,8 +269,6 @@ class HUD(object):
         
         #groundspeed label
         x,y = self.grid.get_grid_pixel(15.25, -4)
-#        self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
-#                                              text="gspd", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
         text_block = FastText.TextBlock(x, y, 1.0, 0.0, 4, None, None, "gspd", self.label_size*3.0, "F", 0.01)
         self.hud_text.add_text_block(text_block)
 
@@ -402,10 +371,6 @@ class HUD(object):
 
         #Heading text box
         x,y = self.grid.get_grid_pixel(5, 5)
-#        self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh,
-#                                                     line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour,
-#                                                     w=layer_text_spacing*3.5, h=self.text_box_height, x=x+5, y=y, z=6, 
-#                                                     line_thickness=1, justify='C')) )
         self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height, x+5.0, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "C")
         
         #Home pointer
@@ -426,10 +391,6 @@ class HUD(object):
         
         #Home distance text box
         x,y = self.grid.get_grid_pixel(-2, 5)
-#        self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh,
-#                                                     line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour,
-#                                                     w=layer_text_spacing*8, h=self.text_box_height, x=x-5, y=y, z=6, 
-#                                                     line_thickness=1, justify='C')) )
         self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height, x-5.0, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "C")
 
 
@@ -445,10 +406,6 @@ class HUD(object):
         
         # Windspeed text box
         x,y = self.grid.get_grid_pixel(14, 4.5)
-#        self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh,
-#                                                     line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour,
-#                                                     w=layer_text_spacing*3*1.5, h=self.text_box_height*1.5, x=x-5, y=y, z=6, 
-#                                                     line_thickness=1, justify='R')) )
         self.bitsnpieces.add_filled_box(layer_text_spacing*3*1.5, self.text_box_height*1.5, x-5.0, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "R")
         
         
@@ -482,9 +439,7 @@ class HUD(object):
 
         self.hud_update_frame = 0
         self.timestamp = time.clock()
-
-#        self.frameCount = 0
-#        self.slow_frame_count = 0
+        
 
     def run_hud(self):
 
@@ -494,52 +449,15 @@ class HUD(object):
              
             self.run_filters()
              
-            if self.show_track:
-                relPos = CoordSys.Cartesian(polar=self.home_polar.reverse())
-                self.track.add_segment(relPos.x, relPos.y, self.vertical_speed, self.heading)
-            if self.show_tiled:
-                self.track_map.add_segment()
             if self.show_map:
                 self.track_map.add_segment()
              
-#            if(self.hud_update_frame == 3):                    
-#                if self.static_items.gen_items():
-#                    self.staticLayer.start_layer()
-#                    self.static_items.draw_items()
-#                    self.ladder.draw_center()
-#                    self.ladder.draw_roll_indicator()
-#                    self.staticLayer.end_layer()
-                 
             elif(self.hud_update_frame == 4):
-                self.ladder.gen_ladder()
- 
-                if self.show_track:
-                    self.track.gen_track()
-                if self.show_tiled:
-                    self.track_map.gen_map()
                 if self.show_map:
                     self.track_map.gen_map()
-                     
-                
- 
- 
-#            if(self.slow_frame_count > 20):
-#                if self.slow_items.gen_items(phase=None):
-#                self.slow_items.gen_items(phase=None)
-#                if True:
-#                    self.slowLayer.start_layer()
-#                    self.slow_items.draw_items()
-#                    self.slowLayer.end_layer()
-#                self.slow_frame_count = 0
-#            else:
-#                self.slow_frame_count += 1
 
             self.ladder.draw_ladder(self.roll_filter.estimate(), self.pitch_filter.estimate(), 0)
       
-            if self.show_track:
-                self.track.draw_track(alpha=1.0)
-            if self.show_tiled:
-                self.track_map.draw()
             if self.show_map:
                 self.track_map.draw()
                 
@@ -551,12 +469,8 @@ class HUD(object):
                 
             self.bitsnpieces.draw()
             
-#            self.font_sprite.draw()
             self.hud_text.draw()
 
-#            self.statusLayer.draw_layer()
-#            self.staticLayer.draw_layer()
-  
             if time.time() > self.next_time:
                 self.next_time = time.time() + self.spf
                 self.av_fps = self.av_fps*0.9 + self.tick/self.spf*0.1 # exp smooth moving average
@@ -618,8 +532,6 @@ class HUD(object):
                     if hasattr(self, var_update[0]):
                         setattr(self, var_update[0], var_update[1])
                         if var_update[0] == "home":
-                            if self.show_tiled:
-                                self.track_map.set_map_origin(var_update[1])
                             if self.show_map:
                                 self.track_map.set_map_origin(var_update[1])
 #                self.update_queue.task_done()
