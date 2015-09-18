@@ -73,6 +73,7 @@ class HUD(object):
         self.label_size = 0.125
         self.layer_text_spacing = 16
         self.text_box_height = 30
+        self.text_box_line_width = 3.0
         
         self.text_alpha = 1.0
         self.label_alpha = 1.0
@@ -187,7 +188,9 @@ class HUD(object):
         #Create layers
         self.staticLayer = pi3d.Layer(camera=self.text_camera, shader=self.flatsh, z=4.8, flip=True)
 
-#        self.bitsnpieces = CPlanes.CPlanes(camera=self.hud_camera, x=0, y=0, z=0)
+        self.bitsnpieces = CPlanes.CPlanes(camera=self.hud_camera, x=0, y=0, z=0)
+        self.bitsnpieces.set_draw_details(self.matsh, [], 0, 0)
+            
 
         #Create textures
 
@@ -261,10 +264,7 @@ class HUD(object):
 
         #AGL text box
         x,y = self.grid.get_grid_pixel(-17.5, 3)   
-        self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh, 
-                                                     line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour, 
-                                                     w=layer_text_spacing*6*1.2, h=self.text_box_height*1.5, x=x-5, y=y, z=6, line_thickness=1, justify='R')) )
-#        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height*1.5, x-5.0, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, 2.0, "R")
+        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height*1.5, x-5.0, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "R")
 
         #AGL label
         
@@ -277,9 +277,7 @@ class HUD(object):
 
         # True airspeed text box
         x,y = self.grid.get_grid_pixel(11, 3)
-        self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh, 
-                                                     line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour, 
-                                                     w=120, h=self.text_box_height*1.5, x=x, y=y, z=6, line_thickness=1, justify='R')) )
+        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height*1.5, x, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "R")
 
 
         #Groundspeed
@@ -289,9 +287,8 @@ class HUD(object):
         
         # Groundspeed text box
         x,y = self.grid.get_grid_pixel(11, -4)
-        self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh, 
-                                                     line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour, 
-                                                     w=130, h=self.text_box_height, x=x, y=y, z=6, line_thickness=1, justify='R')) )
+        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height*1.5, x, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "R")
+        
         #groundspeed label
         x,y = self.grid.get_grid_pixel(15.25, -4)
 #        self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
@@ -339,8 +336,6 @@ class HUD(object):
 
         #satellites label
         x,y = self.grid.get_grid_pixel(-18, -5.5)
-#        self.static_items.add_item( LayerText(self.textFont, camera=self.text_camera, shader=self.flatsh, 
-#                                              text="sat", x=x, y=y, size=self.label_size, alpha=self.label_alpha) )
         text_block = FastText.TextBlock(x, y, 1.0, 0.0, 3, None, None, "sat", self.label_size*4.0, "M", 1.0)
         self.hud_text.add_text_block(text_block)
 
@@ -375,11 +370,8 @@ class HUD(object):
 
         # Climb rate text box
         x,y = self.grid.get_grid_pixel(-14, -3)
-        self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh, 
-                                                     line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour, 
-                                                     w=120, h=self.text_box_height*1.5, x=x, y=y, z=6, line_thickness=1, justify='C')) )
+        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height*1.5, x, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "C")
 
-        
 #        self.dynamic_items.add_item( LayerDynamicShape(self.VSI, phase=0) )
 #        self.static_items.add_item( LayerShape(self.VSI.bezel) )
 
@@ -403,10 +395,11 @@ class HUD(object):
 
         #Heading text box
         x,y = self.grid.get_grid_pixel(5, 5)
-        self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh,
-                                                     line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour,
-                                                     w=layer_text_spacing*3.5, h=self.text_box_height, x=x+5, y=y, z=6, 
-                                                     line_thickness=1, justify='C')) )
+#        self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh,
+#                                                     line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour,
+#                                                     w=layer_text_spacing*3.5, h=self.text_box_height, x=x+5, y=y, z=6, 
+#                                                     line_thickness=1, justify='C')) )
+        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height, x+5.0, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "C")
         
         #Home pointer
 #        x,y = self.grid.get_grid_pixel(-8, 5)
@@ -426,10 +419,11 @@ class HUD(object):
         
         #Home distance text box
         x,y = self.grid.get_grid_pixel(-2, 5)
-        self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh,
-                                                     line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour,
-                                                     w=layer_text_spacing*8, h=self.text_box_height, x=x-5, y=y, z=6, 
-                                                     line_thickness=1, justify='C')) )
+#        self.static_items.add_item( LayerShape(Box2d(camera=self.text_camera, shader=matsh,
+#                                                     line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour,
+#                                                     w=layer_text_spacing*8, h=self.text_box_height, x=x-5, y=y, z=6, 
+#                                                     line_thickness=1, justify='C')) )
+        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height, x-5.0, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "C")
 
 
         
@@ -448,34 +442,21 @@ class HUD(object):
                                                      line_colour=self.textbox_line_colour, fill_colour=self.textbox_fill_colour,
                                                      w=layer_text_spacing*3*1.5, h=self.text_box_height*1.5, x=x-5, y=y, z=6, 
                                                      line_thickness=1, justify='R')) )
+        self.bitsnpieces.add_filled_box(layer_text_spacing*3*1.5, self.text_box_height*1.5, x-5.0, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "R")
         
         
-        #Mode status using list of text strings
+        #Mode status
         x,y = self.grid.get_grid_pixel(10, 6)
-#        text_strings = ["MANUAL", "AUTO", "FBW", "STABILIZE", "RTL", "UNKNOWN", "NO LINK"]
-#        string=self.text, camera=self.camera, font=self.font, is_3d=False, x=self.x, y=self.y, z=self.z, size=self.size, justify='C'       
-#        strList = LayerStringList(hudFont, text_strings=text_strings, text_format="{:s}", alpha=self.text_alpha,
-#                                  camera=text_camera, dataobj=self, attr="mode", shader=flatsh,
-#                                  x=x, y=y, z=1, size=self.font_size, justify='C')
-#        self.status_items.add_item(strList)
-        
         text_block = FastText.TextBlock(x, y, 1.0, 0.0, 9, self, "mode", "{:s}", self.font_size*4.0, "F", 0.06, self.text_alpha)
         self.hud_text.add_text_block(text_block)
         
-        
+        #Warning status
         x,y = self.grid.get_grid_pixel(-5, 6)
-#        text_strings = ["BRAKES", "NO LINK", "HEARTBEAT", "FLAP UP", "FLAP DOWN", "LINK WARN", ""]
-#        string=self.text, camera=self.camera, font=self.font, is_3d=False, x=self.x, y=self.y, z=self.z, size=self.size, justify='C'       
-#        strList = LayerStringList(self.warningFont, text_strings=text_strings, text_format="{:s}", alpha=self.text_alpha,
-#                                  camera=text_camera, dataobj=self, attr="warning", shader=flatsh,
-#                                  x=x, y=y, z=1, size=self.font_size, justify='C')
-#        self.status_items.add_item(strList)
-
         text_block = FastText.TextBlock(x, y, 1.0, 0.0, 10, self, "warning", "{:s}", self.font_size*4.0, "F", 0.06, self.text_alpha)
         self.hud_text.add_text_block(text_block)
 
         
-#        self.bitsnpieces.init()
+        self.bitsnpieces.init()
 
         print("finished creating layers")
 
@@ -561,7 +542,7 @@ class HUD(object):
                 self.hud_text.regen()
                 self.values_updated = False
                 
-#            self.bitsnpieces.draw()
+            self.bitsnpieces.draw()
             
 #            self.font_sprite.draw()
             self.hud_text.draw()
