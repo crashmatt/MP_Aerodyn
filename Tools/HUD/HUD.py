@@ -151,7 +151,7 @@ class HUD(object):
 #        else: 
 #          	self.DISPLAY = pi3d.Display.create(x=0, y=0, w=640, h=480, frames_per_second=self.fps)
    
-        self.DISPLAY = pi3d.Display.create(x=20, y=0, w=700, h=580, frames_per_second=self.fps)
+        self.DISPLAY = pi3d.Display.create(x=20, y=0, w=700, h=580, frames_per_second=self.fps, use_pygame=True, samples=4, fullscreen=True, no_frame=False)
 
         self.DISPLAY.set_background(0.0, 0.0, 0.0, 0)      # r,g,b,alpha
         
@@ -213,7 +213,7 @@ class HUD(object):
         print("end creating ladder")
 
         print("Create static HUD shapes")
-        rollindicator = HUDLadderRollIndicator(camera=None, matsh=None, line_thickness=3, line_colour=(1.0,1.0,1.0,0.8), standalone=False)
+        rollindicator = HUDLadderRollIndicator(camera=None, matsh=None, radius=0.35, line_thickness=3, tick_len=0.02, line_colour=(0.9,0.9,0.9,0.8), standalone=False)
         rollindicator.generate(self.bitsnpieces)
         
         ladderCenter = HUDLadderCenter(camera=None, matsh=None, colour=(1.0, 0.0, 1.0, 1.0), standalone=False)
@@ -451,9 +451,7 @@ class HUD(object):
              
             if self.show_map:
                 self.track_map.add_segment()
-             
-            elif(self.hud_update_frame == 4):
-                if self.show_map:
+                if(self.hud_update_frame == 4):
                     self.track_map.gen_map()
 
             self.ladder.draw_ladder(self.roll_filter.estimate(), self.pitch_filter.estimate(), 0)
@@ -493,7 +491,6 @@ class HUD(object):
                 k = self.mykeys.read()
                 if k==27:
                     self.mykeys.close()
-                    self.staticLayer.delete_buffers()
                     self.DISPLAY.destroy()
                     quit()
                     break
