@@ -151,7 +151,8 @@ class HUD(object):
 #        else: 
 #          	self.DISPLAY = pi3d.Display.create(x=0, y=0, w=640, h=480, frames_per_second=self.fps)
    
-        self.DISPLAY = pi3d.Display.create(x=20, y=0, w=700, h=580, frames_per_second=self.fps, use_pygame=True, samples=4, fullscreen=True, no_frame=False)
+#        self.DISPLAY = pi3d.Display.create(x=20, y=0, w=700, h=580, frames_per_second=self.fps, use_pygame=True, samples=4, fullscreen=True, no_frame=False)
+        self.DISPLAY = pi3d.Display.create(x=20, y=0, w=640, h=480, frames_per_second=self.fps, use_pygame=True, samples=4, fullscreen=True, no_frame=False)
 
         self.DISPLAY.set_background(0.0, 0.0, 0.0, 0)      # r,g,b,alpha
         
@@ -172,7 +173,6 @@ class HUD(object):
 #        self.matsh = pi3d.Shader("mat_flat")  #For fixed color
         self.matsh = pi3d.Shader("norm_colour")  #For shapes with normal modulated colour and uv modulated alpha
         self.flatsh = pi3d.Shader("uv_flat")
-#        self.normsh = pi3d.Shader("norm_colour")
 
         #Create layers
         self.bitsnpieces = CPlanes.CPlanes(camera=self.hud_camera, x=0, y=0, z=0)
