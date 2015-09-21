@@ -151,8 +151,8 @@ class HUD(object):
 #        else: 
 #          	self.DISPLAY = pi3d.Display.create(x=0, y=0, w=640, h=480, frames_per_second=self.fps)
    
-#        self.DISPLAY = pi3d.Display.create(x=20, y=0, w=700, h=580, frames_per_second=self.fps, use_pygame=True, samples=4, fullscreen=True, no_frame=False)
         self.DISPLAY = pi3d.Display.create(x=20, y=0, w=640, h=480, frames_per_second=self.fps, use_pygame=True, samples=4, fullscreen=True, no_frame=False)
+#        self.DISPLAY = pi3d.Display.create(x=20, y=0, w=640, h=480, frames_per_second=self.fps, use_pygame=True, samples=4, fullscreen=False, no_frame=False)
 
         self.DISPLAY.set_background(0.0, 0.0, 0.0, 0)      # r,g,b,alpha
         
@@ -186,6 +186,22 @@ class HUD(object):
 #        self.warningFont = pi3d.Font(font_path, (255,0,0,255))
         self.pointFont = PointFont(font_path, self.font_colour)
         self.hud_text = FastText.FastText(self.pointFont, self.text_camera)
+        
+        self.pointfont_sprite = pi3d.Sprite(camera=self.hud_camera, x=0, y=0,z=0.1, w=1024, h=1024)
+        self.pointfont_sprite.set_draw_details(self.flatsh, [self.pointFont])
+        self.pointfont_sprite.position(0, 0, 0.1)
+        
+#        self.bitsnpieces.add_line((-512,64,0.05), (512,64,0.05))
+#        self.bitsnpieces.add_line((-512,32,0.05), (512,32,0.05))
+#        self.bitsnpieces.add_line((-512,-64,0.05), (512,-64,0.05))
+#        self.bitsnpieces.add_line((-512,-32,0.05), (512,-32,0.05))
+
+#        self.bitsnpieces.add_line((-64,-512,0.05), (-64,512,0.05))
+#        self.bitsnpieces.add_line((64,-512,0.05), (64,512,0.05))
+#        self.bitsnpieces.add_line((-32,-512,0.05), (-32,512,0.05))
+#        self.bitsnpieces.add_line((32,-512,0.05), (32,512,0.05))
+#        self.bitsnpieces.add_line((-96,-512,0.05), (-96,512,0.05))
+#        self.bitsnpieces.add_line((96,-512,0.05), (96,512,0.05))
 
         print("end creating fonts")
         
@@ -242,7 +258,7 @@ class HUD(object):
 
         #AGL text box
         x,y = self.grid.get_grid_pixel(-17.5, 3)   
-        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height*1.5, x-5.0, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "R")
+        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height*1.5, x, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "R")
 
         #AGL label
         
@@ -269,7 +285,7 @@ class HUD(object):
         
         #groundspeed label
         x,y = self.grid.get_grid_pixel(15.25, -4)
-        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 4, None, None, "gspd", self.label_size*3.0, "F", 0.01)
+        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 4, None, None, "gspd", self.label_size*3.0, "M", 1.0)
         self.hud_text.add_text_block(text_block)
 
 
@@ -280,7 +296,7 @@ class HUD(object):
         
         #FPS label
         x,y = self.grid.get_grid_pixel(-18, -6)
-        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 4, None, None, "f ps", self.label_size*4.0, "M", 1.0)
+        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 4, None, None, "fps", self.label_size*4.0, "M", 1.0)
         self.hud_text.add_text_block(text_block)
 
 
@@ -291,7 +307,7 @@ class HUD(object):
         
         #Link label
         x,y = self.grid.get_grid_pixel(-18, -4.5)
-        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 5, None, None, "l oss", self.label_size*4.0, "M", 1.0)
+        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 5, None, None, "loss", self.label_size*4.0, "M", 1.0)
         self.hud_text.add_text_block(text_block)
 
 
@@ -371,7 +387,7 @@ class HUD(object):
 
         #Heading text box
         x,y = self.grid.get_grid_pixel(5, 5)
-        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height, x+5.0, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "C")
+        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height, x, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "C")
         
         #Home pointer
 #        x,y = self.grid.get_grid_pixel(-8, 5)
@@ -391,7 +407,7 @@ class HUD(object):
         
         #Home distance text box
         x,y = self.grid.get_grid_pixel(-2, 5)
-        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height, x-5.0, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "C")
+        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height, x, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "C")
 
 
         
@@ -406,17 +422,17 @@ class HUD(object):
         
         # Windspeed text box
         x,y = self.grid.get_grid_pixel(14, 4.5)
-        self.bitsnpieces.add_filled_box(layer_text_spacing*3*1.5, self.text_box_height*1.5, x-5.0, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "R")
+        self.bitsnpieces.add_filled_box(layer_text_spacing*3*1.5, self.text_box_height*1.5, x, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "R")
         
         
         #Mode status
-        x,y = self.grid.get_grid_pixel(10, 6)
-        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 9, self, "mode", "{:s}", self.font_size*4.0, "F", 0.06, self.text_alpha)
+        x,y = self.grid.get_grid_pixel(7, 6)
+        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 10, self, "mode", "{:s}", self.font_size*4.0, "F", 0.065, self.text_alpha)
         self.hud_text.add_text_block(text_block)
         
         #Warning status
-        x,y = self.grid.get_grid_pixel(-5, 6)
-        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 10, self, "warning", "{:s}", self.font_size*4.0, "F", 0.06, self.text_alpha)
+        x,y = self.grid.get_grid_pixel(-6, 6)
+        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 10, self, "warning", "{:s}", self.font_size*4.0, "M", 1.0, self.text_alpha)
         self.hud_text.add_text_block(text_block)
 
         
@@ -451,15 +467,14 @@ class HUD(object):
              
             if self.show_map:
                 self.track_map.add_segment()
-                if(self.hud_update_frame == 4):
-                    self.track_map.gen_map()
+                self.track_map.gen_map()
 
             self.ladder.draw_ladder(self.roll_filter.estimate(), self.pitch_filter.estimate(), 0)
       
             if self.show_map:
                 self.track_map.draw()
                 
-            self.background.draw()
+#            self.background.draw()
             
             if self.values_updated:
                 self.hud_text.regen()
@@ -468,6 +483,8 @@ class HUD(object):
             self.bitsnpieces.draw()
             
             self.hud_text.draw()
+            
+#            self.pointfont_sprite.draw()
 
             if time.time() > self.next_time:
                 self.next_time = time.time() + self.spf
