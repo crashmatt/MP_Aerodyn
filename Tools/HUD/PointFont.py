@@ -90,9 +90,9 @@ class PointFont(Texture):
     pipew, pipeh = imgfont.getsize('|') # TODO this is a horrible hack
     #to cope with a bug in Pillow where ascender depends on char height!
     ascent, descent = imgfont.getmetrics()
-    self.height = ascent + descent
+    self.height = ascent + descent + 1  #+1 is correction to round up to 64. Why?
     
-    image_size = self.height * 16
+    image_size = self.height  * 16  # or 1024
 
     codepoints = (codepoints and list(codepoints)) or list(range(256))
     if add_codepoints:
@@ -125,24 +125,11 @@ class PointFont(Texture):
           
       draw.text((curX + ( (self.height - chwidth)  / 2), curY), ch, font=imgfont, fill=color)
       
-      xpos = curX / self.ix
+      xpos = (curX + 2) / self.ix   # Correction for PIL font offset. Why? Who knows? Ahh well!
       ypos = curY / self.iy
       table_entry = [xpos, ypos, chwidth]
       
       self.glyph_table[ch] = table_entry
-#      x = (curX + self.height + 0.0) / self.ix
-#      y = (curY + self.height + 0.0) / self.iy * 2)
-      #w = image_size
-      #h = image_size
-
-      #--------------------------------------------------------- table_entry = [
-        #------------------------------------------------------ chwidth - pipew,
-        #------------------------------------------------------------- chheight,
-        #----------------- [[x + tw, y - th], [x, y - th], [x, y], [x + tw, y]],
-        # [[chwidth, 0, 0], [pipew, 0, 0], [pipew, -self.height, 0], [chwidth, -self.height, 0]]
-        #--------------------------------------------------------------------- ]
-
-#      self.glyph_table[ch] = table_entry
 
       xindex += 1
       if xindex >= 16:
