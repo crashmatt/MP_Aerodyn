@@ -104,7 +104,13 @@ class FastText(object):
                     glyph = self.font.glyph_table[char]
                     self.uv[ind] = glyph[0:2]
                     
-                    self.locations[ind][0] = xpos
+#                    if index == 0:
+#                        xpos += float(glyph[2]) *  block.size * 0.25
+                    
+                    if block.spacing == "F":
+                        self.locations[ind][0] = xpos + (float(glyph[2]) *  block.size * 0.5)
+                    else:
+                        self.locations[ind][0] = xpos #+ (64.0 - (float(glyph[2])) *  block.size * 0.25)
                     self.locations[ind][1] = block.y
                     self.locations[ind][2] = block.size
                     
