@@ -397,19 +397,19 @@ class HUD(object):
 #                                                        x=x, y=y, z=3, pointer_img=pointer_path, phase=2) )
 
         # Home distance number
-        x,y = self.grid.get_grid_pixel(-5, 5)
+        x,y = self.grid.get_grid_pixel(-6, 5)
         self.home_distance_number = FastText.TextBlock(x, y, 1.0, 0.0, 4, self, "home_dist_scaled", "{:03.0f}", self.font_size*4, "C", 0.5)
         self.hud_text.add_text_block(self.home_distance_number)
         
         # Home distance units
-        x,y = self.grid.get_grid_pixel(-1, 5)
+        x,y = self.grid.get_grid_pixel(-3, 5)
 #        self.status_items.add_item( LayerVarText(hudFont, text="{:s}", dataobj=self, attr="home_dist_units", camera=text_camera, shader=flatsh, x=x, y=y, z=0.5, size=0.125, phase=None) )
-        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 2, self, "home_dist_units", "{:s}", self.label_size*4.0, "M", 1.1)
+        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 2, self, "home_dist_units", "{:s}", self.label_size*4.0, "F", 0.05)
         self.hud_text.add_text_block(text_block)
         
         #Home distance text box
-        x,y = self.grid.get_grid_pixel(-2, 5)
-        self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height, x, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "C")
+        x,y = self.grid.get_grid_pixel(-7, 5)
+        self.bitsnpieces.add_filled_box(layer_text_spacing*6, self.text_box_height, x, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "R")
 
 
         
