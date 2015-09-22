@@ -58,8 +58,8 @@ class HUD(object):
                
         self.hud_update_frames = 5
         
-        self.font_size = 0.15
-        self.label_size = 0.125
+        self.font_size = 0.125
+        self.label_size = 0.1
         self.layer_text_spacing = 16
         self.text_box_height = 30
         self.text_box_line_width = 2
@@ -296,7 +296,7 @@ class HUD(object):
         
         #FPS label
         x,y = self.grid.get_grid_pixel(-18, -6)
-        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 4, None, None, "fps", self.label_size*4.0, "M", 1.0)
+        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 4, None, None, "fps", self.label_size*4.0, "F", 0.06)
         self.hud_text.add_text_block(text_block)
 
 
@@ -307,7 +307,7 @@ class HUD(object):
         
         #Link label
         x,y = self.grid.get_grid_pixel(-18, -4.5)
-        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 5, None, None, "loss", self.label_size*4.0, "M", 1.0)
+        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 5, None, None, "loss", self.label_size*4.0, "F", 0.06)
         self.hud_text.add_text_block(text_block)
 
 
@@ -318,7 +318,7 @@ class HUD(object):
                 
         #HDOP label
         x,y = self.grid.get_grid_pixel(-18.5, -5)
-        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 4, None, None, "hdop", self.label_size*4.0, "M", 1.1)
+        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 4, None, None, "hdop", self.label_size*4.0, "F", 0.06)
         self.hud_text.add_text_block(text_block)
 
         #satellites
@@ -328,7 +328,7 @@ class HUD(object):
 
         #satellites label
         x,y = self.grid.get_grid_pixel(-18, -5.5)
-        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 3, None, None, "sat", self.label_size*4.0, "M", 1.0)
+        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 3, None, None, "sat", self.label_size*4.0, "F", 0.06)
         self.hud_text.add_text_block(text_block)
 
 
