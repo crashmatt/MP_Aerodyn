@@ -92,15 +92,12 @@ class FastText(object):
                 self.normals[char_index:char_index+block.char_count,1] = 0.0
                 
                 str = block.get_string(value)
-                    
-    #            if str == block.last_string:
-    #                break           
-    #            block.last_string = str
                             
                 index = 0
                 for char in str:
                     ind = index + char_index
-                                        
+                    
+                                                            
                     glyph = self.font.glyph_table[char]
                     self.uv[ind] = glyph[0:2]
                     
@@ -115,6 +112,7 @@ class FastText(object):
                     self.locations[ind][2] = block.size
                     
                     # Set alpha
+                    self.normals[ind][0] = block.rot
                     self.normals[ind][1] = block.alpha
                     
                     if block.spacing == "C":
