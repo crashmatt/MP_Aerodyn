@@ -122,7 +122,7 @@ class FastText(object):
                     if block.spacing == "M":
                         xpos += glyph[2] * block.size * block.space
                     if block.spacing == "F":
-                        xpos += (glyph[2] * block.size) + (self.font.height * block.space)
+                        xpos += (glyph[2] * block.size) + (self.font.height * block.space * block.size)
                     index += 1
                     
             char_index = char_index + block.char_count
