@@ -440,7 +440,7 @@ class HUD(object):
         
         #Warning status
         x,y = self.grid.get_grid_pixel(-6, 6)
-        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 10, self, "warning", "{:s}", self.font_size*4.0, "M", 1.0, self.text_alpha)
+        text_block = FastText.TextBlock(x, y, 1.0, 0.0, 10, self, "warning", "{:s}", self.font_size*4.0, "F", 0.06, self.text_alpha)
         self.hud_text.add_text_block(text_block)
 
         
@@ -588,7 +588,7 @@ class HUD(object):
         self.windspeed = self.windspeed_cms * 0.01
         
         self.wind_pointer.rot = self.wind_direction * (math.pi / 180.0)
-        self.wind_pointer.last_value = self.wind_pointer
+        self.wind_pointer.last_value = self.wind_pointer  #TODO: Don't do this every cycle.
         
         
     def status_condition(self):
