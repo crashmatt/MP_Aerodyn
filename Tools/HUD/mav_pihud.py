@@ -417,6 +417,8 @@ if __name__ == '__main__':
                       default=1, help='MAVLink target master component')
     parser.add_option("--nodtr", dest="nodtr", help="disable DTR drop on close",
                       action='store_true', default=False)
+    parser.add_option("--fullscreen", dest="fullscreen", help="run in fullscreen mode",
+                      action='store_true', default=False)
     parser.add_option("--aircraft", dest="aircraft", help="aircraft name", default=None)
     parser.add_option(
         '--load-module',
@@ -458,6 +460,8 @@ Auto-detected serial ports are:
     # container for status information
     mpstate.status.target_system = opts.TARGET_SYSTEM
     mpstate.status.target_component = opts.TARGET_COMPONENT
+    
+    mpstate.status.fullscreen = opts.fullscreen
 
     mpstate.mav_master = []
 
@@ -480,7 +484,7 @@ Auto-detected serial ports are:
     mpstate.status.counters['MasterIn'].append(0)
 
     mpstate.update_queue = Queue(100)
-    mpstate.hud = HUD(master=True, update_queue=mpstate.update_queue)
+    mpstate.hud = HUD(master=True, update_queue=mpstate.update_queue, fullscreen=opts.fullscreen)
     
     heartbeat_check_period = mavutil.periodic_event(0.33)
     packet_loss_check_period = mavutil.periodic_event(1.0)

@@ -45,12 +45,14 @@ SERVO_CENTER_RAW = 1510
 
 
 class HUD(object):
-    def __init__(self, simulate=False, master=True, update_queue=None):
+    def __init__(self, simulate=False, master=True, update_queue=None, fullscreen=False):
         """
         *simulate* = generate random simulation data to display
         *master* Running as master and not a process
         """
         self.quit = False
+        
+        self.fullscreen = fullscreen
         
 #        self.working_directory = os.getcwd()
         self.working_directory = os.path.dirname(os.path.realpath(__file__))
@@ -151,7 +153,7 @@ class HUD(object):
 #        else: 
 #          	self.DISPLAY = pi3d.Display.create(x=0, y=0, w=640, h=480, frames_per_second=self.fps)
    
-        self.DISPLAY = pi3d.Display.create(x=20, y=0, w=640, h=480, frames_per_second=self.fps, use_pygame=True, samples=4, fullscreen=True, no_frame=False)
+        self.DISPLAY = pi3d.Display.create(x=20, y=0, w=640, h=480, frames_per_second=self.fps, use_pygame=True, samples=4, fullscreen=self.fullscreen, no_frame=False)
 #        self.DISPLAY = pi3d.Display.create(x=20, y=0, w=640, h=480, frames_per_second=self.fps, use_pygame=True, samples=4, fullscreen=False, no_frame=False)
 
         self.DISPLAY.set_background(0.0, 0.0, 0.0, 0)      # r,g,b,alpha
