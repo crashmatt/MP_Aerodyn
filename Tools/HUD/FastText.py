@@ -122,7 +122,11 @@ class FastText(object):
                     if block.spacing == "F":
                         xpos += (glyph[2] * block.size) + (self.font.height * block.space * block.size)
                     index += 1
-                    
+            
+            elif block.rotation_changed:
+                #Set the rotation of the block 
+                self.normals[char_index:char_index+block.char_count,0] = block.rot
+                   
             char_index = char_index + block.char_count
                     
         self.text.buf[0].re_init(pts=self.locations, normals=self.normals, texcoords=self.uv) # reform opengles array_buffer
@@ -179,7 +183,8 @@ class TextBlock(object):
         self.space = space
         self.alpha = alpha
 
-        self.last_value = self  # hack so that static None object get initialization
+        self.last_value = self          # hack so that static None object get initialization
+        self.rotation_changed = False
         
         
     def get_value(self):

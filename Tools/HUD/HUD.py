@@ -416,12 +416,9 @@ class HUD(object):
 
         
         #Wind pointer
-#        self.slow_items.add_item( DirectionIndicator(text_camera, self.flatsh, self.matsh, dataobj=self, attr="wind_direction", 
-#                                                        x=x, y=y, z=3, pointer_img=pointer_path, phase=2) )
         x,y = self.grid.get_grid_pixel(12, 4.5)
         self.wind_pointer = FastText.TextBlock(x, y, 1.0, 0.0, 1, None, None, u'\u2191', 0.99, "C", 0.5)
         self.hud_text.add_text_block(self.wind_pointer)
-
 
         # Windspeed number
         x,y = self.grid.get_grid_pixel(14, 4.5)
@@ -563,13 +560,16 @@ class HUD(object):
 #            print("queue does not exist")
 
         self.update_maps()
-        self.home_dist_scale()
-        self.channel_scale()
-        self.calc_home_direction()
-        self.brake_condition()
-        self.flap_condition()
-        self.windspeed_scale()
-        self.status_condition()
+         #Things to update only if there has been another value update
+        if self.values_updated:
+            self.home_dist_scale()
+            self.channel_scale()
+            self.calc_home_direction()
+            self.brake_condition()
+            self.flap_condition()
+            self.windspeed_scale()
+            self.status_condition()
+            self.wind_pointer_update()
         
     def update_maps(self):
         if self.show_tiled or self.show_map:
@@ -587,9 +587,9 @@ class HUD(object):
     def windspeed_scale(self):
         self.windspeed = self.windspeed_cms * 0.01
         
+    def wind_pointer_update(self):
         self.wind_pointer.rot = self.wind_direction * (math.pi / 180.0)
-        self.wind_pointer.last_value = self.wind_pointer  #TODO: Don't do this every cycle.
-        
+        self.wind_pointer.rotation_changed = True
         
     def status_condition(self):
         if(self.no_link):
