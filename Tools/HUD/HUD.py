@@ -26,6 +26,7 @@ from pi3dTiledMap import Map
 from pi3dTiledMap import CoordSys
 
 from itertools import chain
+import numpy as np
 
 import os
 from multiprocessing import Queue
@@ -577,12 +578,18 @@ class HUD(object):
             self.track_map.set_map_focus(pos)
             self.track_map.set_aircraft_pos(pos)
             self.track_map.set_climbrate(self.vertical_speed)
+            wind_angle = self.wind_direction * math.pi / 180.0
+            wind_vector = [math.sin(wind_angle)*(self.windspeed_cms*0.01), math.cos(wind_angle)*(self.windspeed_cms*0.01), 0]
+            self.track_map.set_wind_vector(wind_vector)
             if self.flap_pos == "FLAP DOWN":
                 self.track_map.set_zoom_target(1.5, 1.0)
+                self.track_map.set_wind_drift(1.0)
             elif self.flap_pos == "FLAP UP":
                 self.track_map.set_zoom_target(0.75, 1.0)
+                self.track_map.set_wind_drift(0.0)
             else:
                 self.track_map.set_zoom_target(1.0, 1.0)
+                self.track_map.set_wind_drift(0.0)
         
     def windspeed_scale(self):
         self.windspeed = self.windspeed_cms * 0.01

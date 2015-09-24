@@ -50,8 +50,11 @@ class Map(object):
         self._last_aircraft_pos = CoordSys.Cartesian(0.0,0.0)
         
         self._climbrate = 0.0
+        self._wind_vector = [0.0, 0.0, 0.0]
+        self._wind_drift_factor = 0.0
 
-        self._last_update_time = time.time()
+        self._zoom_filter_time = time.time()
+        self._segment_time = 0.0
         
         self.home_colour = (1.0, 0.2, 1.0, 0.8)
         self.marker_colour = (1.0, 0.2, 1.0, 0.8)
@@ -151,9 +154,11 @@ void main(void) {
         #------------------ self.distance_spots.set_material(self.marker_colour)
         #----------------------------------- self.distance_spots.set_alpha(0.75)
         
-        self.track = np.zeros((2000,3), dtype=np.float)
+        self._track = np.zeros((2000,3), dtype=np.float)
+        self._wind_offsets = np.zeros((2000,3), dtype=np.float)
+        
         self.track_index = 0
-        self.track_sprite = pi3d.Points(camera=self.map_camera, vertices=self.track, point_size=self._track_width, z=30.0)
+        self.track_sprite = pi3d.Points(camera=self.map_camera, vertices=self._track, point_size=self._track_width, z=30.0)
         #self.track_sprite = pi3d.Lines(camera=self.map_camera, vertices=self.track, line_width=self._track_width)
 
         self.trackshader = pi3d.Shader(vshader_source = """
@@ -186,7 +191,6 @@ void main(void) {
         self._zoom_target = zoom
         self._zoom_rate = rate
     
-    
     # set the map focus in relative position from origin [x, y]
     def set_map_focus(self, pos):
         self._map_focus = pos
@@ -199,7 +203,13 @@ void main(void) {
         
     def set_climbrate(self, climbrate):
         self._climbrate = climbrate
-            
+        
+    def set_wind_vector(self, vector):
+        self._wind_vector = vector
+    
+    #Set how much the displayed track compensates for wind drift
+    def set_wind_drift(self, drift_factor):
+        self._wind_drift_factor = drift_factor
         
     def gen_map(self):
         self._update_zoom()
@@ -207,11 +217,11 @@ void main(void) {
 
     def _update_zoom(self):
         now = time.time()
-        deltaT = now - self._last_update_time
+        deltaT = now - self._zoom_filter_time
         deltaZ = self._zoom_target - self._zoom
         deltaZ = deltaZ * (deltaT * self._zoom_rate)
         self._zoom = self._zoom + deltaZ
-        self._last_update_time = now
+        self._zoom_filter_time = now
         
                     
     def interpolate_ratio(self, ratio, y1, y2):
@@ -248,11 +258,20 @@ void main(void) {
         elif alpha > self.alpha:
             alpha = self.alpha
         tile.set_alpha(alpha)
+        
                     
     def add_segment(self):
         if self._last_aircraft_pos == self._aircraft_pos:
             return
+        
+        now = time.time()
 
+        if self._segment_time != 0:
+            delta_time = now - self._segment_time
+            delta_wind = np.multiply(self._wind_vector, delta_time)        
+            self._wind_offsets = np.add(self._wind_offsets, delta_wind)
+        self._segment_time = now            
+                
         colour = self._climbrate * (1.0/25.0)
         if colour < 0.0:
             colour = -sqrt(-colour)
@@ -264,20 +283,27 @@ void main(void) {
         if colour < -1.0:
             colour = -1.0
         
-        self.track[self.track_index] = [self._aircraft_pos.x, self._aircraft_pos.y, colour]
+        self._track[self.track_index] = [self._aircraft_pos.x, self._aircraft_pos.y, colour]
+        self._wind_offsets[self.track_index] = 0.0
         
         self.track_sprite.scale(self._zoom, self._zoom, 1.0)
         if (self._zoom > 1.0):
             self.track_sprite.set_point_size(self._track_width * self._zoom)
         else:
             self.track_sprite.set_point_size(self._track_width)
-        
+
 #        self.track_sprite.position(-self._aircraft_pos.x * self._zoom, -self._aircraft_pos.y * self._zoom, 7.0)
         
-        b = self.track_sprite.buf[0]
-        b.re_init(self.track, offset=0)
+        if self._wind_drift_factor != 0.0:
+            wind_drift = np.multiply(self._wind_offsets, -self._wind_drift_factor)
+            wind_track = np.add(self._track, wind_drift)
+            b = self.track_sprite.buf[0]
+            b.re_init(wind_track, offset=0)
+        else:
+            b = self.track_sprite.buf[0]
+            b.re_init(self._track, offset=0)
         
-        self.track_index = (self.track_index + 1) % len(self.track)
+        self.track_index = (self.track_index + 1) % len(self._track)
           
         self._last_aircraft_pos = self._aircraft_pos
 
