@@ -417,7 +417,7 @@ class HUD(object):
 
         
         #Wind pointer
-        x,y = self.grid.get_grid_pixel(12, 4.5)
+        x,y = self.grid.get_grid_pixel(12, 4.75)
         self.wind_pointer = FastText.TextBlock(x, y, 1.0, 0.0, 1, None, None, u'\u2191', 0.99, "C", 0.5)
         self.hud_text.add_text_block(self.wind_pointer)
 
