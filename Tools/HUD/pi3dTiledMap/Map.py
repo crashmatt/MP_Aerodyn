@@ -5,8 +5,6 @@ Created on 16 Jul 2015
 '''
 
 import pi3d
-from pi3d.util.OffScreenTexture import OffScreenTexture
-from pi3d.shape.FlipSprite import FlipSprite
 from _dbus_bindings import String
 from math import sin, cos, log , pi, ceil, floor, atan2, degrees, fabs, sqrt
 import colorsys
