@@ -40,6 +40,7 @@ class Map(object):
         self.z = z
         self.alpha = alpha
 
+
         self._zoom_target = 1.0
         self._zoom_rate = 1.0
         self._zoom = 1.0
@@ -51,6 +52,9 @@ class Map(object):
         
         self._climbrate = 0.0
         self._wind_vector = [0.0, 0.0, 0.0]
+
+        self._wind_drift_factor_target = 0.0
+        self._wind_drift_factor_rate = 1.0
         self._wind_drift_factor = 0.0
 
         self._zoom_filter_time = time.time()
@@ -208,8 +212,9 @@ void main(void) {
         self._wind_vector = vector
     
     #Set how much the displayed track compensates for wind drift
-    def set_wind_drift(self, drift_factor):
-        self._wind_drift_factor = drift_factor
+    def set_wind_drift_target(self, drift_factor, drift_factor_rate=1.0):
+        self._wind_drift_factor_target = drift_factor
+        self._wind_drift_factor_rate = drift_factor_rate
         
     def gen_map(self):
         self._update_zoom()
@@ -221,6 +226,11 @@ void main(void) {
         deltaZ = self._zoom_target - self._zoom
         deltaZ = deltaZ * (deltaT * self._zoom_rate)
         self._zoom = self._zoom + deltaZ
+
+        deltaDrift = self._wind_drift_factor_target -self._wind_drift_factor
+        deltaDrift = deltaDrift * (deltaT * self._wind_drift_factor_rate)
+        self._wind_drift_factor += deltaDrift
+        
         self._zoom_filter_time = now
         
                     
@@ -294,7 +304,7 @@ void main(void) {
 
 #        self.track_sprite.position(-self._aircraft_pos.x * self._zoom, -self._aircraft_pos.y * self._zoom, 7.0)
         
-        if self._wind_drift_factor != 0.0:
+        if self._wind_drift_factor > 0.05:
             wind_drift = np.multiply(self._wind_offsets, -self._wind_drift_factor)
             wind_track = np.add(self._track, wind_drift)
             b = self.track_sprite.buf[0]

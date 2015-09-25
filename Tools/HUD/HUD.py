@@ -583,13 +583,13 @@ class HUD(object):
             self.track_map.set_wind_vector(wind_vector)
             if self.flap_pos == "FLAP DOWN":
                 self.track_map.set_zoom_target(1.5, 1.0)
-                self.track_map.set_wind_drift(1.0)
+                self.track_map.set_wind_drift_target(1.0)
             elif self.flap_pos == "FLAP UP":
                 self.track_map.set_zoom_target(0.75, 1.0)
-                self.track_map.set_wind_drift(0.0)
+                self.track_map.set_wind_drift_target(0.0)
             else:
                 self.track_map.set_zoom_target(1.0, 1.0)
-                self.track_map.set_wind_drift(0.0)
+                self.track_map.set_wind_drift_target(0.0)
         
     def windspeed_scale(self):
         self.windspeed = self.windspeed_cms * 0.01
