@@ -44,7 +44,7 @@ class FastText(object):
         self.max_chars = max_chars
         self.font = font
 
-        self.shader = Shader("shaders/uv_spritemult")
+        self.shader = Shader("shaders/uv_fontmult")
         
         self.locations = np.zeros((max_chars, 3))
         # :,2 for size range 0.0 to 0.999           
