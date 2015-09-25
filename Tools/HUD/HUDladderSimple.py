@@ -118,7 +118,7 @@ void main(void) {
        
     def draw_ladder(self, roll, pitch, yaw):
         """ Draw the ladder. roll, pitch, yaw parameters in degrees"""
-        pixel_pitch = pitch * self.pixelsPerBar / self.degstep
+        pixel_pitch = -pitch * self.pixelsPerBar / self.degstep
         ypos = pixel_pitch * math.cos(math.radians(roll))
         xpos = -pixel_pitch * math.sin(math.radians(roll))
         self.ladder.rotateToZ(roll)
