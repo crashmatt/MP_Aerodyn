@@ -7,10 +7,8 @@ Created on 16 Jul 2015
 import pi3d
 from pi3d.util.OffScreenTexture import OffScreenTexture
 from pi3d.shape.FlipSprite import FlipSprite
-from MapTile import MapTile
 from _dbus_bindings import String
 from math import sin, cos, log , pi, ceil, floor, atan2, degrees, fabs, sqrt
-from Lines2d import Lines2d
 import colorsys
 from pi3dTiledMap import CoordSys
 from pi3dTiledMap.CoordSys import Cartesian

@@ -8,7 +8,6 @@ from CLines import CLines
 import math
 import time
 from ScreenGrid import ScreenScale
-from Line2d import Line2d
 import numpy as np
 import CPlanes
 
