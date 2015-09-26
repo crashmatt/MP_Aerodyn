@@ -293,10 +293,10 @@ void main(void) {
         self._wind_offsets[self.track_index] = 0.0
         
         self.track_sprite.scale(self._zoom, self._zoom, 1.0)
-        if (self._zoom > 1.0):
-            self.track_sprite.set_point_size(self._track_width * self._zoom)
-        else:
-            self.track_sprite.set_point_size(self._track_width)
+#        if (self._zoom > 1.0):
+#            self.track_sprite.set_point_size(self._track_width * self._zoom)
+#        else:
+#            self.track_sprite.set_point_size(self._track_width)
 
 #        self.track_sprite.position(-self._aircraft_pos.x * self._zoom, -self._aircraft_pos.y * self._zoom, 7.0)
         
