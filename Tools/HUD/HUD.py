@@ -74,6 +74,12 @@ class HUD(object):
         self.pitch_ladder_alpha = 1
         self.pitch_ladder_text_alpha = 1.0
         
+        self.slip_indicator_radius = 0.375
+        self.slip_indicator_gain = 0.5
+        self.slip_indicator_limit = 20
+        self.slip_indicator_alpha = 0.8
+        self.slip_indicator_size = 0.8
+        
         self.hud_colour = (0.0,1.0,0.0,1.0)
         self.font_colour = (0,255,0,255)
         self.textbox_line_colour = self.hud_colour
@@ -189,12 +195,12 @@ class HUD(object):
         #fonts
         font_path = os.path.abspath(os.path.join(self.working_directory, 'fonts', 'FreeSansBold.ttf'))
 #        self.warningFont = pi3d.Font(font_path, (255,0,0,255))
-        self.pointFont = PointFont(font_path, self.font_colour, codepoints=chain(range(32,128),range(8593,8594)) )
+        self.pointFont = PointFont(font_path, self.font_colour, codepoints=chain(range(32,128),range(0x2191,0x2192),range(0x298,0x299)) )
         self.hud_text = FastText.FastText(self.pointFont, self.text_camera)
         
-        self.pointfont_sprite = pi3d.Sprite(camera=self.hud_camera, x=0, y=0,z=0.1, w=1024, h=1024)
-        self.pointfont_sprite.set_draw_details(self.flatsh, [self.pointFont])
-        self.pointfont_sprite.position(0, 0, 0.1)
+#        self.pointfont_sprite = pi3d.Sprite(camera=self.hud_camera, x=0, y=0,z=0.1, w=1024, h=1024)
+#        self.pointfont_sprite.set_draw_details(self.flatsh, [self.pointFont])
+#        self.pointfont_sprite.position(0, 0, 0.1)
         
 #        self.bitsnpieces.add_line((-512,64,0.05), (512,64,0.05))
 #        self.bitsnpieces.add_line((-512,32,0.05), (512,32,0.05))
@@ -226,6 +232,11 @@ class HUD(object):
 #                                              indmax=50, indmin=-50, x=x, y=y, z=3, width=21, length=250, 
 #                                              orientation="H", line_colour=(1.0, 1.0, 1.0, 1.0), fill_colour=(0,0,0,0.75), 
 #                                              line_thickness = 1, needle_img=needle_path)
+        self.slip_indicator_pixel_dist = self.slip_indicator_radius * self.DISPLAY.height
+        self.slip_indicator = FastText.TextBlock(0, -self.slip_indicator_pixel_dist, 1.0, 0.0, 1, None, None,  
+                                                 u'\u0298', self.slip_indicator_size, "C", self.slip_indicator_alpha)
+        self.hud_text.add_text_block(self.slip_indicator)
+
 #        print("end creating indicators")
 
 
@@ -369,15 +380,9 @@ class HUD(object):
         x,y = self.grid.get_grid_pixel(-14, -4)
         self.bitsnpieces.add_filled_box(layer_text_spacing*6*1.2, self.text_box_height*1.5, x, y, 1.0, self.textbox_fill_colour, self.textbox_line_colour, self.text_box_line_width, "C")
 
-#        self.dynamic_items.add_item( LayerDynamicShape(self.VSI, phase=0) )
-#        self.static_items.add_item( LayerShape(self.VSI.bezel) )
-
-        
-#        self.dynamic_items.add_item( LayerDynamicShape(self.slip_indicator, phase=0) )
-#        self.static_items.add_item( LayerShape(self.slip_indicator.bezel) )
         
         #Explicit working directory path done so that profiling works correctly. Don't know why. It just is.
-        pointer_path = os.path.abspath(os.path.join(self.working_directory, 'default_pointer.png'))
+#        pointer_path = os.path.abspath(os.path.join(self.working_directory, 'default_pointer.png'))
         
         
         # Heading number
@@ -563,6 +568,7 @@ class HUD(object):
         self.update_maps()
          #Things to update only if there has been another value update
         if self.values_updated:
+            self.update_slip_indicator()
             self.home_dist_scale()
             self.channel_scale()
             self.calc_home_direction()
@@ -571,6 +577,14 @@ class HUD(object):
             self.windspeed_scale()
             self.status_condition()
             self.wind_pointer_update()
+
+    def update_slip_indicator(self):
+        scaled_slip = self.slip * self.slip_indicator_gain
+        limited_slip = max(-self.slip_indicator_limit, min(self.slip_indicator_limit,scaled_slip))
+        rad_slip = math.radians(limited_slip)
+        self.slip_indicator.y = -self.slip_indicator_pixel_dist * math.cos(rad_slip)
+        self.slip_indicator.x = self.slip_indicator_pixel_dist * math.sin(rad_slip)
+        self.slip_indicator.last_value = self.slip_indicator
         
     def update_maps(self):
         if self.show_tiled or self.show_map:
