@@ -80,6 +80,10 @@ class HUD(object):
         self.slip_indicator_alpha = 0.8
         self.slip_indicator_size = 0.8
         
+        self.home_pointer_radius = 0.31
+        self.home_pointer_size = 0.8
+        self.home_pointer_alpha = 0.8
+        
         self.hud_colour = (0.0,1.0,0.0,1.0)
         self.font_colour = (0,255,0,255)
         self.textbox_line_colour = self.hud_colour
@@ -203,41 +207,20 @@ class HUD(object):
 #        self.pointfont_sprite.position(0, 0, 0.1)
         
 #        self.bitsnpieces.add_line((-512,64,0.05), (512,64,0.05))
-#        self.bitsnpieces.add_line((-512,32,0.05), (512,32,0.05))
 #        self.bitsnpieces.add_line((-512,-64,0.05), (512,-64,0.05))
-#        self.bitsnpieces.add_line((-512,-32,0.05), (512,-32,0.05))
-
 #        self.bitsnpieces.add_line((-64,-512,0.05), (-64,512,0.05))
 #        self.bitsnpieces.add_line((64,-512,0.05), (64,512,0.05))
-#        self.bitsnpieces.add_line((-32,-512,0.05), (-32,512,0.05))
-#        self.bitsnpieces.add_line((32,-512,0.05), (32,512,0.05))
-#        self.bitsnpieces.add_line((-96,-512,0.05), (-96,512,0.05))
-#        self.bitsnpieces.add_line((96,-512,0.05), (96,512,0.05))
+
 
         print("end creating fonts")
         
-#        print("start creating indicators")
-        #Explicit working directory path done so that profiling works correctly. Don't know why. It just is.
-#        needle_path = os.path.abspath(os.path.join(self.working_directory, 'default_needle.img'))
-
-#        x,y = self.grid.get_grid_pixel(-15, 0)
-#        self.VSI = RollingIndicator(self.text_camera, self.flatsh, self.matsh, self, "vertical_speed", 
-#                                   indmax=20, indmin=-20, x=x, y=y, z=3, width=30, length=180, 
-#                                   orientation="V", line_colour=(1.0, 1.0, 1.0, 1.0), fill_colour=(0,0,0,0.75), 
-#                                   line_thickness = 1, needle_img=None, needle_thickness=8, needle_colour=self.hud_colour)
-
-        #Add slip indicator.  Scale is in degrees
-#        x,y = self.grid.get_grid_pixel(0, -5)
-#        self.slip_indicator = LinearIndicator(self.text_camera, self.flatsh, self.matsh, self, "slip", 
-#                                              indmax=50, indmin=-50, x=x, y=y, z=3, width=21, length=250, 
-#                                              orientation="H", line_colour=(1.0, 1.0, 1.0, 1.0), fill_colour=(0,0,0,0.75), 
-#                                              line_thickness = 1, needle_img=needle_path)
+        print("start creating indicators")
         self.slip_indicator_pixel_dist = self.slip_indicator_radius * self.DISPLAY.height
         self.slip_indicator = FastText.TextBlock(0, -self.slip_indicator_pixel_dist, 1.0, 0.0, 1, None, None,  
                                                  u'\u0298', self.slip_indicator_size, "C", self.slip_indicator_alpha)
         self.hud_text.add_text_block(self.slip_indicator)
 
-#        print("end creating indicators")
+        print("end creating indicators")
 
 
         print("start creating ladder")
@@ -403,6 +386,14 @@ class HUD(object):
 #        x,y = self.grid.get_grid_pixel(-8, 5)
 #        self.dynamic_items.add_item( DirectionIndicator(text_camera, self.flatsh, self.matsh, dataobj=self, attr="home_direction", 
 #                                                        x=x, y=y, z=3, pointer_img=pointer_path, phase=2) )
+        self.home_pointer_pixel_dist = self.home_pointer_radius * self.DISPLAY.height
+#        self.home_pointer = FastText.TextBlock(0, -self.home_pointer_pixel_dist, 1.0, 0.0, 0.8, 
+        self.home_pointer = FastText.TextBlock(100, self.home_pointer_pixel_dist, 1.0, 0.0, 1, 
+                                               None, None,  u'\u2191', self.home_pointer_size, 
+                                               "C", self.home_pointer_alpha)
+        self.hud_text.add_text_block(self.home_pointer)
+
+
 
         # Home distance number
         x,y = self.grid.get_grid_pixel(-2, 5)
@@ -569,6 +560,7 @@ class HUD(object):
          #Things to update only if there has been another value update
         if self.values_updated:
             self.update_slip_indicator()
+            self.update_home_pointer()
             self.home_dist_scale()
             self.channel_scale()
             self.calc_home_direction()
@@ -577,6 +569,14 @@ class HUD(object):
             self.windspeed_scale()
             self.status_condition()
             self.wind_pointer_update()
+            
+    def update_home_pointer(self):
+        angle = self.home_polar.angle - 90.0
+        rad_angle = math.radians(angle)
+        self.home_pointer.y = self.home_pointer_pixel_dist * math.cos(rad_angle)
+        self.home_pointer.x = -self.home_pointer_pixel_dist * math.sin(rad_angle)
+        self.home_pointer.last_value = self.home_pointer        
+        self.home_pointer.rot = rad_angle
 
     def update_slip_indicator(self):
         scaled_slip = self.slip * self.slip_indicator_gain

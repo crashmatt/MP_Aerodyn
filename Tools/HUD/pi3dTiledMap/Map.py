@@ -105,11 +105,12 @@ void main(void) {
 #        self.home.set_draw_details(self.matsh, [], 0, 0)
 #        self.home.set_material(self.home_colour)
 #        self.home.set_alpha(alpha)
-        
-        self.home_pointer = pi3d.Lines(camera=self.tile_camera, vertices=[[0, self.screen_height*0.3, 1.0],[0, self.screen_height*0.35, 1.0]], z=5.9, line_width=6)
-        self.home_pointer.set_draw_details(self.matsh, [], 0, 0)
-        self.home_pointer.set_material(self.marker_colour)
-        self.home_pointer.set_alpha(alpha)
+ 
+        # Home pointer now part of HUD drawn as rotated character      
+#        self.home_pointer = pi3d.Lines(camera=self.tile_camera, vertices=[[0, self.screen_height*0.3, 1.0],[0, self.screen_height*0.35, 1.0]], z=5.9, line_width=6)
+#        self.home_pointer.set_draw_details(self.matsh, [], 0, 0)
+#        self.home_pointer.set_material(self.marker_colour)
+#        self.home_pointer.set_alpha(alpha)
         
         ppc = 80    #points per circle
         circles = 10
@@ -322,11 +323,12 @@ void main(void) {
         #-------------------------- self.home.scale(self._zoom, self._zoom, 1.0)
         # self.home.position( -self._aircraft_pos.x*self._zoom,  -self._aircraft_pos.y*self._zoom, 5.9)
         #------------------------------------------------------ self.home.draw()
-        
-        rot = degrees(atan2(self._aircraft_pos.x, -self._aircraft_pos.y))
-        self.home_pointer.set_line_width(10.0, False, False)
-        self.home_pointer.rotateToZ(rot)
-        self.home_pointer.draw()
+ 
+        #Home pointer now done as part of 
+#        rot = degrees(atan2(self._aircraft_pos.x, -self._aircraft_pos.y))
+#        self.home_pointer.set_line_width(10.0, False, False)
+#        self.home_pointer.rotateToZ(rot)
+#        self.home_pointer.draw()
         
         #---------------- self.distance_spots.scale(self._zoom, self._zoom, 1.0)
         # self.distance_spots.position( -self._aircraft_pos.x*self._zoom,  -self._aircraft_pos.y*self._zoom, 5.9)
